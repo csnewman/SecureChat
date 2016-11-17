@@ -1,6 +1,5 @@
 package com.securechat.client;
 
-import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,39 +12,16 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
 
 public class LoginWindow {
-
+	private SecureChatClient client;
 	private JFrame frmSecureChat;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-					LoginWindow window = new LoginWindow();
-					window.frmSecureChat.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	/**
-	 * Create the application.
-	 */
-	public LoginWindow() {
+	public LoginWindow(SecureChatClient client) {
+		this.client = client;
 		initialize();
 	}
 
-	/**
-	 * Initialize the contents of the frame.
-	 */
 	private void initialize() {
 		frmSecureChat = new JFrame();
 		frmSecureChat.setTitle("Secure Chat");
@@ -107,5 +83,13 @@ public class LoginWindow {
 
 		JMenuItem mntmOverrideConnection = new JMenuItem("Override Connection");
 		mnFile.add(mntmOverrideConnection);
+	}
+
+	public void open() {
+		frmSecureChat.setVisible(true);
+	}
+	
+	public JFrame getFrame() {
+		return frmSecureChat;
 	}
 }
