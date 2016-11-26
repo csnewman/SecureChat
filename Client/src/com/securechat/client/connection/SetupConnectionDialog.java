@@ -1,4 +1,4 @@
-package com.securechat.client;
+package com.securechat.client.connection;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
@@ -86,6 +86,7 @@ public class SetupConnectionDialog extends JFrame {
 		contentPane.add(btnDecrypt);
 		
 		JButton btnImport = new JButton("Import");
+		btnImport.setEnabled(false);
 		btnImport.setBounds(255, 98, 112, 23);
 		contentPane.add(btnImport);
 		

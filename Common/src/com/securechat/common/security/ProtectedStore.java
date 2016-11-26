@@ -11,23 +11,21 @@ import com.securechat.common.ByteWriter;
 public abstract class ProtectedStore {
 	private static byte[] headerPrefix = new byte[] { 'S', 'C', 'P', 'S', 0X56, 0X1A, 0X11 };
 	private File file;
-	private String passwordHash;
+	private IEncryption encryptionMethod;
 
-	public ProtectedStore(File file, String passwordHash) {
+	public ProtectedStore(File file, IEncryption encryptionMethod) {
 		this.file = file;
-		this.passwordHash = passwordHash;
+		this.encryptionMethod = encryptionMethod;
 	}
 
 	public void load() {
 		if (file.exists()) {
 			byte[] rawData;
 			try {
-				rawData = Files.readAllBytes(file.toPath());
+				rawData = encryptionMethod.decrypt(Files.readAllBytes(file.toPath()));
 			} catch (IOException e) {
 				throw new RuntimeException("Failed to read store", e);
 			}
-
-			// TODO: Password
 
 			ByteReader headerReader = new ByteReader(rawData);
 
@@ -63,10 +61,8 @@ public abstract class ProtectedStore {
 		headerWriter.writeArray(SecurityUtils.hashData(content));
 		headerWriter.writeArray(content);
 
-		// TODO: Password
-
 		try {
-			Files.write(file.toPath(), headerWriter.toByteArray());
+			Files.write(file.toPath(), encryptionMethod.encrypt(headerWriter.toByteArray()));
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to write store", e);
 		}
@@ -76,8 +72,8 @@ public abstract class ProtectedStore {
 	}
 
 	protected abstract void writeContent(ByteWriter writer);
-	
-	public boolean exists(){
+
+	public boolean exists() {
 		return file.exists();
 	}
 }

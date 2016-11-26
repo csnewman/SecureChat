@@ -16,7 +16,7 @@ public class JsonUtil {
 	
 	public static JSONObject parseFile(File file) {
 		try {
-			return new JSONObject(FileUtil.readFileToString(file));
+			return new JSONObject(Util.readFileToString(file));
 		} catch (JSONException | IOException e) {
 			throw new RuntimeException("Failed to parse file " + file.getAbsolutePath(), e);
 		}

@@ -10,6 +10,7 @@ import com.securechat.server.network.NetworkServer;
 
 public class ChatServer {
 	public static final String netBasePrivateKey = "netBasePrivate", netBasePublicKey = "netBasePublic";
+	private static final File clientConnectionInfoFile = new File("clientConnectionInfo.bin");
 	private NetworkServer networkServer;
 	private ServerSettings settings;
 	private ProtectedKeyStore store;
@@ -25,7 +26,7 @@ public class ChatServer {
 			System.out.println("No network public and private key found! Generaring!");
 		}
 
-		connectionStore = new ProtectedDataStore(new File("clientConnectionInfo.blob"), null);
+		connectionStore = new ProtectedDataStore(clientConnectionInfoFile, null);
 		ByteWriter connectionInfoWriter = new ByteWriter();
 		connectionInfoWriter.writeString(settings.getServerName());
 		connectionInfoWriter.writeString(settings.getPublicIp());

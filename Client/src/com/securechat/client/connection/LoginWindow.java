@@ -1,9 +1,10 @@
-package com.securechat.client;
+package com.securechat.client.connection;
 
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -13,14 +14,26 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.SwingConstants;
 
+import com.securechat.client.SecureChatClient;
+
 public class LoginWindow {
 	private SecureChatClient client;
 	private JFrame frmSecureChat;
-
+	private JComboBox<String> connectionBox;
+	private JButton btnConnect;
+	
 	public LoginWindow(SecureChatClient client) {
 		this.client = client;
 		initialize();
 	}
+
+	 public void updateOptions(){
+		 String[] names = client.getConnectionStore().getInfos().stream().map(r -> r.getServerName())
+				 .toArray(size -> new String[size]);
+//		ConnectionInfo[] infos = client.getConnectionStore().getInfos().toArray(new ConnectionInfo[0]);
+		 connectionBox.setModel(new DefaultComboBoxModel(names));
+		 btnConnect.setEnabled(names.length != 0);
+	 }
 
 	private void initialize() {
 		frmSecureChat = new JFrame();
@@ -35,15 +48,15 @@ public class LoginWindow {
 		lblSecureChat.setBounds(10, 11, 233, 26);
 		frmSecureChat.getContentPane().add(lblSecureChat);
 
-		JComboBox comboBox = new JComboBox();
-		comboBox.setBounds(83, 48, 160, 20);
-		frmSecureChat.getContentPane().add(comboBox);
+		connectionBox= new JComboBox<String>();
+		connectionBox.setBounds(83, 48, 160, 20);
+		frmSecureChat.getContentPane().add(connectionBox);
 
 		JLabel lblConnection = new JLabel("Connection");
 		lblConnection.setBounds(10, 51, 63, 14);
 		frmSecureChat.getContentPane().add(lblConnection);
 
-		JButton btnConnect = new JButton("Connect");
+		btnConnect = new JButton("Connect");
 		btnConnect.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			}
@@ -88,7 +101,7 @@ public class LoginWindow {
 	public void open() {
 		frmSecureChat.setVisible(true);
 	}
-	
+
 	public JFrame getFrame() {
 		return frmSecureChat;
 	}

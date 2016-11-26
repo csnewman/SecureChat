@@ -8,8 +8,8 @@ import com.securechat.common.ByteWriter;
 public class ProtectedDataStore extends ProtectedStore{
 	private byte[] content;
 
-	public ProtectedDataStore(File file, String passwordHash) {
-		super(file, passwordHash);
+	public ProtectedDataStore(File file, IEncryption encryptionMethod) {
+		super(file, encryptionMethod);
 	}
 
 	@Override

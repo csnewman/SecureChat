@@ -15,8 +15,8 @@ import com.securechat.common.ByteWriter;
 public class ProtectedKeyStore extends ProtectedStore {
 	private Map<String, Key> keys;
 
-	public ProtectedKeyStore(File file, String passwordHash) {
-		super(file, passwordHash);
+	public ProtectedKeyStore(File file, IEncryption encryptionMethod) {
+		super(file, encryptionMethod);
 		keys = new HashMap<String, Key>();
 	}
 
@@ -33,10 +33,10 @@ public class ProtectedKeyStore extends ProtectedStore {
 
 			switch (keyType) {
 			case 1:
-				keys.put(keyName, SecurityUtils.loadPrivateKey(keyData));
+				keys.put(keyName, RSAEncryption.loadPrivateKey(keyData));
 				break;
 			case 2:
-				keys.put(keyName, SecurityUtils.loadPublicKey(keyData));
+				keys.put(keyName, RSAEncryption.loadPublicKey(keyData));
 				break;
 			default:
 				throw new RuntimeException("Unknown key type! " + keyType);
@@ -82,14 +82,22 @@ public class ProtectedKeyStore extends ProtectedStore {
 	}
 
 	public KeyPair generateKeyPair(String privateName, String publicName) {
-		KeyPair pair = SecurityUtils.generateKeyPair();
+		KeyPair pair = RSAEncryption.generateKeyPair();
 		setKey(privateName, pair.getPrivate());
 		setKey(publicName, pair.getPublic());
 		return pair;
 	}
 
+	public KeyPair generateKeyPair(String name) {
+		return generateKeyPair(name + ".private", name + ".public");
+	}
+
 	public KeyPair loadKeyPair(String privateName, String publicName) {
 		return new KeyPair(getKey(publicName, PublicKey.class), getKey(privateName, PrivateKey.class));
+	}
+
+	public KeyPair loadKeyPair(String name) {
+		return loadKeyPair(name + ".private", name + ".public");
 	}
 
 	public void saveKeyPair(KeyPair pair, String privateName, String publicName) {

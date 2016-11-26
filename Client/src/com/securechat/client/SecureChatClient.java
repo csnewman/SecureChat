@@ -9,56 +9,95 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.UIManager;
 
+import com.securechat.client.connection.ConnectionStore;
+import com.securechat.client.connection.LoginWindow;
+import com.securechat.common.security.PasswordEncryption;
 import com.securechat.common.security.ProtectedKeyStore;
+import com.securechat.common.security.SecurityUtils;
 
 public class SecureChatClient {
+	private static final File keystoreFile = new File("keystore.bin");
 	private static SecureChatClient INSTANCE;
 	private ProtectedKeyStore keyStore;
 	private LoginWindow loginWindow;
+	private ConnectionStore connectionStore;
 
 	public void init() {
-		LoginWindow window = new LoginWindow(INSTANCE);
-		window.open();
-		
-		File keystoreFile = new File("keystore.blob");
-		if(keystoreFile.exists()){
+		loginWindow = new LoginWindow(INSTANCE);
+		loginWindow.open();
+
+		if (keystoreFile.exists()) {
 			unlockKeyStore();
-		}else{
-			
+			connectionStore = new ConnectionStore(keyStore.loadKeyPair("connections"));
+		} else {
+			generateKeyStore();
+			connectionStore = new ConnectionStore(keyStore.generateKeyPair("connections"));
 		}
 		
-		// keyStore = new ProtectedKeyStore(new File("keystore.blob"),
-		// passwordHash)
-
+		loginWindow.updateOptions();
 	}
 
 	private void unlockKeyStore() {
 		boolean unlocked = false;
-		while(!unlocked){
+		while (!unlocked) {
 			JPanel panel = new JPanel();
 			JLabel label = new JLabel("Keystore Password:");
 			panel.add(label);
 			JPasswordField pass = new JPasswordField(20);
 			panel.add(pass);
-			
+
 			String[] options = new String[] { "Unlock", "Quit" };
 			int option = JOptionPane.showOptionDialog(loginWindow.getFrame(), panel, "Unlock KeyStore",
 					JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
 			if (option == 0) {
 				String password = new String(pass.getPassword());
-				
-				
-				
+				try {
+					keyStore = new ProtectedKeyStore(keystoreFile,
+							new PasswordEncryption(SecurityUtils.hashString(password)));
+					keyStore.load();
+					unlocked = true;
+				} catch (RuntimeException e) {
+					e.printStackTrace();
+					continue;
+				}
 			} else {
 				System.exit(-1);
-			}			
+			}
 		}
 	}
-	
-	private void generateKeyStore(){
-		
+
+	private void generateKeyStore() {
+		String password = null;
+		boolean gotPassword = false;
+		while (!gotPassword) {
+			JPanel panel = new JPanel();
+			JLabel label = new JLabel("New Keystore Password:");
+			panel.add(label);
+			JPasswordField pass = new JPasswordField(20);
+			panel.add(pass);
+
+			String[] options = new String[] { "Lock", "Quit" };
+
+			int option = JOptionPane.showOptionDialog(loginWindow.getFrame(), panel, "New KeyStore",
+					JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+			if (option == 0) {
+				password = new String(pass.getPassword());
+				if (password.length() == 0) {
+					continue;
+				}
+				gotPassword = true;
+			} else {
+				System.exit(-1);
+			}
+		}
+		keyStore = new ProtectedKeyStore(keystoreFile, new PasswordEncryption(SecurityUtils.hashString(password)));
+		keyStore.save();
 	}
 
+	public ConnectionStore getConnectionStore() {
+		return connectionStore;
+	}
+	
 	public static void main(String[] args) {
 		INSTANCE = new SecureChatClient();
 		EventQueue.invokeLater(new Runnable() {
