@@ -33,8 +33,9 @@ public class SecureChatClient {
 			generateKeyStore();
 			connectionStore = new ConnectionStore(keyStore.generateKeyPair("connections"));
 		}
-		
+
 		loginWindow.updateOptions();
+
 	}
 
 	private void unlockKeyStore() {
@@ -97,7 +98,7 @@ public class SecureChatClient {
 	public ConnectionStore getConnectionStore() {
 		return connectionStore;
 	}
-	
+
 	public static void main(String[] args) {
 		INSTANCE = new SecureChatClient();
 		EventQueue.invokeLater(new Runnable() {

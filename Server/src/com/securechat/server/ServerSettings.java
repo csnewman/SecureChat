@@ -14,6 +14,7 @@ public class ServerSettings {
 
 	public void loadDefaults() {
 		serverName = "Unnamed Server";
+		publicIp = "127.0.0.1";
 		port = 1234;
 	}
 

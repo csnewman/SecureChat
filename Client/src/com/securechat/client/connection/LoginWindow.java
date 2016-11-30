@@ -57,6 +57,7 @@ public class LoginWindow {
 		frmSecureChat.getContentPane().add(lblConnection);
 
 		btnConnect = new JButton("Connect");
+		btnConnect.setEnabled(false);
 		btnConnect.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			}
@@ -89,12 +90,14 @@ public class LoginWindow {
 		JMenuItem mntmSetupConnection = new JMenuItem("Setup Connection");
 		mntmSetupConnection.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("Setup Clicked");
+				SetupConnectionDialog setup = new SetupConnectionDialog(frmSecureChat);
+				setup.setVisible(true);
 			}
 		});
 		mnFile.add(mntmSetupConnection);
 
 		JMenuItem mntmOverrideConnection = new JMenuItem("Override Connection");
+		mntmOverrideConnection.setEnabled(false);
 		mnFile.add(mntmOverrideConnection);
 	}
 
