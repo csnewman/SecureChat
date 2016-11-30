@@ -18,6 +18,7 @@ import javax.crypto.NoSuchPaddingException;
 public class RSAEncryption implements IEncryption {
 	private PublicKey pubKey;
 	private PrivateKey priKey;
+	private Cipher cipher;
 
 	public RSAEncryption(KeyPair pair) {
 		this(pair.getPublic(), pair.getPrivate());
@@ -26,16 +27,19 @@ public class RSAEncryption implements IEncryption {
 	public RSAEncryption(PublicKey pubKey, PrivateKey priKey) {
 		this.pubKey = pubKey;
 		this.priKey = priKey;
+		try {
+			cipher = Cipher.getInstance("RSA");
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+			throw new RuntimeException("Failed to crypt data", e);
+		}
 	}
 
 	@Override
 	public byte[] encrypt(byte[] data) {
 		try {
-			Cipher cipher = Cipher.getInstance("RSA");
 			cipher.init(Cipher.ENCRYPT_MODE, pubKey);
 			return cipher.doFinal(data);
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
-				| BadPaddingException e) {
+		} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
 			throw new RuntimeException("Failed to encrypt data", e);
 		}
 	}
@@ -43,15 +47,14 @@ public class RSAEncryption implements IEncryption {
 	@Override
 	public byte[] decrypt(byte[] data) {
 		try {
-			Cipher cipher = Cipher.getInstance("RSA");
 			cipher.init(Cipher.ENCRYPT_MODE, priKey);
 			return cipher.doFinal(data);
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
+		} catch (InvalidKeyException | IllegalBlockSizeException
 				| BadPaddingException e) {
 			throw new RuntimeException("Failed to decrypt data", e);
 		}
 	}
-	
+
 	public static KeyPair generateKeyPair() {
 		try {
 			KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
@@ -61,7 +64,7 @@ public class RSAEncryption implements IEncryption {
 			throw new RuntimeException("Failed to generate key pair", e);
 		}
 	}
-	
+
 	public static PublicKey loadPublicKey(byte[] data) {
 		try {
 			return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(data));
