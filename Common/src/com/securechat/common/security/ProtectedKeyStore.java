@@ -92,17 +92,40 @@ public class ProtectedKeyStore extends ProtectedStore {
 		return generateKeyPair(name + ".private", name + ".public");
 	}
 
-	public KeyPair loadKeyPair(String privateName, String publicName) {
+	public KeyPair getKeyPair(String privateName, String publicName) {
 		return new KeyPair(getKey(publicName, PublicKey.class), getKey(privateName, PrivateKey.class));
 	}
 
-	public KeyPair loadKeyPair(String name) {
-		return loadKeyPair(name + ".private", name + ".public");
+	public KeyPair getKeyPair(String name) {
+		return getKeyPair(name + ".private", name + ".public");
 	}
 
-	public void saveKeyPair(KeyPair pair, String privateName, String publicName) {
+	public void setKeyPair(KeyPair pair, String privateName, String publicName) {
 		setKey(publicName, pair.getPublic());
 		setKey(privateName, pair.getPrivate());
+	}
+	
+	public void setKeyPair(KeyPair pair, String name){
+		setKeyPair(pair, name + ".private", name + ".public");
+	}
+	
+	public boolean keyPairExists(String privateName, String publicName){
+		return keysExists(privateName, publicName);
+	}
+	
+	public boolean keyPairExists(String name){
+		return keyPairExists(name + ".private", name + ".public");
+	}
+	
+	public KeyPair getOrGenKeyPair(String privateName, String publicName){
+		if(keyPairExists(privateName, publicName)){
+			return getKeyPair(privateName, publicName);
+		}
+		return generateKeyPair(privateName, publicName);
+	}
+	
+	public KeyPair genOrGenKeyPair(String name){
+		return generateKeyPair(name + ".private", name + ".public");
 	}
 
 	public void deleteKeys(String... keys) {

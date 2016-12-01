@@ -1,5 +1,6 @@
 package com.securechat.server;
 
+import java.io.Console;
 import java.io.File;
 import java.security.PublicKey;
 
@@ -7,6 +8,7 @@ import com.securechat.common.ByteWriter;
 import com.securechat.common.security.PasswordEncryption;
 import com.securechat.common.security.ProtectedDataStore;
 import com.securechat.common.security.ProtectedKeyStore;
+import com.securechat.common.security.SecurityUtils;
 import com.securechat.server.network.NetworkServer;
 
 public class ChatServer {
@@ -18,7 +20,19 @@ public class ChatServer {
 	private ProtectedDataStore connectionStore;
 
 	public void start() {
-		store = new ProtectedKeyStore(new File("data.pstore"), new PasswordEncryption(""));
+		System.out.println("SecureChat Server 1.0");
+		Console console = System.console();
+		char[] password;
+		if (console == null) {
+			System.out.println("No console found! Using default 'test' password for master keystore");
+			password = new char[] { 't', 'e', 's', 't' };
+			return;
+		} else {
+			password = console.readPassword("Master Keystore Password: ");
+		}
+
+		store = new ProtectedKeyStore(new File("data.pstore"),
+				new PasswordEncryption(SecurityUtils.secureHashChars(password)));
 		store.load();
 		store.save();
 
@@ -26,8 +40,8 @@ public class ChatServer {
 		settings.load();
 
 		if (!store.keysExists(netBasePrivateKey, netBasePublicKey)) {
-			store.generateKeyPair(netBasePrivateKey, netBasePublicKey);
 			System.out.println("No network public and private key found! Generaring!");
+			store.generateKeyPair(netBasePrivateKey, netBasePublicKey);
 		}
 
 		connectionStore = new ProtectedDataStore(clientConnectionInfoFile, new PasswordEncryption(""));

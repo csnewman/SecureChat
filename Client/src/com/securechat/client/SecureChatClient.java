@@ -51,10 +51,9 @@ public class SecureChatClient {
 			int option = JOptionPane.showOptionDialog(loginWindow.getFrame(), panel, "Unlock KeyStore",
 					JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
 			if (option == 0) {
-				String password = new String(pass.getPassword());
 				try {
 					keyStore = new ProtectedKeyStore(keystoreFile,
-							new PasswordEncryption(SecurityUtils.hashString(password)));
+							new PasswordEncryption(SecurityUtils.secureHashChars(pass.getPassword())));
 					keyStore.load();
 					unlocked = true;
 				} catch (RuntimeException e) {
@@ -68,7 +67,7 @@ public class SecureChatClient {
 	}
 
 	private void generateKeyStore() {
-		String password = null;
+		char[] password = null;
 		boolean gotPassword = false;
 		while (!gotPassword) {
 			JPanel panel = new JPanel();
@@ -82,8 +81,8 @@ public class SecureChatClient {
 			int option = JOptionPane.showOptionDialog(loginWindow.getFrame(), panel, "New KeyStore",
 					JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
 			if (option == 0) {
-				password = new String(pass.getPassword());
-				if (password.length() == 0) {
+				password = pass.getPassword();
+				if (password.length == 0) {
 					continue;
 				}
 				gotPassword = true;
@@ -91,7 +90,7 @@ public class SecureChatClient {
 				System.exit(-1);
 			}
 		}
-		keyStore = new ProtectedKeyStore(keystoreFile, new PasswordEncryption(SecurityUtils.hashString(password)));
+		keyStore = new ProtectedKeyStore(keystoreFile, new PasswordEncryption(SecurityUtils.secureHashChars(password)));
 		keyStore.save();
 	}
 

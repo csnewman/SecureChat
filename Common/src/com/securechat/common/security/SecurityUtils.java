@@ -15,6 +15,15 @@ public class SecurityUtils {
 		}
 	}
 	
+	public static char[] secureHashChars(char[] chars) {
+		byte[] temp = new byte[chars.length];
+		System.arraycopy(chars, 0, temp, 0, chars.length);
+		temp = hashData(temp);
+		char[] out = new char[temp.length];
+		System.arraycopy(temp, 0, out, 0, out.length);
+		return out;
+	}
+	
 	public static String hashString(String input) {
 		return new String(hashData(input.getBytes()));
 	}

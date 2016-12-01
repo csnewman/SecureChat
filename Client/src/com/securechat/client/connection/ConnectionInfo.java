@@ -15,9 +15,9 @@ public class ConnectionInfo {
 	private int serverPort;
 	private PublicKey publicKey;
 
-	public void importFromFile(File file, String password) {
+	public void importFromFile(File file, char[] password) {
 		ProtectedDataStore connectionStore = new ProtectedDataStore(file,
-				new PasswordEncryption(SecurityUtils.hashString(password)));
+				new PasswordEncryption(SecurityUtils.secureHashChars(password)));
 		connectionStore.load();
 		ByteReader reader = connectionStore.getReader();
 		serverName = reader.readString();
