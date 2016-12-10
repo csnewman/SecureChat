@@ -27,7 +27,8 @@ public class SetupConnectionDialog extends JDialog {
 	private JTextField fileField;
 	private JPasswordField passwordField;
 	private JLabel lblNameValue, lblStatusValue, lblIPValue, lblPortValue;
-
+	private JButton btnImport;
+	
 	/**
 	 * Create the frame.
 	 */
@@ -82,10 +83,11 @@ public class SetupConnectionDialog extends JDialog {
 		passwordField.setColumns(10);
 
 		JButton btnDecrypt = new JButton("Decrypt");
+		btnDecrypt.addActionListener(this::decrypt);
 		btnDecrypt.setBounds(132, 98, 112, 23);
 		contentPane.add(btnDecrypt);
 
-		JButton btnImport = new JButton("Import");
+		btnImport = new JButton("Import");
 		btnImport.setEnabled(false);
 		btnImport.setBounds(255, 98, 112, 23);
 		contentPane.add(btnImport);
@@ -127,5 +129,22 @@ public class SetupConnectionDialog extends JDialog {
 
 		lblPortValue = new JLabel("");
 		panel.add(lblPortValue, "4, 8");
+	}
+	
+	private void decrypt(ActionEvent e){
+		File file = new File(fileField.getText());
+		if(file.exists()){
+			lblStatusValue.setText("Incorrect Password");
+			lblNameValue.setText("");
+			lblIPValue.setText("");
+			lblPortValue.setText("");
+			btnImport.setEnabled(false);
+		}else{
+			lblStatusValue.setText("File not found!");
+			lblNameValue.setText("");
+			lblIPValue.setText("");
+			lblPortValue.setText("");
+			btnImport.setEnabled(false);
+		}
 	}
 }

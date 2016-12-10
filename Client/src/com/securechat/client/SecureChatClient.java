@@ -28,11 +28,11 @@ public class SecureChatClient {
 
 		if (keystoreFile.exists()) {
 			unlockKeyStore();
-			connectionStore = new ConnectionStore(keyStore.loadKeyPair("connections"));
 		} else {
 			generateKeyStore();
-			connectionStore = new ConnectionStore(keyStore.generateKeyPair("connections"));
 		}
+		connectionStore = new ConnectionStore(keyStore.getOrGenKeyPair("connections"));
+		connectionStore.tryLoadAndSave();
 
 		loginWindow.updateOptions();
 
@@ -110,24 +110,6 @@ public class SecureChatClient {
 				}
 			}
 		});
-
-		// KeyPair pair = SecurityUtils.generateKeyPair();
-		//
-		// System.out.println("Public: " +
-		// Base64.getEncoder().encodeToString(pair.getPublic().getEncoded()));
-		// System.out.println("Private: " + new
-		// String(pair.getPrivate().getEncoded()));
-		//
-		//
-		// long start = System.currentTimeMillis();
-		// System.out.println("Encrypted: " + new
-		// String(SecurityUtils.encryptData("Hello".getBytes(),
-		// pair.getPublic())));
-		// System.out.println(System.currentTimeMillis() - start);
-		//// SecurityUtils.hashData(input)
-
-		// new NetworkClient().connect("127.0.0.1", 1234);
-
 	}
 
 }

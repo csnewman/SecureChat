@@ -124,7 +124,7 @@ public class ProtectedKeyStore extends ProtectedStore {
 		return generateKeyPair(privateName, publicName);
 	}
 	
-	public KeyPair genOrGenKeyPair(String name){
+	public KeyPair getOrGenKeyPair(String name){
 		return generateKeyPair(name + ".private", name + ".public");
 	}
 

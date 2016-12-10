@@ -3,6 +3,8 @@ package com.securechat.common.security;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import com.securechat.common.Util;
+
 public class SecurityUtils {
 
 	public static byte[] hashData(byte[] input) {
@@ -16,12 +18,7 @@ public class SecurityUtils {
 	}
 	
 	public static char[] secureHashChars(char[] chars) {
-		byte[] temp = new byte[chars.length];
-		System.arraycopy(chars, 0, temp, 0, chars.length);
-		temp = hashData(temp);
-		char[] out = new char[temp.length];
-		System.arraycopy(temp, 0, out, 0, out.length);
-		return out;
+		return Util.convertToChars(hashData(Util.convertToBytes(chars)));
 	}
 	
 	public static String hashString(String input) {

@@ -8,7 +8,6 @@ import com.securechat.common.ByteWriter;
 import com.securechat.common.security.PasswordEncryption;
 import com.securechat.common.security.ProtectedDataStore;
 import com.securechat.common.security.ProtectedKeyStore;
-import com.securechat.common.security.RSAEncryption;
 import com.securechat.common.security.SecurityUtils;
 import com.securechat.server.network.NetworkServer;
 
@@ -45,7 +44,8 @@ public class ChatServer {
 			store.generateKeyPair(netBasePrivateKey, netBasePublicKey);
 		}
 
-		connectionStore = new ProtectedDataStore(clientConnectionInfoFile, new RSAEncryption(store.loadKeyPair("")));
+		connectionStore = new ProtectedDataStore(clientConnectionInfoFile,
+				new PasswordEncryption(settings.getConnectionInfoPassword().toCharArray()));
 		ByteWriter connectionInfoWriter = new ByteWriter();
 		connectionInfoWriter.writeString(settings.getServerName());
 		connectionInfoWriter.writeString(settings.getPublicIp());

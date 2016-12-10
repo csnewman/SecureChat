@@ -17,6 +17,13 @@ public abstract class ProtectedStore {
 		this.file = file;
 		this.encryptionMethod = encryptionMethod;
 	}
+	
+	public void tryLoadAndSave(){
+		if(exists()){
+			load();
+		}
+		save();
+	}
 
 	public void load() {
 		if (file.exists()) {
