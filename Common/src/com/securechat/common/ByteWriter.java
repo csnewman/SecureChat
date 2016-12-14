@@ -18,6 +18,18 @@ public class ByteWriter {
 		output = new DataOutputStream(stream);
 	}
 
+	public void writeByte(int i) {
+		try {
+			output.writeByte(i);
+		} catch (IOException e) {
+			throw new RuntimeException("Internal error occured", e);
+		}
+	}
+	
+	public void writeEnum(Enum<?> e){
+		writeInt(e.ordinal());
+	}
+	
 	public void writeInt(int i) {
 		try {
 			output.writeInt(i);

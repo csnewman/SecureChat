@@ -21,19 +21,21 @@ import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
+import com.securechat.client.SecureChatClient;
 
 public class SetupConnectionDialog extends JDialog {
+	private static final long serialVersionUID = 2659950995253670666L;
+	private SecureChatClient client;
 	private JPanel contentPane;
 	private JTextField fileField;
 	private JPasswordField passwordField;
 	private JLabel lblNameValue, lblStatusValue, lblIPValue, lblPortValue;
 	private JButton btnImport;
-	
-	/**
-	 * Create the frame.
-	 */
-	public SetupConnectionDialog(JFrame parent) {
-		super(parent, "New Connection", true);
+	private ConnectionInfo connectionInfo;
+
+	public SetupConnectionDialog(SecureChatClient client) {
+		super(client.getCurrentWindow(), "New Connection", true);
+		this.client = client;
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 436, 271);
@@ -59,7 +61,7 @@ public class SetupConnectionDialog extends JDialog {
 						"scci");
 				chooser.setFileFilter(filter);
 				chooser.setCurrentDirectory(new File(fileField.getText().length() == 0 ? "." : fileField.getText()));
-				int returnVal = chooser.showOpenDialog(parent);
+				int returnVal = chooser.showOpenDialog(SetupConnectionDialog.this);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					fileField.setText(chooser.getSelectedFile().getAbsolutePath());
 				}
@@ -88,6 +90,7 @@ public class SetupConnectionDialog extends JDialog {
 		contentPane.add(btnDecrypt);
 
 		btnImport = new JButton("Import");
+		btnImport.addActionListener(this::importConnection);
 		btnImport.setEnabled(false);
 		btnImport.setBounds(255, 98, 112, 23);
 		contentPane.add(btnImport);
@@ -130,21 +133,42 @@ public class SetupConnectionDialog extends JDialog {
 		lblPortValue = new JLabel("");
 		panel.add(lblPortValue, "4, 8");
 	}
-	
-	private void decrypt(ActionEvent e){
+
+	private void decrypt(ActionEvent e) {
 		File file = new File(fileField.getText());
-		if(file.exists()){
-			lblStatusValue.setText("Incorrect Password");
+		if (file.exists()) {
+			try {
+				connectionInfo = new ConnectionInfo(file, passwordField.getPassword());
+
+				lblStatusValue.setText("Decrypted");
+				lblNameValue.setText(connectionInfo.getServerName());
+				lblIPValue.setText(connectionInfo.getServerIp());
+				lblPortValue.setText(Integer.toString(connectionInfo.getServerPort()));
+				btnImport.setEnabled(true);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				lblStatusValue.setText("Failed to decrypt");
+				lblNameValue.setText("");
+				lblIPValue.setText("");
+				lblPortValue.setText("");
+				btnImport.setEnabled(false);
+				connectionInfo = null;
+			}
+		} else {
+			lblStatusValue.setText("File not found");
 			lblNameValue.setText("");
 			lblIPValue.setText("");
 			lblPortValue.setText("");
 			btnImport.setEnabled(false);
-		}else{
-			lblStatusValue.setText("File not found!");
-			lblNameValue.setText("");
-			lblIPValue.setText("");
-			lblPortValue.setText("");
-			btnImport.setEnabled(false);
+			connectionInfo = null;
+		}
+	}
+
+	private void importConnection(ActionEvent e) {
+		if (connectionInfo != null) {
+			dispose();
+			InitialConnection ic = new InitialConnection(client, connectionInfo);
+			ic.setVisible(true);
 		}
 	}
 }

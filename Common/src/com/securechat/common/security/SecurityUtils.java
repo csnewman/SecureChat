@@ -18,35 +18,14 @@ public class SecurityUtils {
 	}
 	
 	public static char[] secureHashChars(char[] chars) {
-		return Util.convertToChars(hashData(Util.convertToBytes(chars)));
+		byte[] hash = hashData(Util.convertToBytes(chars));
+		StringBuffer buff = new StringBuffer();
+		for(int i = 0; i < hash.length; i++){
+			buff.append(Integer.toHexString(0xff & hash[i]));
+		}
+		char[] out = new char[buff.length()];
+		buff.getChars(0, buff.length(), out, 0);
+		return out;
 	}
 	
-	public static String hashString(String input) {
-		return new String(hashData(input.getBytes()));
-	}
-
-	// public static byte[] encryptData(byte[] data, PublicKey key) {
-	// try {
-	// Cipher cipher = Cipher.getInstance("RSA");
-	// cipher.init(Cipher.ENCRYPT_MODE, key);
-	// return cipher.doFinal(data);
-	// } catch (NoSuchAlgorithmException | NoSuchPaddingException |
-	// InvalidKeyException | IllegalBlockSizeException
-	// | BadPaddingException e) {
-	// throw new RuntimeException("Failed to encrypt data", e);
-	// }
-	// }
-	//
-	// public static byte[] decryptData(byte[] data, PrivateKey key) {
-	// try {
-	// Cipher cipher = Cipher.getInstance("RSA");
-	// cipher.init(Cipher.ENCRYPT_MODE, key);
-	// return cipher.doFinal(data);
-	// } catch (NoSuchAlgorithmException | NoSuchPaddingException |
-	// InvalidKeyException | IllegalBlockSizeException
-	// | BadPaddingException e) {
-	// throw new RuntimeException("Failed to decrypt data", e);
-	// }
-	// }
-
 }

@@ -50,12 +50,12 @@ public class ProtectedKeyStore extends ProtectedStore {
 		for (Entry<String, Key> entry : keys.entrySet()) {
 			bodyWriter.writeString(entry.getKey());
 			Key key = entry.getValue();
-			if (key instanceof PublicKey) {
-				bodyWriter.writeInt(1);
-				bodyWriter.writeArray(key.getEncoded());
+			if (key instanceof PrivateKey) {
+				bodyWriter.writeByte(1);
+				bodyWriter.writeArray(RSAEncryption.savePrivateKey((PrivateKey) key));
 			} else if (key instanceof PublicKey) {
-				bodyWriter.writeInt(2);
-				bodyWriter.writeArray(key.getEncoded());
+				bodyWriter.writeByte(2);
+				bodyWriter.writeArray(RSAEncryption.savePublicKey((PublicKey) key));
 			} else {
 				throw new RuntimeException("Unknown key type! " + key);
 			}
@@ -125,7 +125,7 @@ public class ProtectedKeyStore extends ProtectedStore {
 	}
 	
 	public KeyPair getOrGenKeyPair(String name){
-		return generateKeyPair(name + ".private", name + ".public");
+		return getOrGenKeyPair(name + ".private", name + ".public");
 	}
 
 	public void deleteKeys(String... keys) {

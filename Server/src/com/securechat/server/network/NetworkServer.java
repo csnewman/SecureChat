@@ -7,7 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.securechat.server.ChatServer;
+
 public class NetworkServer {
+	private ChatServer server;
 	private int port;
 	private boolean active;
 	private ServerSocket serverSocket;
@@ -15,7 +18,8 @@ public class NetworkServer {
 	private List<NetworkClient> clients;
 	private ReentrantReadWriteLock clientLock;
 	
-	public NetworkServer(int port) {
+	public NetworkServer(ChatServer server, int port) {
+		this.server = server;
 		this.port = port;
 	}
 	
@@ -40,7 +44,7 @@ public class NetworkServer {
 				Socket socket = serverSocket.accept();
 				if(socket != null){
 					System.out.println("Client connected!");
-					NetworkClient client = new NetworkClient(socket);
+					NetworkClient client = new NetworkClient(server, socket);
 					clientLock.writeLock().lock();
 					clients.add(client);
 					clientLock.writeLock().unlock();

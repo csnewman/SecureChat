@@ -18,15 +18,18 @@ public class ConnectionStore extends ProtectedStore {
 		super(connectionsFile, new RSAEncryption(key));
 		infos = new LinkedList<ConnectionInfo>();
 	}
+	
+	public void addConnection(ConnectionInfo info){
+		infos.add(info);
+		save();
+	}
 
 	@Override
 	protected void loadContent(ByteReader bodyReader) {
 		int size = bodyReader.readInt();
 		infos.clear();
 		for(int i = 0; i < size; i++){
-			ConnectionInfo info = new ConnectionInfo();
-			info.load(bodyReader);
-			infos.add(info);
+			infos.add(new ConnectionInfo(bodyReader));
 		}
 	}
 
@@ -34,7 +37,7 @@ public class ConnectionStore extends ProtectedStore {
 	protected void writeContent(ByteWriter writer) {
 		writer.writeInt(infos.size());
 		for(ConnectionInfo info : infos){
-			info.save(writer);
+			info.write(writer);
 		}
 	}
 	

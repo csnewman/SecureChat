@@ -12,11 +12,17 @@ public class ServerSettings {
 	private boolean changed, generateConnectionInfo;
 	private int port;
 
+	public void tryLoadAndSave(){
+		load();
+		save();
+	}
+
 	public void loadDefaults() {
 		serverName = "Unnamed Server";
 		publicIp = "127.0.0.1";
 		port = 1234;
 		connectionInfoPassword = "!!! ENTER YOUR PASSWORD HERE !!!";
+		generateConnectionInfo = true;
 	}
 
 	public void load() {
@@ -40,8 +46,6 @@ public class ServerSettings {
 				connectionInfoPassword = JsonUtil.getOrDefault(conInfo, "password", connectionInfoPassword,
 						String.class);
 			}
-		} else {
-			save();
 		}
 	}
 
@@ -62,6 +66,7 @@ public class ServerSettings {
 
 		JsonUtil.writeFile(targetFile, file);
 	}
+	
 
 	public boolean hasChanged() {
 		return changed;

@@ -25,6 +25,14 @@ public class Util {
 		return newArray;
 	}
 
+	public static char[] convertToChars(byte[] original) {
+		char[] newArray = new char[original.length];
+		for (int i = 0; i < original.length; i++) {
+			newArray[i] = (char) original[i];
+		}
+		return newArray;
+	}
+
 	public static String readFileToString(File file) throws IOException {
 		return new String(Files.readAllBytes(file.toPath()));
 	}

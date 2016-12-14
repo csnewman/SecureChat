@@ -32,6 +32,10 @@ public class ByteReader {
 		}
 	}
 	
+	public <T extends Enum<T>> T readEnum(Class<T> type){
+		return type.getEnumConstants()[readInt()];
+	}
+	
 	public int readInt() {
 		try {
 			return input.readInt();

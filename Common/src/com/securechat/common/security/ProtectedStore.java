@@ -61,7 +61,7 @@ public abstract class ProtectedStore {
 	public void save() {
 		ByteWriter bodyWriter = new ByteWriter();
 		writeContent(bodyWriter);
-
+		
 		ByteWriter headerWriter = new ByteWriter();
 		headerWriter.writeFixedArray(headerPrefix);
 		byte[] content = bodyWriter.toByteArray();

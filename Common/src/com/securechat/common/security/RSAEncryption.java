@@ -1,5 +1,7 @@
 package com.securechat.common.security;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -8,12 +10,16 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
+import com.securechat.common.ByteReader;
+import com.securechat.common.ByteWriter;
 
 public class RSAEncryption implements IEncryption {
 	private PublicKey pubKey;
@@ -28,17 +34,40 @@ public class RSAEncryption implements IEncryption {
 		this.pubKey = pubKey;
 		this.priKey = priKey;
 		try {
-			cipher = Cipher.getInstance("RSA");
+			cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
 			throw new RuntimeException("Failed to crypt data", e);
 		}
 	}
 
+	public void setPublicKey(PublicKey pubKey) {
+		this.pubKey = pubKey;
+	}
+
+	public void setPrivateKey(PrivateKey priKey) {
+		this.priKey = priKey;
+	}
+
 	@Override
 	public byte[] encrypt(byte[] data) {
 		try {
-			cipher.init(Cipher.ENCRYPT_MODE, pubKey);
-			return cipher.doFinal(data);
+			int count = (int) Math.ceil((double) data.length / 501d);
+			ByteWriter out = new ByteWriter();
+			out.writeInt(data.length);
+
+			for (int i = 0; i < count; i++) {
+				int start = i * 501;
+				int size = data.length - start < 501 ? data.length - start : 501;
+
+				byte[] temp = new byte[size];
+				System.arraycopy(data, start, temp, 0, size);
+
+				cipher.init(Cipher.ENCRYPT_MODE, pubKey);
+				temp = cipher.doFinal(temp);
+				out.writeArray(temp);
+			}
+
+			return out.toByteArray();
 		} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
 			throw new RuntimeException("Failed to encrypt data", e);
 		}
@@ -47,10 +76,24 @@ public class RSAEncryption implements IEncryption {
 	@Override
 	public byte[] decrypt(byte[] data) {
 		try {
-			cipher.init(Cipher.ENCRYPT_MODE, priKey);
-			return cipher.doFinal(data);
-		} catch (InvalidKeyException | IllegalBlockSizeException
-				| BadPaddingException e) {
+			ByteReader in = new ByteReader(data);
+			int length = in.readInt();
+			int count = (int) Math.ceil((double) length / 501d);
+			
+			byte[] result = new byte[length];
+			
+			for(int i = 0; i < count; i++){
+				int start = i * 501;
+				
+				byte[] temp = in.readArray();
+				cipher.init(Cipher.DECRYPT_MODE, priKey);
+				temp = cipher.doFinal(temp);
+				
+				System.arraycopy(temp, 0, result, start, temp.length);
+			}
+			
+			return result;
+		} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
 			throw new RuntimeException("Failed to decrypt data", e);
 		}
 	}
@@ -65,6 +108,10 @@ public class RSAEncryption implements IEncryption {
 		}
 	}
 
+	public static byte[] savePublicKey(PublicKey key) {
+		return new X509EncodedKeySpec(key.getEncoded()).getEncoded();
+	}
+
 	public static PublicKey loadPublicKey(byte[] data) {
 		try {
 			return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(data));
@@ -73,9 +120,13 @@ public class RSAEncryption implements IEncryption {
 		}
 	}
 
+	public static byte[] savePrivateKey(PrivateKey key) {
+		return new PKCS8EncodedKeySpec(key.getEncoded()).getEncoded();
+	}
+
 	public static PrivateKey loadPrivateKey(byte[] data) {
 		try {
-			return KeyFactory.getInstance("RSA").generatePrivate(new X509EncodedKeySpec(data));
+			return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(data));
 		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
 			throw new RuntimeException("Failed to load public key", e);
 		}

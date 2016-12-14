@@ -1,14 +1,17 @@
 package com.securechat.client;
 
 import java.awt.EventQueue;
+import java.awt.Frame;
 import java.io.File;
 
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.UIManager;
 
+import com.securechat.client.connection.ConnectionInfo;
 import com.securechat.client.connection.ConnectionStore;
 import com.securechat.client.connection.LoginWindow;
 import com.securechat.common.security.PasswordEncryption;
@@ -18,12 +21,14 @@ import com.securechat.common.security.SecurityUtils;
 public class SecureChatClient {
 	private static final File keystoreFile = new File("keystore.bin");
 	private static SecureChatClient INSTANCE;
+	private JFrame currentWindow;
 	private ProtectedKeyStore keyStore;
 	private LoginWindow loginWindow;
 	private ConnectionStore connectionStore;
 
 	public void init() {
 		loginWindow = new LoginWindow(INSTANCE);
+		currentWindow = loginWindow.getFrame();
 		loginWindow.open();
 
 		if (keystoreFile.exists()) {
@@ -33,9 +38,15 @@ public class SecureChatClient {
 		}
 		connectionStore = new ConnectionStore(keyStore.getOrGenKeyPair("connections"));
 		connectionStore.tryLoadAndSave();
+		
+		keyStore.save();
 
 		loginWindow.updateOptions();
 
+	}
+	
+	public void connect(ConnectionInfo info){
+		
 	}
 
 	private void unlockKeyStore() {
@@ -92,6 +103,14 @@ public class SecureChatClient {
 		}
 		keyStore = new ProtectedKeyStore(keystoreFile, new PasswordEncryption(SecurityUtils.secureHashChars(password)));
 		keyStore.save();
+	}
+	
+	public LoginWindow getLoginWindow() {
+		return loginWindow;
+	}
+	
+	public JFrame getCurrentWindow() {
+		return currentWindow;
 	}
 
 	public ConnectionStore getConnectionStore() {
