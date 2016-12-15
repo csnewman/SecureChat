@@ -16,16 +16,16 @@ public class SecurityUtils {
 			throw new RuntimeException("Platform unsupported!", e);
 		}
 	}
-	
+
 	public static char[] secureHashChars(char[] chars) {
 		byte[] hash = hashData(Util.convertToBytes(chars));
 		StringBuffer buff = new StringBuffer();
-		for(int i = 0; i < hash.length; i++){
+		for (int i = 0; i < hash.length; i++) {
 			buff.append(Integer.toHexString(0xff & hash[i]));
 		}
 		char[] out = new char[buff.length()];
 		buff.getChars(0, buff.length(), out, 0);
 		return out;
 	}
-	
+
 }

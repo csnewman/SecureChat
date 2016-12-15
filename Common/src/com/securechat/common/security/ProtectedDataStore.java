@@ -5,7 +5,7 @@ import java.io.File;
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
 
-public class ProtectedDataStore extends ProtectedStore{
+public class ProtectedDataStore extends ProtectedStore {
 	private byte[] content;
 
 	public ProtectedDataStore(File file, IEncryption encryptionMethod) {
@@ -21,25 +21,22 @@ public class ProtectedDataStore extends ProtectedStore{
 	protected void writeContent(ByteWriter writer) {
 		writer.writeArray(content);
 	}
-	
-	public byte[] getContent(){
+
+	public byte[] getContent() {
 		return content;
 	}
-	
-	public ByteReader getReader(){
+
+	public ByteReader getReader() {
 		return new ByteReader(content);
 	}
-	
-	public void setContent(byte[] content){
+
+	public void setContent(byte[] content) {
 		this.content = content;
 	}
-	
-	public void setContent(ByteWriter writer){
+
+	public void setContent(ByteWriter writer) {
 		content = writer.toByteArray();
 		writer.close();
 	}
-	
-	
-	
 
 }

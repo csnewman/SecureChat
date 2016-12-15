@@ -108,17 +108,17 @@ public class InitialConnection extends JDialog {
 				case Success:
 					setStatus(true, "Saving");
 					client.disconnect();
-					
+
 					connectionInfo.complete(username, pair.getPrivate(), r.getCode());
 					this.client.getConnectionStore().addConnection(connectionInfo);
 					this.client.getLoginWindow().updateOptions();
-					
+
 					setStatus(true, "Success");
 					JOptionPane.showMessageDialog(this,
 							"Your account has been registered with the server.\nYou may now connect to the server.",
 							"Success", JOptionPane.INFORMATION_MESSAGE);
 					dispose();
-					
+
 					break;
 				case UsernameTaken:
 					setStatus(false, "Username taken");

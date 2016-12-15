@@ -11,10 +11,10 @@ import com.securechat.common.ByteWriter;
 import com.securechat.common.security.ProtectedStore;
 import com.securechat.common.security.RSAEncryption;
 
-public class UserManager extends ProtectedStore{
+public class UserManager extends ProtectedStore {
 	private static final File usersFile = new File("users.bin");
 	private Map<String, User> users;
-	
+
 	public UserManager(KeyPair key) {
 		super(usersFile, new RSAEncryption(key));
 		users = new HashMap<String, User>();
@@ -23,7 +23,7 @@ public class UserManager extends ProtectedStore{
 	public boolean doesUserExist(String name) {
 		return users.containsKey(name);
 	}
-	
+
 	public User getUser(String username) {
 		return users.get(username);
 	}
@@ -39,7 +39,7 @@ public class UserManager extends ProtectedStore{
 	protected void loadContent(ByteReader bodyReader) {
 		int size = bodyReader.readInt();
 		users.clear();
-		for(int i = 0; i < size; i++){
+		for (int i = 0; i < size; i++) {
 			User user = new User(bodyReader);
 			users.put(user.getUsername(), user);
 		}
@@ -48,7 +48,7 @@ public class UserManager extends ProtectedStore{
 	@Override
 	protected void writeContent(ByteWriter writer) {
 		writer.writeInt(users.size());
-		for(User user : users.values()){
+		for (User user : users.values()) {
 			user.write(writer);
 		}
 	}

@@ -104,27 +104,27 @@ public class ProtectedKeyStore extends ProtectedStore {
 		setKey(publicName, pair.getPublic());
 		setKey(privateName, pair.getPrivate());
 	}
-	
-	public void setKeyPair(KeyPair pair, String name){
+
+	public void setKeyPair(KeyPair pair, String name) {
 		setKeyPair(pair, name + ".private", name + ".public");
 	}
-	
-	public boolean keyPairExists(String privateName, String publicName){
+
+	public boolean keyPairExists(String privateName, String publicName) {
 		return keysExists(privateName, publicName);
 	}
-	
-	public boolean keyPairExists(String name){
+
+	public boolean keyPairExists(String name) {
 		return keyPairExists(name + ".private", name + ".public");
 	}
-	
-	public KeyPair getOrGenKeyPair(String privateName, String publicName){
-		if(keyPairExists(privateName, publicName)){
+
+	public KeyPair getOrGenKeyPair(String privateName, String publicName) {
+		if (keyPairExists(privateName, publicName)) {
 			return getKeyPair(privateName, publicName);
 		}
 		return generateKeyPair(privateName, publicName);
 	}
-	
-	public KeyPair getOrGenKeyPair(String name){
+
+	public KeyPair getOrGenKeyPair(String name) {
 		return getOrGenKeyPair(name + ".private", name + ".public");
 	}
 

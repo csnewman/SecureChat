@@ -25,11 +25,11 @@ public class ByteWriter {
 			throw new RuntimeException("Internal error occured", e);
 		}
 	}
-	
-	public void writeEnum(Enum<?> e){
+
+	public void writeEnum(Enum<?> e) {
 		writeInt(e.ordinal());
 	}
-	
+
 	public void writeInt(int i) {
 		try {
 			output.writeInt(i);
@@ -62,7 +62,7 @@ public class ByteWriter {
 			throw new RuntimeException("Internal error occured", e);
 		}
 	}
-	
+
 	public void writeFixedArray(byte[] data) {
 		try {
 			output.write(data);

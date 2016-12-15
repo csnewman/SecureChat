@@ -57,11 +57,11 @@ public class ChatServer {
 			connectionStore.setContent(connectionInfoWriter);
 			connectionStore.save();
 		}
-		
+
 		userManager = new UserManager(store.getOrGenKeyPair("users"));
 		userManager.tryLoadAndSave();
 		store.save();
-		
+
 		networkServer = new NetworkServer(this, settings.getPort());
 		networkServer.start();
 
@@ -70,7 +70,7 @@ public class ChatServer {
 	public ProtectedKeyStore getStore() {
 		return store;
 	}
-	
+
 	public UserManager getUserManager() {
 		return userManager;
 	}

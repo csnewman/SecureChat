@@ -111,41 +111,41 @@ public class NetworkClient {
 		sendPacket(new RegisterResponsePacket(code));
 		status = EnumConnectionState.Ignore;
 	}
-	
+
 	private User user;
 
 	private void handleConnect(ConnectPacket packet) {
 		UserManager um = server.getUserManager();
-		
-		if(!um.doesUserExist(packet.getUsername())){
+
+		if (!um.doesUserExist(packet.getUsername())) {
 			System.out.println("Client tried to login as an unknown username");
 			disconnect();
 			return;
 		}
-		
+
 		user = um.getUser(packet.getUsername());
-		if(packet.getCode() != user.getCode()){
+		if (packet.getCode() != user.getCode()) {
 			System.out.println("[SECURITY] Client sent wrong code!");
 			user = null;
 			disconnect();
 			return;
 		}
-		
+
 		encryption.setPublicKey(user.getPublicKey());
-		
+
 		tempCode = new Random().nextInt();
 		status = EnumConnectionState.AwaitingChallengeResponse;
 		sendPacket(new ChallengePacket(tempCode));
 	}
 
 	private void handleChallengeResponse(ChallengeResponsePacket packet) {
-		if(packet.getTempCode() != tempCode){
+		if (packet.getTempCode() != tempCode) {
 			System.out.println("[SECURITY] Client sent wrong temp code back!");
 			disconnect();
 			return;
 		}
-		
-		System.out.println("Client logged in as "+user.getUsername());
+
+		System.out.println("Client logged in as " + user.getUsername());
 	}
 
 	public void sendPacket(IPacket packet) {

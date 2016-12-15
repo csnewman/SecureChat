@@ -77,7 +77,7 @@ public class ConnectionInfo {
 	public int getCode() {
 		return code;
 	}
-	
+
 	public String getUsername() {
 		return username;
 	}

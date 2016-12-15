@@ -79,19 +79,19 @@ public class RSAEncryption implements IEncryption {
 			ByteReader in = new ByteReader(data);
 			int length = in.readInt();
 			int count = (int) Math.ceil((double) length / 501d);
-			
+
 			byte[] result = new byte[length];
-			
-			for(int i = 0; i < count; i++){
+
+			for (int i = 0; i < count; i++) {
 				int start = i * 501;
-				
+
 				byte[] temp = in.readArray();
 				cipher.init(Cipher.DECRYPT_MODE, priKey);
 				temp = cipher.doFinal(temp);
-				
+
 				System.arraycopy(temp, 0, result, start, temp.length);
 			}
-			
+
 			return result;
 		} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
 			throw new RuntimeException("Failed to decrypt data", e);

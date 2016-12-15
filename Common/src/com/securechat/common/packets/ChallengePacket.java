@@ -22,7 +22,7 @@ public class ChallengePacket implements IPacket {
 	public void write(ByteWriter writer) {
 		writer.writeInt(tempCode);
 	}
-	
+
 	public int getTempCode() {
 		return tempCode;
 	}

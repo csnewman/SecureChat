@@ -40,8 +40,8 @@ public class NetworkClient {
 			throw new RuntimeException("Failed to connect", e);
 		}
 	}
-	
-	public void disconnect(){
+
+	public void disconnect() {
 		try {
 			socket.close();
 		} catch (IOException e) {
@@ -52,14 +52,14 @@ public class NetworkClient {
 	public void setHandler(Consumer<IPacket> handler) {
 		this.handler = handler;
 	}
-	
+
 	@SuppressWarnings("unchecked")
-	public <T> void setSingleHandler(Class<T> type, Consumer<T> handler){
+	public <T> void setSingleHandler(Class<T> type, Consumer<T> handler) {
 		setHandler(p -> {
-			if(type.isInstance(p)){
+			if (type.isInstance(p)) {
 				handler.accept((T) p);
-			}else{
-				System.out.println("Unexpected packet "+p);
+			} else {
+				System.out.println("Unexpected packet " + p);
 			}
 		});
 	}
@@ -83,7 +83,7 @@ public class NetworkClient {
 			String id = data.readString();
 			IPacket packet = PacketManager.createPacket(id);
 			packet.read(data);
-			
+
 			handler.accept(packet);
 		}
 	}
@@ -92,7 +92,7 @@ public class NetworkClient {
 		ByteWriter packetData = new ByteWriter();
 		packetData.writeString(PacketManager.getPacketId(packet.getClass()));
 		packet.write(packetData);
-		
+
 		byte[] original = packetData.toByteArray();
 		byte[] hash = SecurityUtils.hashData(original);
 

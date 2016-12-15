@@ -13,13 +13,13 @@ import com.securechat.common.security.RSAEncryption;
 public class ConnectionStore extends ProtectedStore {
 	private static final File connectionsFile = new File("connections.bin");
 	private List<ConnectionInfo> infos;
-	
+
 	public ConnectionStore(KeyPair key) {
 		super(connectionsFile, new RSAEncryption(key));
 		infos = new LinkedList<ConnectionInfo>();
 	}
-	
-	public void addConnection(ConnectionInfo info){
+
+	public void addConnection(ConnectionInfo info) {
 		infos.add(info);
 		save();
 	}
@@ -28,7 +28,7 @@ public class ConnectionStore extends ProtectedStore {
 	protected void loadContent(ByteReader bodyReader) {
 		int size = bodyReader.readInt();
 		infos.clear();
-		for(int i = 0; i < size; i++){
+		for (int i = 0; i < size; i++) {
 			infos.add(new ConnectionInfo(bodyReader));
 		}
 	}
@@ -36,16 +36,13 @@ public class ConnectionStore extends ProtectedStore {
 	@Override
 	protected void writeContent(ByteWriter writer) {
 		writer.writeInt(infos.size());
-		for(ConnectionInfo info : infos){
+		for (ConnectionInfo info : infos) {
 			info.write(writer);
 		}
 	}
-	
+
 	public List<ConnectionInfo> getInfos() {
 		return infos;
 	}
-	
-	
-	
 
 }

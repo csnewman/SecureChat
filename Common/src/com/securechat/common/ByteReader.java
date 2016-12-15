@@ -19,7 +19,7 @@ public class ByteReader {
 	public ByteReader(InputStream stream) {
 		input = new DataInputStream(stream);
 	}
-	
+
 	public byte[] getRawData() {
 		return rawData;
 	}
@@ -31,11 +31,11 @@ public class ByteReader {
 			throw new RuntimeException("Internal error occured", e);
 		}
 	}
-	
-	public <T extends Enum<T>> T readEnum(Class<T> type){
+
+	public <T extends Enum<T>> T readEnum(Class<T> type) {
 		return type.getEnumConstants()[readInt()];
 	}
-	
+
 	public int readInt() {
 		try {
 			return input.readInt();
@@ -70,7 +70,7 @@ public class ByteReader {
 			throw new RuntimeException("Internal error occured", e);
 		}
 	}
-	
+
 	public byte[] readFixedArray(int size) {
 		try {
 			byte[] buffer = new byte[size];

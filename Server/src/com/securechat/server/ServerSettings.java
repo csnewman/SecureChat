@@ -12,7 +12,7 @@ public class ServerSettings {
 	private boolean changed, generateConnectionInfo;
 	private int port;
 
-	public void tryLoadAndSave(){
+	public void tryLoadAndSave() {
 		load();
 		save();
 	}
@@ -66,7 +66,6 @@ public class ServerSettings {
 
 		JsonUtil.writeFile(targetFile, file);
 	}
-	
 
 	public boolean hasChanged() {
 		return changed;

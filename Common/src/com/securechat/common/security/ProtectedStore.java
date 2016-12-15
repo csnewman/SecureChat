@@ -17,9 +17,9 @@ public abstract class ProtectedStore {
 		this.file = file;
 		this.encryptionMethod = encryptionMethod;
 	}
-	
-	public void tryLoadAndSave(){
-		if(exists()){
+
+	public void tryLoadAndSave() {
+		if (exists()) {
 			load();
 		}
 		save();
@@ -61,7 +61,7 @@ public abstract class ProtectedStore {
 	public void save() {
 		ByteWriter bodyWriter = new ByteWriter();
 		writeContent(bodyWriter);
-		
+
 		ByteWriter headerWriter = new ByteWriter();
 		headerWriter.writeFixedArray(headerPrefix);
 		byte[] content = bodyWriter.toByteArray();

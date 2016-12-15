@@ -3,10 +3,10 @@ package com.securechat.common.packets;
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
 
-public class ConnectPacket implements IPacket{
+public class ConnectPacket implements IPacket {
 	private String username;
 	private int code;
-	
+
 	public ConnectPacket() {
 	}
 
@@ -26,13 +26,13 @@ public class ConnectPacket implements IPacket{
 		writer.writeString(username);
 		writer.writeInt(code);
 	}
-	
+
 	public String getUsername() {
 		return username;
 	}
-	
+
 	public int getCode() {
 		return code;
 	}
-	
+
 }

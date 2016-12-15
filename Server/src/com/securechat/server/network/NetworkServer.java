@@ -17,13 +17,13 @@ public class NetworkServer {
 	private Thread listenThread;
 	private List<NetworkClient> clients;
 	private ReentrantReadWriteLock clientLock;
-	
+
 	public NetworkServer(ChatServer server, int port) {
 		this.server = server;
 		this.port = port;
 	}
-	
-	public void start(){
+
+	public void start() {
 		try {
 			active = true;
 			clientLock = new ReentrantReadWriteLock();
@@ -37,12 +37,12 @@ public class NetworkServer {
 			throw new RuntimeException("Failed to start network server!", e);
 		}
 	}
-	
-	private void handleConnections(){
-		while (active){
+
+	private void handleConnections() {
+		while (active) {
 			try {
 				Socket socket = serverSocket.accept();
-				if(socket != null){
+				if (socket != null) {
 					System.out.println("Client connected!");
 					NetworkClient client = new NetworkClient(server, socket);
 					clientLock.writeLock().lock();
@@ -51,17 +51,17 @@ public class NetworkServer {
 					client.start();
 				}
 			} catch (IOException e) {
-				System.out.println("Connection failed! "+e.getMessage());
+				System.out.println("Connection failed! " + e.getMessage());
 			}
 		}
 	}
-	
-	public void close(){
-		try{
+
+	public void close() {
+		try {
 			active = false;
 			serverSocket.close();
 			listenThread.interrupt();
-		}catch (IOException e) {
+		} catch (IOException e) {
 			throw new RuntimeException("Failed to stop network server!", e);
 		}
 	}

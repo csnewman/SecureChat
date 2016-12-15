@@ -24,22 +24,22 @@ public class ConnectingDialog extends JDialog {
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(null);
-		
-		JLabel lblInfo = new JLabel("Connecting to "+info.getServerName()+" as "+info.getUsername());
+
+		JLabel lblInfo = new JLabel("Connecting to " + info.getServerName() + " as " + info.getUsername());
 		lblInfo.setBounds(10, 11, 424, 14);
 		contentPanel.add(lblInfo);
-		
+
 		JProgressBar progressBar = new JProgressBar();
 		progressBar.setIndeterminate(true);
 		progressBar.setBounds(10, 61, 424, 14);
 		contentPanel.add(progressBar);
-		
+
 		lblStatusValue = new JLabel("Waiting...");
 		lblStatusValue.setBounds(10, 36, 424, 14);
 		contentPanel.add(lblStatusValue);
 	}
-	
-	public void setStatus(String text){
+
+	public void setStatus(String text) {
 		lblStatusValue.setText(text);
 	}
 
