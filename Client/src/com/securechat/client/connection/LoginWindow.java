@@ -129,7 +129,6 @@ public class LoginWindow {
 
 	private void connect(ActionEvent e) {
 		client.connect(infos[connectionBox.getSelectedIndex()]);
-		frmSecureChat.dispose();
 	}
 
 	public void open() {

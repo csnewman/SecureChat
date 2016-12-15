@@ -23,6 +23,10 @@ public class UserManager extends ProtectedStore{
 	public boolean doesUserExist(String name) {
 		return users.containsKey(name);
 	}
+	
+	public User getUser(String username) {
+		return users.get(username);
+	}
 
 	public void registerUser(String username, PublicKey publicKey, int code) {
 		if (doesUserExist(username))
@@ -48,4 +52,5 @@ public class UserManager extends ProtectedStore{
 			user.write(writer);
 		}
 	}
+
 }

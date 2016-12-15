@@ -3,17 +3,24 @@ package com.securechat.server.network;
 import java.io.IOException;
 import java.net.Socket;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
-import com.securechat.common.EnumPacketId;
+import com.securechat.common.packets.ChallengePacket;
+import com.securechat.common.packets.ChallengeResponsePacket;
+import com.securechat.common.packets.ConnectPacket;
+import com.securechat.common.packets.IPacket;
+import com.securechat.common.packets.PacketManager;
+import com.securechat.common.packets.RegisterPacket;
+import com.securechat.common.packets.RegisterResponsePacket;
+import com.securechat.common.packets.RegisterResponsePacket.RegisterStatus;
 import com.securechat.common.security.RSAEncryption;
 import com.securechat.common.security.SecurityUtils;
 import com.securechat.server.ChatServer;
+import com.securechat.server.User;
 import com.securechat.server.UserManager;
 
 public class NetworkClient {
@@ -25,7 +32,8 @@ public class NetworkClient {
 	private Thread readThread;
 	private boolean active;
 	private RSAEncryption encryption;
-	private EnumConnectionStatus status;
+	private EnumConnectionState status;
+	private int tempCode;
 
 	public NetworkClient(ChatServer server, Socket socket) throws IOException {
 		this.server = server;
@@ -34,7 +42,7 @@ public class NetworkClient {
 
 	public void start() {
 		try {
-			status = EnumConnectionStatus.PREAUTH;
+			status = EnumConnectionState.PreAuth;
 			PrivateKey key = server.getStore().getKey(ChatServer.netBasePrivateKey, PrivateKey.class);
 			encryption = new RSAEncryption(null, key);
 			active = true;
@@ -51,9 +59,9 @@ public class NetworkClient {
 	private void readPackets() {
 		while (active) {
 			byte[] ddata = encryption.decrypt(reader.readArray());
-			ByteReader packet = new ByteReader(ddata);
-			byte[] hash = packet.readArray();
-			byte[] original = packet.readArray();
+			ByteReader packetData = new ByteReader(ddata);
+			byte[] hash = packetData.readArray();
+			byte[] original = packetData.readArray();
 			byte[] checksum = SecurityUtils.hashData(original);
 
 			System.out.println("[DEBUG] Read packet, rawLen='" + ddata.length + "', len='" + original.length
@@ -64,56 +72,107 @@ public class NetworkClient {
 			}
 
 			ByteReader data = new ByteReader(original);
-			EnumPacketId id = data.readEnum(EnumPacketId.class);
-			if(status == EnumConnectionStatus.IGNORE){
-				System.out.println("Client in ignored state sent an unexpected packet "+id);
-			} else if(status == EnumConnectionStatus.PREAUTH){
-				if (id == EnumPacketId.REGISTER) {
-					handleRegister(data);
-				}else{
-					System.out.println("Unexpected packet "+id);
+			String id = data.readString();
+			IPacket packet = PacketManager.createPacket(id);
+			packet.read(data);
+
+			if (status == EnumConnectionState.Ignore) {
+				System.out.println("Client in ignored state sent an unexpected packet " + id);
+			} else if (status == EnumConnectionState.PreAuth) {
+				if (packet instanceof RegisterPacket) {
+					handleRegister((RegisterPacket) packet);
+				} else if (packet instanceof ConnectPacket) {
+					handleConnect((ConnectPacket) packet);
+				} else {
+					System.out.println("Unexpected packet " + id);
+				}
+			} else if (status == EnumConnectionState.AwaitingChallengeResponse) {
+				if (packet instanceof ChallengeResponsePacket) {
+					handleChallengeResponse((ChallengeResponsePacket) packet);
+				} else {
+					System.out.println("Unexpected packet " + id);
 				}
 			}
 		}
 	}
-	
-	private void handleRegister(ByteReader data){
-		String username = data.readString();
-		PublicKey pubKey = RSAEncryption.loadPublicKey(data.readArray());
+
+	private void handleRegister(RegisterPacket packet) {
 		int code = new Random().nextInt();
-		encryption.setPublicKey(pubKey);
-		System.out.println("Handling register request for " + username);
-		
+		encryption.setPublicKey(packet.getPublicKey());
+		System.out.println("Handling register request for " + packet.getUsername());
+
 		UserManager um = server.getUserManager();
-		if(um.doesUserExist(username)){
-			ByteWriter response = new ByteWriter();
-			response.writeEnum(EnumPacketId.REGISTER_USERNAME_TAKEN);
-			sendPacket(response);
+		if (um.doesUserExist(packet.getUsername())) {
+			sendPacket(new RegisterResponsePacket(RegisterStatus.UsernameTaken));
+			return;
+		}
+
+		um.registerUser(packet.getUsername(), packet.getPublicKey(), code);
+		sendPacket(new RegisterResponsePacket(code));
+		status = EnumConnectionState.Ignore;
+	}
+	
+	private User user;
+
+	private void handleConnect(ConnectPacket packet) {
+		UserManager um = server.getUserManager();
+		
+		if(!um.doesUserExist(packet.getUsername())){
+			System.out.println("Client tried to login as an unknown username");
+			disconnect();
 			return;
 		}
 		
-		um.registerUser(username, pubKey, code);
-
-		ByteWriter response = new ByteWriter();
-		response.writeEnum(EnumPacketId.REGISTER_SUCCESS);
-		response.writeInt(code);
-		sendPacket(response);
-		status = EnumConnectionStatus.IGNORE;
+		user = um.getUser(packet.getUsername());
+		if(packet.getCode() != user.getCode()){
+			System.out.println("[SECURITY] Client sent wrong code!");
+			user = null;
+			disconnect();
+			return;
+		}
+		
+		encryption.setPublicKey(user.getPublicKey());
+		
+		tempCode = new Random().nextInt();
+		status = EnumConnectionState.AwaitingChallengeResponse;
+		sendPacket(new ChallengePacket(tempCode));
 	}
-	
-	public void sendPacket(ByteWriter data) {
-		byte[] original = data.toByteArray();
+
+	private void handleChallengeResponse(ChallengeResponsePacket packet) {
+		if(packet.getTempCode() != tempCode){
+			System.out.println("[SECURITY] Client sent wrong temp code back!");
+			disconnect();
+			return;
+		}
+		
+		System.out.println("Client logged in as "+user.getUsername());
+	}
+
+	public void sendPacket(IPacket packet) {
+		ByteWriter packetData = new ByteWriter();
+		packetData.writeString(PacketManager.getPacketId(packet.getClass()));
+		packet.write(packetData);
+
+		byte[] original = packetData.toByteArray();
 		byte[] hash = SecurityUtils.hashData(original);
 
-		ByteWriter packet = new ByteWriter();
-		packet.writeArray(hash);
-		packet.writeArray(original);
+		ByteWriter finalPacket = new ByteWriter();
+		finalPacket.writeArray(hash);
+		finalPacket.writeArray(original);
 
-		byte[] encryptedData = encryption.encrypt(packet.toByteArray());
+		byte[] encryptedData = encryption.encrypt(finalPacket.toByteArray());
 
 		sendLock.lock();
 		writer.writeArray(encryptedData);
 		sendLock.unlock();
+	}
+
+	private void disconnect() {
+		try {
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public RSAEncryption getEncryption() {

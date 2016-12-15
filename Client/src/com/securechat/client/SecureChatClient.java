@@ -1,19 +1,25 @@
 package com.securechat.client;
 
 import java.awt.EventQueue;
-import java.awt.Frame;
 import java.io.File;
+import java.util.function.Consumer;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import com.securechat.client.connection.ConnectingDialog;
 import com.securechat.client.connection.ConnectionInfo;
 import com.securechat.client.connection.ConnectionStore;
 import com.securechat.client.connection.LoginWindow;
+import com.securechat.client.network.NetworkClient;
+import com.securechat.common.packets.ChallengePacket;
+import com.securechat.common.packets.ChallengeResponsePacket;
+import com.securechat.common.packets.ConnectPacket;
 import com.securechat.common.security.PasswordEncryption;
 import com.securechat.common.security.ProtectedKeyStore;
 import com.securechat.common.security.SecurityUtils;
@@ -25,6 +31,8 @@ public class SecureChatClient {
 	private ProtectedKeyStore keyStore;
 	private LoginWindow loginWindow;
 	private ConnectionStore connectionStore;
+	private NetworkClient networkClient;
+	private ConnectingDialog connectingDialog;
 
 	public void init() {
 		loginWindow = new LoginWindow(INSTANCE);
@@ -38,15 +46,43 @@ public class SecureChatClient {
 		}
 		connectionStore = new ConnectionStore(keyStore.getOrGenKeyPair("connections"));
 		connectionStore.tryLoadAndSave();
-		
+
 		keyStore.save();
 
 		loginWindow.updateOptions();
 
 	}
-	
-	public void connect(ConnectionInfo info){
-		
+
+	public void connect(ConnectionInfo info) {
+		connectingDialog = new ConnectingDialog(this, info);
+		SwingUtilities.invokeLater(() -> connectingDialog.setVisible(true));
+
+		new Thread(() -> {
+			connectingDialog.setStatus("Connecting to " + info.getServerIp() + ":" + info.getServerPort() + "...");
+
+			networkClient = new NetworkClient();
+			try {
+				networkClient.connect(info.getServerIp(), info.getServerPort(), info.getPublicKey(),
+						info.getPrivateKey());
+			} catch (Exception e) {
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(connectingDialog, "Failed to connect to the server", "Failed to connect",
+						JOptionPane.ERROR_MESSAGE);
+				connectingDialog.dispose();
+				return;
+			}
+
+			Consumer<ChallengePacket> challengeHandler = c -> {
+				connectingDialog.setStatus("Completing challenge...");
+				// networkClient.setSingleHandler(type, handler);
+				networkClient.sendPacket(new ChallengeResponsePacket(c.getTempCode()));
+			};
+
+			connectingDialog.setStatus("Logging in...");
+			networkClient.setSingleHandler(ChallengePacket.class, challengeHandler);
+			networkClient.sendPacket(new ConnectPacket(info.getUsername(), info.getCode()));
+		}).start();
+
 	}
 
 	private void unlockKeyStore() {
@@ -104,11 +140,11 @@ public class SecureChatClient {
 		keyStore = new ProtectedKeyStore(keystoreFile, new PasswordEncryption(SecurityUtils.secureHashChars(password)));
 		keyStore.save();
 	}
-	
+
 	public LoginWindow getLoginWindow() {
 		return loginWindow;
 	}
-	
+
 	public JFrame getCurrentWindow() {
 		return currentWindow;
 	}

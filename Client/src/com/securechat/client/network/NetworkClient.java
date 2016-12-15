@@ -10,6 +10,8 @@ import java.util.function.Consumer;
 
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
+import com.securechat.common.packets.IPacket;
+import com.securechat.common.packets.PacketManager;
 import com.securechat.common.security.RSAEncryption;
 import com.securechat.common.security.SecurityUtils;
 
@@ -21,7 +23,7 @@ public class NetworkClient {
 	private Thread readThread;
 	private boolean active;
 	private RSAEncryption encryption;
-	private Consumer<ByteReader> handler;
+	private Consumer<IPacket> handler;
 
 	public void connect(String host, int port, PublicKey pub, PrivateKey pri) {
 		try {
@@ -47,16 +49,27 @@ public class NetworkClient {
 		}
 	}
 
-	public void setHandler(Consumer<ByteReader> handler) {
+	public void setHandler(Consumer<IPacket> handler) {
 		this.handler = handler;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> void setSingleHandler(Class<T> type, Consumer<T> handler){
+		setHandler(p -> {
+			if(type.isInstance(p)){
+				handler.accept((T) p);
+			}else{
+				System.out.println("Unexpected packet "+p);
+			}
+		});
 	}
 
 	private void readPackets() {
 		while (active) {
 			byte[] ddata = encryption.decrypt(reader.readArray());
-			ByteReader packet = new ByteReader(ddata);
-			byte[] hash = packet.readArray();
-			byte[] original = packet.readArray();
+			ByteReader packetData = new ByteReader(ddata);
+			byte[] hash = packetData.readArray();
+			byte[] original = packetData.readArray();
 			byte[] checksum = SecurityUtils.hashData(original);
 
 			System.out.println("[DEBUG] Read packet, rawLen='" + ddata.length + "', len='" + original.length
@@ -67,19 +80,27 @@ public class NetworkClient {
 			}
 
 			ByteReader data = new ByteReader(original);
-			handler.accept(data);
+			String id = data.readString();
+			IPacket packet = PacketManager.createPacket(id);
+			packet.read(data);
+			
+			handler.accept(packet);
 		}
 	}
 
-	public void sendPacket(ByteWriter data) {
-		byte[] original = data.toByteArray();
+	public void sendPacket(IPacket packet) {
+		ByteWriter packetData = new ByteWriter();
+		packetData.writeString(PacketManager.getPacketId(packet.getClass()));
+		packet.write(packetData);
+		
+		byte[] original = packetData.toByteArray();
 		byte[] hash = SecurityUtils.hashData(original);
 
-		ByteWriter packet = new ByteWriter();
-		packet.writeArray(hash);
-		packet.writeArray(original);
+		ByteWriter finalPacket = new ByteWriter();
+		finalPacket.writeArray(hash);
+		finalPacket.writeArray(original);
 
-		byte[] encryptedData = encryption.encrypt(packet.toByteArray());
+		byte[] encryptedData = encryption.encrypt(finalPacket.toByteArray());
 
 		sendLock.lock();
 		writer.writeArray(encryptedData);

@@ -15,8 +15,8 @@ import javax.swing.border.EmptyBorder;
 
 import com.securechat.client.SecureChatClient;
 import com.securechat.client.network.NetworkClient;
-import com.securechat.common.ByteWriter;
-import com.securechat.common.EnumPacketId;
+import com.securechat.common.packets.RegisterPacket;
+import com.securechat.common.packets.RegisterResponsePacket;
 import com.securechat.common.security.RSAEncryption;
 
 public class InitialConnection extends JDialog {
@@ -97,42 +97,39 @@ public class InitialConnection extends JDialog {
 		try {
 			setStatus(true, "Generating key pair");
 			KeyPair pair = RSAEncryption.generateKeyPair();
-			byte[] pubKey = RSAEncryption.savePublicKey(pair.getPublic());
 
 			setStatus(true, "Connecting to server");
 			client = new NetworkClient();
 			client.connect(connectionInfo.getServerIp(), connectionInfo.getServerPort(), connectionInfo.getPublicKey(),
 					pair.getPrivate());
 
-			client.setHandler(r -> {
-				EnumPacketId id = r.readEnum(EnumPacketId.class);
-				if (id == EnumPacketId.REGISTER_SUCCESS) {
+			client.setSingleHandler(RegisterResponsePacket.class, r -> {
+				switch (r.getStatus()) {
+				case Success:
 					setStatus(true, "Saving");
 					client.disconnect();
 					
-					int code = r.readInt();
-					connectionInfo.complete(username, pair.getPrivate(), code);
+					connectionInfo.complete(username, pair.getPrivate(), r.getCode());
 					this.client.getConnectionStore().addConnection(connectionInfo);
 					this.client.getLoginWindow().updateOptions();
-
+					
 					setStatus(true, "Success");
 					JOptionPane.showMessageDialog(this,
 							"Your account has been registered with the server.\nYou may now connect to the server.",
 							"Success", JOptionPane.INFORMATION_MESSAGE);
 					dispose();
-				} else if (id == EnumPacketId.REGISTER_USERNAME_TAKEN) {
+					
+					break;
+				case UsernameTaken:
 					setStatus(false, "Username taken");
-				} else {
-					System.out.println("Ignoring unexpected packet " + id);
+					break;
+				default:
+					break;
 				}
 			});
 
 			setStatus(true, "Registering username");
-			ByteWriter register = new ByteWriter();
-			register.writeEnum(EnumPacketId.REGISTER);
-			register.writeString(username);
-			register.writeArray(pubKey);
-			client.sendPacket(register);
+			client.sendPacket(new RegisterPacket(username, pair.getPublic()));
 		} catch (Exception e) {
 			e.printStackTrace();
 			setStatus(false, "Failed to connect");
