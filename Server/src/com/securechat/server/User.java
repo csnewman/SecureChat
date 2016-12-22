@@ -5,11 +5,13 @@ import java.security.PublicKey;
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
 import com.securechat.common.security.RSAEncryption;
+import com.securechat.server.network.NetworkClient;
 
 public class User {
 	private String username;
 	private PublicKey publicKey;
 	private int code;
+	private NetworkClient network;
 
 	public User(String username, PublicKey publicKey, int code) {
 		this.username = username;
@@ -29,6 +31,18 @@ public class User {
 		writer.writeInt(code);
 	}
 
+	public void assignToNetwork(NetworkClient client){
+		if(network != null){
+			network.disconnect("Logged in from somewhere else");
+		}
+		
+		
+	}
+	
+	public NetworkClient getNetwork() {
+		return network;
+	}
+	
 	public String getUsername() {
 		return username;
 	}

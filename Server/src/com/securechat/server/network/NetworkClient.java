@@ -12,6 +12,7 @@ import com.securechat.common.ByteWriter;
 import com.securechat.common.packets.ChallengePacket;
 import com.securechat.common.packets.ChallengeResponsePacket;
 import com.securechat.common.packets.ConnectPacket;
+import com.securechat.common.packets.DisconnectPacket;
 import com.securechat.common.packets.IPacket;
 import com.securechat.common.packets.PacketManager;
 import com.securechat.common.packets.RegisterPacket;
@@ -119,7 +120,7 @@ public class NetworkClient {
 
 		if (!um.doesUserExist(packet.getUsername())) {
 			System.out.println("Client tried to login as an unknown username");
-			disconnect();
+			disconnect("Unknown username");
 			return;
 		}
 
@@ -127,7 +128,7 @@ public class NetworkClient {
 		if (packet.getCode() != user.getCode()) {
 			System.out.println("[SECURITY] Client sent wrong code!");
 			user = null;
-			disconnect();
+			disconnect("Wrong code");
 			return;
 		}
 
@@ -141,11 +142,13 @@ public class NetworkClient {
 	private void handleChallengeResponse(ChallengeResponsePacket packet) {
 		if (packet.getTempCode() != tempCode) {
 			System.out.println("[SECURITY] Client sent wrong temp code back!");
-			disconnect();
+			disconnect("Wrong temp code");
 			return;
 		}
-
+		
+		status = EnumConnectionState.Connected;
 		System.out.println("Client logged in as " + user.getUsername());
+		user.assignToNetwork(this);
 	}
 
 	public void sendPacket(IPacket packet) {
@@ -167,8 +170,12 @@ public class NetworkClient {
 		sendLock.unlock();
 	}
 
-	private void disconnect() {
+	public void disconnect(String reason) {
 		try {
+			System.out.println("Disconnecting client: "+reason);
+			if(status == EnumConnectionState.Connected){
+				sendPacket(new DisconnectPacket(reason));
+			}
 			socket.close();
 		} catch (IOException e) {
 			e.printStackTrace();

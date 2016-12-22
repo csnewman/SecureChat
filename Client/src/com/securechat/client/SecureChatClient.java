@@ -12,6 +12,7 @@ import javax.swing.JPasswordField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import com.securechat.client.chat.MainWindow;
 import com.securechat.client.connection.ConnectingDialog;
 import com.securechat.client.connection.ConnectionInfo;
 import com.securechat.client.connection.ConnectionStore;
@@ -71,6 +72,9 @@ public class SecureChatClient {
 				connectingDialog.dispose();
 				return;
 			}
+			
+//			currentWindow = new MainWindow(this);
+//			currentWindow.setVisible(true);
 
 			Consumer<ChallengePacket> challengeHandler = c -> {
 				connectingDialog.setStatus("Completing challenge...");
@@ -151,6 +155,10 @@ public class SecureChatClient {
 
 	public ConnectionStore getConnectionStore() {
 		return connectionStore;
+	}
+	
+	public NetworkClient getNetworkClient() {
+		return networkClient;
 	}
 
 	public static void main(String[] args) {
