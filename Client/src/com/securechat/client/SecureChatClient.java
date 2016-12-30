@@ -12,7 +12,6 @@ import javax.swing.JPasswordField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-import com.securechat.client.chat.MainWindow;
 import com.securechat.client.connection.ConnectingDialog;
 import com.securechat.client.connection.ConnectionInfo;
 import com.securechat.client.connection.ConnectionStore;
@@ -21,6 +20,9 @@ import com.securechat.client.network.NetworkClient;
 import com.securechat.common.packets.ChallengePacket;
 import com.securechat.common.packets.ChallengeResponsePacket;
 import com.securechat.common.packets.ConnectPacket;
+import com.securechat.common.packets.ConnectedPacket;
+import com.securechat.common.packets.DisconnectPacket;
+import com.securechat.common.packets.IPacket;
 import com.securechat.common.security.PasswordEncryption;
 import com.securechat.common.security.ProtectedKeyStore;
 import com.securechat.common.security.SecurityUtils;
@@ -54,39 +56,50 @@ public class SecureChatClient {
 
 	}
 
+	private Thread connectingThread;
 	public void connect(ConnectionInfo info) {
 		connectingDialog = new ConnectingDialog(this, info);
 		SwingUtilities.invokeLater(() -> connectingDialog.setVisible(true));
 
-		new Thread(() -> {
+		connectingThread = new Thread(() -> {
 			connectingDialog.setStatus("Connecting to " + info.getServerIp() + ":" + info.getServerPort() + "...");
+
+			Consumer<String> disconnectHandler = r -> {
+				JOptionPane.showMessageDialog(connectingDialog, "Reason: " + r, "Failed to connect to the server", 
+						JOptionPane.ERROR_MESSAGE);
+				connectingDialog.dispose();
+				connectingThread.stop();
+			};
 
 			networkClient = new NetworkClient();
 			try {
 				networkClient.connect(info.getServerIp(), info.getServerPort(), info.getPublicKey(),
-						info.getPrivateKey());
+						info.getPrivateKey(), disconnectHandler);
 			} catch (Exception e) {
 				e.printStackTrace();
-				JOptionPane.showMessageDialog(connectingDialog, "Failed to connect to the server", "Failed to connect",
-						JOptionPane.ERROR_MESSAGE);
-				connectingDialog.dispose();
+				disconnectHandler.accept("Internal Error (" + e.getMessage() + ")");
 				return;
 			}
-			
-//			currentWindow = new MainWindow(this);
-//			currentWindow.setVisible(true);
+
+			// currentWindow = new MainWindow(this);
+			// currentWindow.setVisible(true);
+
+			Consumer<ConnectedPacket> responseHandler = c -> {
+				JOptionPane.showMessageDialog(connectingDialog, "Connected!", "Connected to the server!!",
+						JOptionPane.ERROR_MESSAGE);
+			};
 
 			Consumer<ChallengePacket> challengeHandler = c -> {
 				connectingDialog.setStatus("Completing challenge...");
-				// networkClient.setSingleHandler(type, handler);
+				networkClient.setSingleHandler(ConnectedPacket.class, responseHandler);
 				networkClient.sendPacket(new ChallengeResponsePacket(c.getTempCode()));
 			};
 
 			connectingDialog.setStatus("Logging in...");
 			networkClient.setSingleHandler(ChallengePacket.class, challengeHandler);
 			networkClient.sendPacket(new ConnectPacket(info.getUsername(), info.getCode()));
-		}).start();
-
+		});
+		connectingThread.start();
 	}
 
 	private void unlockKeyStore() {
@@ -156,7 +169,7 @@ public class SecureChatClient {
 	public ConnectionStore getConnectionStore() {
 		return connectionStore;
 	}
-	
+
 	public NetworkClient getNetworkClient() {
 		return networkClient;
 	}

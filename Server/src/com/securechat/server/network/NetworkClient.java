@@ -58,43 +58,51 @@ public class NetworkClient {
 	}
 
 	private void readPackets() {
-		while (active) {
-			byte[] ddata = encryption.decrypt(reader.readArray());
-			ByteReader packetData = new ByteReader(ddata);
-			byte[] hash = packetData.readArray();
-			byte[] original = packetData.readArray();
-			byte[] checksum = SecurityUtils.hashData(original);
+		try {
+			while (active) {
+				byte[] ddata = encryption.decrypt(reader.readArray());
+				ByteReader packetData = new ByteReader(ddata);
+				byte[] hash = packetData.readArray();
+				byte[] original = packetData.readArray();
+				byte[] checksum = SecurityUtils.hashData(original);
 
-			System.out.println("[DEBUG] Read packet, rawLen='" + ddata.length + "', len='" + original.length
-					+ "', hash='" + Arrays.equals(checksum, hash) + "'");
+				System.out.println("[DEBUG] Read packet, rawLen='" + ddata.length + "', len='" + original.length
+						+ "', hash='" + Arrays.equals(checksum, hash) + "'");
 
-			if (!Arrays.equals(checksum, hash)) {
-				throw new RuntimeException("Invalid checksum!");
-			}
-
-			ByteReader data = new ByteReader(original);
-			String id = data.readString();
-			IPacket packet = PacketManager.createPacket(id);
-			packet.read(data);
-
-			if (status == EnumConnectionState.Ignore) {
-				System.out.println("Client in ignored state sent an unexpected packet " + id);
-			} else if (status == EnumConnectionState.PreAuth) {
-				if (packet instanceof RegisterPacket) {
-					handleRegister((RegisterPacket) packet);
-				} else if (packet instanceof ConnectPacket) {
-					handleConnect((ConnectPacket) packet);
-				} else {
-					System.out.println("Unexpected packet " + id);
+				if (!Arrays.equals(checksum, hash)) {
+					throw new RuntimeException("Invalid checksum!");
 				}
-			} else if (status == EnumConnectionState.AwaitingChallengeResponse) {
-				if (packet instanceof ChallengeResponsePacket) {
-					handleChallengeResponse((ChallengeResponsePacket) packet);
-				} else {
-					System.out.println("Unexpected packet " + id);
+
+				ByteReader data = new ByteReader(original);
+				String id = data.readString();
+				IPacket packet = PacketManager.createPacket(id);
+				packet.read(data);
+
+				if (status == EnumConnectionState.Ignore) {
+					System.out.println("Client in ignored state sent an unexpected packet " + id);
+				} else if (status == EnumConnectionState.PreAuth) {
+					if (packet instanceof RegisterPacket) {
+						handleRegister((RegisterPacket) packet);
+					} else if (packet instanceof ConnectPacket) {
+						handleConnect((ConnectPacket) packet);
+					} else {
+						System.out.println("Unexpected packet " + id);
+					}
+				} else if (status == EnumConnectionState.AwaitingChallengeResponse) {
+					if (packet instanceof ChallengeResponsePacket) {
+						handleChallengeResponse((ChallengeResponsePacket) packet);
+					} else {
+						System.out.println("Unexpected packet " + id);
+					}
+				} else if (status != EnumConnectionState.Connected) {
+					user.handlePacket(packet);
 				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Disconnected from server");
 		}
+
 	}
 
 	private void handleRegister(RegisterPacket packet) {
@@ -140,12 +148,12 @@ public class NetworkClient {
 	}
 
 	private void handleChallengeResponse(ChallengeResponsePacket packet) {
-		if (packet.getTempCode() != tempCode) {
+		if (packet.getTempCode() == tempCode) {
 			System.out.println("[SECURITY] Client sent wrong temp code back!");
 			disconnect("Wrong temp code");
 			return;
 		}
-		
+
 		status = EnumConnectionState.Connected;
 		System.out.println("Client logged in as " + user.getUsername());
 		user.assignToNetwork(this);
@@ -172,8 +180,9 @@ public class NetworkClient {
 
 	public void disconnect(String reason) {
 		try {
-			System.out.println("Disconnecting client: "+reason);
-			if(status == EnumConnectionState.Connected){
+			System.out.println("Disconnecting client: " + reason);
+			status = EnumConnectionState.Ignore;
+			if (status == EnumConnectionState.Connected) {
 				sendPacket(new DisconnectPacket(reason));
 			}
 			socket.close();

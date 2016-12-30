@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.security.KeyPair;
+import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -100,8 +101,13 @@ public class InitialConnection extends JDialog {
 
 			setStatus(true, "Connecting to server");
 			client = new NetworkClient();
+
+			Consumer<String> disconnectHandler = r -> {
+				setStatus(false, "Failed: " + r);
+			};
+
 			client.connect(connectionInfo.getServerIp(), connectionInfo.getServerPort(), connectionInfo.getPublicKey(),
-					pair.getPrivate());
+					pair.getPrivate(), disconnectHandler);
 
 			client.setSingleHandler(RegisterResponsePacket.class, r -> {
 				switch (r.getStatus()) {

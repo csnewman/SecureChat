@@ -4,6 +4,8 @@ import java.security.PublicKey;
 
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
+import com.securechat.common.packets.ConnectedPacket;
+import com.securechat.common.packets.IPacket;
 import com.securechat.common.security.RSAEncryption;
 import com.securechat.server.network.NetworkClient;
 
@@ -31,18 +33,22 @@ public class User {
 		writer.writeInt(code);
 	}
 
-	public void assignToNetwork(NetworkClient client){
-		if(network != null){
+	public void handlePacket(IPacket packet) {
+		System.out.println("HandlePacket "+packet);
+	}
+
+	public void assignToNetwork(NetworkClient client) {
+		if (network != null) {
 			network.disconnect("Logged in from somewhere else");
 		}
-		
-		
+		network = client;
+		network.sendPacket(new ConnectedPacket());
 	}
-	
+
 	public NetworkClient getNetwork() {
 		return network;
 	}
-	
+
 	public String getUsername() {
 		return username;
 	}

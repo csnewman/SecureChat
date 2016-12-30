@@ -24,9 +24,11 @@ public class NetworkClient {
 	private boolean active;
 	private RSAEncryption encryption;
 	private Consumer<IPacket> handler;
+	private Consumer<String> disconnectHandler;
 
-	public void connect(String host, int port, PublicKey pub, PrivateKey pri) {
+	public void connect(String host, int port, PublicKey pub, PrivateKey pri, Consumer<String> disconnectHandler) {
 		try {
+			this.disconnectHandler = disconnectHandler;
 			encryption = new RSAEncryption(pub, pri);
 			active = true;
 			sendLock = new ReentrantLock();
@@ -53,39 +55,57 @@ public class NetworkClient {
 		this.handler = handler;
 	}
 
+	public void setDisconnectHandler(Consumer<String> disconnectHandler) {
+		this.disconnectHandler = disconnectHandler;
+	}
+
 	@SuppressWarnings("unchecked")
 	public <T> void setSingleHandler(Class<T> type, Consumer<T> handler) {
 		setHandler(p -> {
 			if (type.isInstance(p)) {
 				handler.accept((T) p);
 			} else {
-				System.out.println("Unexpected packet " + p);
+				disconnectHandler.accept("Unexpected packet "+p.getClass());
+				try {
+					socket.close();
+				} catch (IOException e) {
+				}
 			}
 		});
 	}
 
 	private void readPackets() {
-		while (active) {
-			byte[] ddata = encryption.decrypt(reader.readArray());
-			ByteReader packetData = new ByteReader(ddata);
-			byte[] hash = packetData.readArray();
-			byte[] original = packetData.readArray();
-			byte[] checksum = SecurityUtils.hashData(original);
+		try {
+			while (active) {
+				byte[] ddata = encryption.decrypt(reader.readArray());
+				ByteReader packetData = new ByteReader(ddata);
+				byte[] hash = packetData.readArray();
+				byte[] original = packetData.readArray();
+				byte[] checksum = SecurityUtils.hashData(original);
 
-			System.out.println("[DEBUG] Read packet, rawLen='" + ddata.length + "', len='" + original.length
-					+ "', hash='" + Arrays.equals(checksum, hash) + "'");
+				System.out.println("[DEBUG] Read packet, rawLen='" + ddata.length + "', len='" + original.length
+						+ "', hash='" + Arrays.equals(checksum, hash) + "'");
 
-			if (!Arrays.equals(checksum, hash)) {
-				throw new RuntimeException("Invalid checksum!");
+				if (!Arrays.equals(checksum, hash)) {
+					throw new RuntimeException("Invalid checksum!");
+				}
+
+				ByteReader data = new ByteReader(original);
+				String id = data.readString();
+				IPacket packet = PacketManager.createPacket(id);
+				packet.read(data);
+
+				handler.accept(packet);
 			}
-
-			ByteReader data = new ByteReader(original);
-			String id = data.readString();
-			IPacket packet = PacketManager.createPacket(id);
-			packet.read(data);
-
-			handler.accept(packet);
+		} catch (Exception e) {
+			e.printStackTrace();
+			try {
+				socket.close();
+			} catch (IOException e1) {
+			}
+			disconnectHandler.accept("Internal Error (" + e.getMessage() + ")");
 		}
+
 	}
 
 	public void sendPacket(IPacket packet) {

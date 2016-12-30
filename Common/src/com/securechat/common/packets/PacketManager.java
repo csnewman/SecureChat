@@ -35,7 +35,7 @@ public class PacketManager {
 		registerPacket("CONNECT", ConnectPacket.class);
 		registerPacket("CHALLENGE", ChallengePacket.class);
 		registerPacket("CHALLENGE_RESPONSE", ChallengeResponsePacket.class);
-//		registerPacket("CONNECTED", clazz);
+		registerPacket("CONNECTED", ConnectedPacket.class);
 		
 		registerPacket("DISCONNECT", DisconnectPacket.class);
 		registerPacket("NEW_CHAT", NewChatPacket.class);

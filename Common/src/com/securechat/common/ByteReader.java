@@ -67,7 +67,8 @@ public class ByteReader {
 			input.readFully(buffer, 0, size);
 			return buffer;
 		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
+			e.printStackTrace();
+			throw new RuntimeException(e.getMessage(), e);
 		}
 	}
 
