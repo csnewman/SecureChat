@@ -20,12 +20,16 @@ public abstract class ProtectedStore {
 
 	public void tryLoadAndSave() {
 		if (exists()) {
-			load();
+			try {
+				load();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		save();
 	}
 
-	public void load() {
+	public void load() throws IOException {
 		if (file.exists()) {
 			byte[] rawData;
 			try {
@@ -56,7 +60,7 @@ public abstract class ProtectedStore {
 		}
 	}
 
-	protected abstract void loadContent(ByteReader bodyReader);
+	protected abstract void loadContent(ByteReader bodyReader) throws IOException;
 
 	public void save() {
 		ByteWriter bodyWriter = new ByteWriter();

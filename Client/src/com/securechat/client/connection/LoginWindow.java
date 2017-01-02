@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.function.Consumer;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -14,13 +15,20 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 import com.securechat.client.SecureChatClient;
+import com.securechat.client.network.NetworkClient;
+import com.securechat.common.packets.ChallengePacket;
+import com.securechat.common.packets.ChallengeResponsePacket;
+import com.securechat.common.packets.ConnectPacket;
+import com.securechat.common.packets.ConnectedPacket;
 
-public class LoginWindow {
+public class LoginWindow extends JFrame {
+	private static final long serialVersionUID = -733929606760128273L;
 	private SecureChatClient client;
-	private JFrame frmSecureChat;
 	private JComboBox<String> connectionBox;
 	private JLabel lblServerNameValue, lblServerHostValue;
 	private JButton btnConnect;
@@ -28,22 +36,17 @@ public class LoginWindow {
 
 	public LoginWindow(SecureChatClient client) {
 		this.client = client;
-		initialize();
-	}
-
-	private void initialize() {
-		frmSecureChat = new JFrame();
-		frmSecureChat.setResizable(false);
-		frmSecureChat.setTitle("Secure Chat");
-		frmSecureChat.setBounds(100, 100, 265, 210);
-		frmSecureChat.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frmSecureChat.getContentPane().setLayout(null);
+		setResizable(false);
+		setTitle("Secure Chat");
+		setBounds(100, 100, 265, 210);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		getContentPane().setLayout(null);
 
 		JLabel lblSecureChat = new JLabel("Secure Chat");
 		lblSecureChat.setHorizontalAlignment(SwingConstants.CENTER);
 		lblSecureChat.setFont(new Font("Tahoma", Font.PLAIN, 24));
 		lblSecureChat.setBounds(10, 11, 233, 26);
-		frmSecureChat.getContentPane().add(lblSecureChat);
+		getContentPane().add(lblSecureChat);
 
 		connectionBox = new JComboBox<String>();
 		connectionBox.addItemListener(new ItemListener() {
@@ -54,36 +57,36 @@ public class LoginWindow {
 			}
 		});
 		connectionBox.setBounds(83, 48, 160, 20);
-		frmSecureChat.getContentPane().add(connectionBox);
+		getContentPane().add(connectionBox);
 
 		JLabel lblConnection = new JLabel("Connection");
 		lblConnection.setBounds(10, 51, 63, 14);
-		frmSecureChat.getContentPane().add(lblConnection);
+		getContentPane().add(lblConnection);
 
 		btnConnect = new JButton("Connect");
 		btnConnect.setEnabled(false);
 		btnConnect.addActionListener(this::connect);
 		btnConnect.setBounds(83, 126, 160, 23);
-		frmSecureChat.getContentPane().add(btnConnect);
+		getContentPane().add(btnConnect);
 
 		JLabel lblServerName = new JLabel("Server Name");
 		lblServerName.setBounds(10, 76, 63, 14);
-		frmSecureChat.getContentPane().add(lblServerName);
+		getContentPane().add(lblServerName);
 
 		lblServerNameValue = new JLabel("");
 		lblServerNameValue.setBounds(82, 76, 161, 14);
-		frmSecureChat.getContentPane().add(lblServerNameValue);
+		getContentPane().add(lblServerNameValue);
 
 		JLabel lblServerHost = new JLabel("Server Host");
 		lblServerHost.setBounds(10, 101, 63, 14);
-		frmSecureChat.getContentPane().add(lblServerHost);
+		getContentPane().add(lblServerHost);
 
 		lblServerHostValue = new JLabel("");
 		lblServerHostValue.setBounds(83, 101, 160, 14);
-		frmSecureChat.getContentPane().add(lblServerHostValue);
+		getContentPane().add(lblServerHostValue);
 
 		JMenuBar menuBar = new JMenuBar();
-		frmSecureChat.setJMenuBar(menuBar);
+		setJMenuBar(menuBar);
 
 		JMenu mnFile = new JMenu("File");
 		menuBar.add(mnFile);
@@ -127,15 +130,57 @@ public class LoginWindow {
 		btnConnect.setEnabled(true);
 	}
 
-	private void connect(ActionEvent e) {
-		client.connect(infos[connectionBox.getSelectedIndex()]);
+	private ConnectingDialog connectingDialog;
+	private Thread connectingThread;
+	private String connectingTask;
+
+	private void connect(ActionEvent event) {
+		ConnectionInfo info = infos[connectionBox.getSelectedIndex()];
+		connectingDialog = new ConnectingDialog(client, info);
+		SwingUtilities.invokeLater(() -> connectingDialog.setVisible(true));
+
+		connectingThread = new Thread(() -> {
+			connectingDialog.setStatus("Connecting to " + info.getServerIp() + ":" + info.getServerPort() + "...");
+
+			Consumer<String> disconnectHandler = r -> {
+				JOptionPane.showMessageDialog(connectingDialog, "Reason: " + r + " when " + connectingTask + ".",
+						"Failed to connect to the server", JOptionPane.ERROR_MESSAGE);
+				connectingDialog.dispose();
+				connectingThread.stop();
+			};
+
+			NetworkClient networkClient = new NetworkClient();
+			try {
+				connectingTask = "connecting";
+				networkClient.connect(info.getServerIp(), info.getServerPort(), info.getPublicKey(),
+						info.getPrivateKey(), disconnectHandler);
+			} catch (Exception e) {
+				e.printStackTrace();
+				disconnectHandler.accept("Internal Error (" + e.getMessage() + ")");
+				return;
+			}
+
+			Consumer<ConnectedPacket> responseHandler = c -> {
+				JOptionPane.showMessageDialog(connectingDialog, "Connected!", "Connected to the server!!",
+						JOptionPane.ERROR_MESSAGE);
+				connectingTask = "connected";
+				setVisible(false);
+				client.onConnected(info, networkClient);
+			};
+
+			Consumer<ChallengePacket> challengeHandler = c -> {
+				connectingDialog.setStatus("Completing challenge...");
+				connectingTask = "completing the challenge";
+				networkClient.setSingleHandler(ConnectedPacket.class, responseHandler);
+				networkClient.sendPacket(new ChallengeResponsePacket(c.getTempCode()));
+			};
+
+			connectingDialog.setStatus("Logging in...");
+			connectingTask = "logging in";
+			networkClient.setSingleHandler(ChallengePacket.class, challengeHandler);
+			networkClient.sendPacket(new ConnectPacket(info.getUsername(), info.getCode()));
+		});
+		connectingThread.start();
 	}
 
-	public void open() {
-		frmSecureChat.setVisible(true);
-	}
-
-	public JFrame getFrame() {
-		return frmSecureChat;
-	}
 }

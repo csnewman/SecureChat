@@ -2,27 +2,20 @@ package com.securechat.client;
 
 import java.awt.EventQueue;
 import java.io.File;
-import java.util.function.Consumer;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-import com.securechat.client.connection.ConnectingDialog;
+import com.securechat.client.chat.MainWindow;
 import com.securechat.client.connection.ConnectionInfo;
 import com.securechat.client.connection.ConnectionStore;
 import com.securechat.client.connection.LoginWindow;
 import com.securechat.client.network.NetworkClient;
-import com.securechat.common.packets.ChallengePacket;
-import com.securechat.common.packets.ChallengeResponsePacket;
-import com.securechat.common.packets.ConnectPacket;
-import com.securechat.common.packets.ConnectedPacket;
-import com.securechat.common.packets.DisconnectPacket;
-import com.securechat.common.packets.IPacket;
 import com.securechat.common.security.PasswordEncryption;
 import com.securechat.common.security.ProtectedKeyStore;
 import com.securechat.common.security.SecurityUtils;
@@ -32,15 +25,12 @@ public class SecureChatClient {
 	private static SecureChatClient INSTANCE;
 	private JFrame currentWindow;
 	private ProtectedKeyStore keyStore;
-	private LoginWindow loginWindow;
 	private ConnectionStore connectionStore;
 	private NetworkClient networkClient;
-	private ConnectingDialog connectingDialog;
 
 	public void init() {
-		loginWindow = new LoginWindow(INSTANCE);
-		currentWindow = loginWindow.getFrame();
-		loginWindow.open();
+		currentWindow = new LoginWindow(this);
+		currentWindow.setVisible(true);
 
 		if (keystoreFile.exists()) {
 			unlockKeyStore();
@@ -52,54 +42,14 @@ public class SecureChatClient {
 
 		keyStore.save();
 
-		loginWindow.updateOptions();
-
+		getCurrentWindow(LoginWindow.class).updateOptions();
 	}
 
-	private Thread connectingThread;
-	public void connect(ConnectionInfo info) {
-		connectingDialog = new ConnectingDialog(this, info);
-		SwingUtilities.invokeLater(() -> connectingDialog.setVisible(true));
+	public void onConnected(ConnectionInfo info, NetworkClient networkClient) {
+		this.networkClient = networkClient;
 
-		connectingThread = new Thread(() -> {
-			connectingDialog.setStatus("Connecting to " + info.getServerIp() + ":" + info.getServerPort() + "...");
-
-			Consumer<String> disconnectHandler = r -> {
-				JOptionPane.showMessageDialog(connectingDialog, "Reason: " + r, "Failed to connect to the server", 
-						JOptionPane.ERROR_MESSAGE);
-				connectingDialog.dispose();
-				connectingThread.stop();
-			};
-
-			networkClient = new NetworkClient();
-			try {
-				networkClient.connect(info.getServerIp(), info.getServerPort(), info.getPublicKey(),
-						info.getPrivateKey(), disconnectHandler);
-			} catch (Exception e) {
-				e.printStackTrace();
-				disconnectHandler.accept("Internal Error (" + e.getMessage() + ")");
-				return;
-			}
-
-			// currentWindow = new MainWindow(this);
-			// currentWindow.setVisible(true);
-
-			Consumer<ConnectedPacket> responseHandler = c -> {
-				JOptionPane.showMessageDialog(connectingDialog, "Connected!", "Connected to the server!!",
-						JOptionPane.ERROR_MESSAGE);
-			};
-
-			Consumer<ChallengePacket> challengeHandler = c -> {
-				connectingDialog.setStatus("Completing challenge...");
-				networkClient.setSingleHandler(ConnectedPacket.class, responseHandler);
-				networkClient.sendPacket(new ChallengeResponsePacket(c.getTempCode()));
-			};
-
-			connectingDialog.setStatus("Logging in...");
-			networkClient.setSingleHandler(ChallengePacket.class, challengeHandler);
-			networkClient.sendPacket(new ConnectPacket(info.getUsername(), info.getCode()));
-		});
-		connectingThread.start();
+		currentWindow = new MainWindow(this, info);
+		currentWindow.setVisible(true);
 	}
 
 	private void unlockKeyStore() {
@@ -112,15 +62,15 @@ public class SecureChatClient {
 			panel.add(pass);
 
 			String[] options = new String[] { "Unlock", "Quit" };
-			int option = JOptionPane.showOptionDialog(loginWindow.getFrame(), panel, "Unlock KeyStore",
-					JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+			int option = JOptionPane.showOptionDialog(currentWindow, panel, "Unlock KeyStore", JOptionPane.NO_OPTION,
+					JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
 			if (option == 0) {
 				try {
 					keyStore = new ProtectedKeyStore(keystoreFile,
 							new PasswordEncryption(SecurityUtils.secureHashChars(pass.getPassword())));
 					keyStore.load();
 					unlocked = true;
-				} catch (RuntimeException e) {
+				} catch (IOException e) {
 					e.printStackTrace();
 					continue;
 				}
@@ -142,8 +92,8 @@ public class SecureChatClient {
 
 			String[] options = new String[] { "Lock", "Quit" };
 
-			int option = JOptionPane.showOptionDialog(loginWindow.getFrame(), panel, "New KeyStore",
-					JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+			int option = JOptionPane.showOptionDialog(currentWindow, panel, "New KeyStore", JOptionPane.NO_OPTION,
+					JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
 			if (option == 0) {
 				password = pass.getPassword();
 				if (password.length == 0) {
@@ -158,8 +108,9 @@ public class SecureChatClient {
 		keyStore.save();
 	}
 
-	public LoginWindow getLoginWindow() {
-		return loginWindow;
+	@SuppressWarnings("unchecked")
+	public <T> T getCurrentWindow(Class<T> clazz) {
+		return (T) currentWindow;
 	}
 
 	public JFrame getCurrentWindow() {

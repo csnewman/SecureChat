@@ -24,65 +24,40 @@ public class ByteReader {
 		return rawData;
 	}
 
-	public int readByte() {
-		try {
-			return input.read();
-		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
-		}
+	public int readByte() throws IOException {
+		return input.read();
 	}
 
-	public <T extends Enum<T>> T readEnum(Class<T> type) {
+	public <T extends Enum<T>> T readEnum(Class<T> type) throws IOException {
 		return type.getEnumConstants()[readInt()];
 	}
 
-	public int readInt() {
-		try {
-			return input.readInt();
-		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
-		}
+	public int readInt() throws IOException {
+		return input.readInt();
 	}
 
-	public String readString() {
-		try {
-			return input.readUTF();
-		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
-		}
+	public String readString() throws IOException {
+		return input.readUTF();
 	}
 
-	public boolean readBoolean() {
-		try {
-			return input.readBoolean();
-		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
-		}
+	public boolean readBoolean() throws IOException {
+		return input.readBoolean();
 	}
 
-	public byte[] readArray() {
-		try {
-			int size = input.readInt();
-			byte[] buffer = new byte[size];
-			input.readFully(buffer, 0, size);
-			return buffer;
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e.getMessage(), e);
-		}
+	public byte[] readArray() throws IOException {
+		int size = input.readInt();
+		byte[] buffer = new byte[size];
+		input.readFully(buffer, 0, size);
+		return buffer;
 	}
 
-	public byte[] readFixedArray(int size) {
-		try {
-			byte[] buffer = new byte[size];
-			input.readFully(buffer, 0, size);
-			return buffer;
-		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
-		}
+	public byte[] readFixedArray(int size) throws IOException {
+		byte[] buffer = new byte[size];
+		input.readFully(buffer, 0, size);
+		return buffer;
 	}
 
-	public ByteReader readReaderContent() {
+	public ByteReader readReaderContent() throws IOException {
 		return new ByteReader(readArray());
 	}
 
@@ -94,14 +69,10 @@ public class ByteReader {
 		}
 	}
 
-	public void close() {
-		try {
-			input.close();
-			if (arrayStream != null)
-				arrayStream.close();
-		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
-		}
+	public void close() throws IOException {
+		input.close();
+		if (arrayStream != null)
+			arrayStream.close();
 	}
 
 }

@@ -99,8 +99,10 @@ public class NetworkClient {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("Disconnected from server");
+			if(active){
+				e.printStackTrace();
+				System.out.println("Disconnected from client");
+			}
 		}
 
 	}
@@ -148,7 +150,7 @@ public class NetworkClient {
 	}
 
 	private void handleChallengeResponse(ChallengeResponsePacket packet) {
-		if (packet.getTempCode() == tempCode) {
+		if (packet.getTempCode() != tempCode) {
 			System.out.println("[SECURITY] Client sent wrong temp code back!");
 			disconnect("Wrong temp code");
 			return;

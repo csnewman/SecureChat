@@ -117,7 +117,7 @@ public class InitialConnection extends JDialog {
 
 					connectionInfo.complete(username, pair.getPrivate(), r.getCode());
 					this.client.getConnectionStore().addConnection(connectionInfo);
-					this.client.getLoginWindow().updateOptions();
+					this.client.getCurrentWindow(LoginWindow.class).updateOptions();
 
 					setStatus(true, "Success");
 					JOptionPane.showMessageDialog(this,

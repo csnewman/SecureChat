@@ -1,5 +1,6 @@
 package com.securechat.server;
 
+import java.io.IOException;
 import java.security.PublicKey;
 
 import com.securechat.common.ByteReader;
@@ -21,7 +22,7 @@ public class User {
 		this.code = code;
 	}
 
-	public User(ByteReader reader) {
+	public User(ByteReader reader) throws IOException{
 		username = reader.readString();
 		publicKey = RSAEncryption.loadPublicKey(reader.readArray());
 		code = reader.readInt();

@@ -1,6 +1,7 @@
 package com.securechat.client.connection;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -17,7 +18,7 @@ public class ConnectionInfo {
 	private PublicKey publicKey;
 	private PrivateKey privateKey;
 
-	public ConnectionInfo(ByteReader reader) {
+	public ConnectionInfo(ByteReader reader) throws IOException {
 		serverName = reader.readString();
 		serverIp = reader.readString();
 		serverPort = reader.readInt();
@@ -27,7 +28,7 @@ public class ConnectionInfo {
 		username = reader.readString();
 	}
 
-	public ConnectionInfo(File file, char[] password) {
+	public ConnectionInfo(File file, char[] password) throws IOException {
 		ProtectedDataStore connectionStore = new ProtectedDataStore(file,
 				new PasswordEncryption(SecurityUtils.secureHashChars(password)));
 		connectionStore.load();

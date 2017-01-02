@@ -1,6 +1,7 @@
 package com.securechat.common.security;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -21,7 +22,7 @@ public class ProtectedKeyStore extends ProtectedStore {
 	}
 
 	@Override
-	protected void loadContent(ByteReader bodyReader) {
+	protected void loadContent(ByteReader bodyReader) throws IOException {
 		keys.clear();
 
 		int keyCount = bodyReader.readInt();

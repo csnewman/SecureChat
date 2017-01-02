@@ -1,5 +1,6 @@
 package com.securechat.common.packets;
 
+import java.io.IOException;
 import java.security.PublicKey;
 
 import com.securechat.common.ByteReader;
@@ -19,7 +20,7 @@ public class RegisterPacket implements IPacket {
 	}
 
 	@Override
-	public void read(ByteReader reader) {
+	public void read(ByteReader reader) throws IOException {
 		username = reader.readString();
 		publicKey = RSAEncryption.loadPublicKey(reader.readArray());
 	}

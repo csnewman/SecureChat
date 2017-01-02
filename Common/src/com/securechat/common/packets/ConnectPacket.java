@@ -1,5 +1,7 @@
 package com.securechat.common.packets;
 
+import java.io.IOException;
+
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
 
@@ -16,7 +18,7 @@ public class ConnectPacket implements IPacket {
 	}
 
 	@Override
-	public void read(ByteReader reader) {
+	public void read(ByteReader reader) throws IOException {
 		username = reader.readString();
 		code = reader.readInt();
 	}

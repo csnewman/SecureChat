@@ -41,6 +41,7 @@ public class NetworkServer {
 	private void handleConnections() {
 		while (active) {
 			try {
+				System.out.println("Awaiting connection");
 				Socket socket = serverSocket.accept();
 				if (socket != null) {
 					System.out.println("Client connected!");
@@ -50,7 +51,7 @@ public class NetworkServer {
 					clientLock.writeLock().unlock();
 					client.start();
 				}
-			} catch (IOException e) {
+			} catch (Exception e) {
 				System.out.println("Connection failed! " + e.getMessage());
 			}
 		}

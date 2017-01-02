@@ -1,6 +1,7 @@
 package com.securechat.common.security;
 
 import java.io.File;
+import java.io.IOException;
 
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
@@ -13,7 +14,7 @@ public class ProtectedDataStore extends ProtectedStore {
 	}
 
 	@Override
-	protected void loadContent(ByteReader bodyReader) {
+	protected void loadContent(ByteReader bodyReader) throws IOException {
 		content = bodyReader.readArray();
 	}
 

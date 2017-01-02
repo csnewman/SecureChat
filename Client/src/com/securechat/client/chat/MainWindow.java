@@ -10,6 +10,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.AbstractAction;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -23,16 +25,25 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.MatteBorder;
 
 import com.securechat.client.SecureChatClient;
+import com.securechat.client.connection.ConnectionInfo;
 import com.securechat.client.util.FunctionalAction;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.SoftBevelBorder;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.border.TitledBorder;
+import javax.swing.UIManager;
+import javax.swing.border.CompoundBorder;
 
 public class MainWindow extends JFrame {
 	private static final long serialVersionUID = -4395256970704686192L;
 	private JPanel contentPane, contactsPanel;
 	private JSplitPane mainSplitPane;
 
-	public MainWindow(SecureChatClient client) {
+	public MainWindow(SecureChatClient client, ConnectionInfo info) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 729, 498);
+		setTitle(info.getUsername()+"@"+info.getServerName()+" - Secure Chat Client");
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -43,8 +54,8 @@ public class MainWindow extends JFrame {
 		contentPane.add(mainSplitPane, BorderLayout.CENTER);
 
 		JScrollPane contactsScrollPane = new JScrollPane();
-		contactsScrollPane.setSize(new Dimension(200, 300));
-		contactsScrollPane.setMinimumSize(new Dimension(200, 300));
+		contactsScrollPane.setSize(new Dimension(220, 300));
+		contactsScrollPane.setMinimumSize(new Dimension(220, 300));
 		mainSplitPane.setLeftComponent(contactsScrollPane);
 
 		contactsPanel = new JPanel();
@@ -58,32 +69,64 @@ public class MainWindow extends JFrame {
 		contactsPanel.add(new JPanel(), gbc);
 
 		JPanel contactsTopPanel = new JPanel();
-		contactsTopPanel.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
 		contactsScrollPane.setColumnHeaderView(contactsTopPanel);
+		
+		JPanel panel = new JPanel();
+		panel.setBorder(new EtchedBorder(EtchedBorder.RAISED, null, null));
+		contactsTopPanel.add(panel);
+		
+				JLabel lblNew = new JLabel("New Chat");
+				lblNew.addMouseListener(new MouseAdapter() {
+					@Override
+					public void mousePressed(MouseEvent e) {
+						addChat("CSNewman");
+					}
+				});
+				panel.add(lblNew);
+				
+				JPanel panel_1 = new JPanel();
+				panel_1.setBorder(new EtchedBorder(EtchedBorder.RAISED, null, null));
+				contactsTopPanel.add(panel_1);
+				
+				JLabel lblNewLabel = new JLabel("New Group");
+				panel_1.add(lblNewLabel);
+				
+				JPanel panel_2 = new JPanel();
+				panel_2.setBorder(new EtchedBorder(EtchedBorder.RAISED, null, null));
+				contactsTopPanel.add(panel_2);
+				
+				JLabel lblPending = new JLabel("Pending");
+				panel_2.add(lblPending);
 
-		JLabel lblNew = new JLabel("New");
-		contactsTopPanel.add(lblNew);
+//		final JPopupMenu newPopup = new JPopupMenu();
+//		newPopup.add(new JMenuItem(new FunctionalAction("Chat", e -> {
+////			NewChatDialog dialog = new NewChatDialog(client);
+////			dialog.setVisible(true);
+//			
+//		})));
+//
+//		newPopup.add(new JMenuItem(new AbstractAction("Group") {
+//			public void actionPerformed(ActionEvent e) {
+//				JOptionPane.showMessageDialog(MainWindow.this, "Option 2 selected");
+//			}
+//		}));
+//
+//		contactsTopPanel.addMouseListener(new MouseAdapter() {
+//			public void mousePressed(MouseEvent e) {
+//				newPopup.show(e.getComponent(), e.getX(), e.getY());
+//			}
+//		});
+		
+		Box box = new Box(BoxLayout.Y_AXIS);
+		box.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+		box.add(Box.createVerticalGlue());
+		box.add(new NewChatPanel());
+		box.add(Box.createVerticalGlue());
+//		add(box);
 
-		final JPopupMenu newPopup = new JPopupMenu();
-		newPopup.add(new JMenuItem(new FunctionalAction("Chat", e -> {
-			NewChatDialog dialog = new NewChatDialog(client);
-			dialog.setVisible(true);
-			addChat("CSNewman");
-		})));
-
-		newPopup.add(new JMenuItem(new AbstractAction("Group") {
-			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(MainWindow.this, "Option 2 selected");
-			}
-		}));
-
-		contactsTopPanel.addMouseListener(new MouseAdapter() {
-			public void mousePressed(MouseEvent e) {
-				newPopup.show(e.getComponent(), e.getX(), e.getY());
-			}
-		});
-
-		mainSplitPane.setRightComponent(new NoChatPanel());
+//		mainSplitPane.setRightComponent(box);
+		
+		mainSplitPane.setRightComponent(new PendingPanel());
 
 		// JTextPane textPane = new JTextPane();
 		// textPane.addKeyListener(new KeyAdapter() {
@@ -120,15 +163,15 @@ public class MainWindow extends JFrame {
 	}
 
 	public void addChat(String name) {
-		JPanel spanel = new JPanel();
-		spanel.add(new JLabel("<html><b>" + name + "<b></html>"));
-		spanel.setBorder(new MatteBorder(0, 0, 1, 0, Color.GRAY));
+//		JPanel spanel = new JPanel();
+//		spanel.add(new JLabel("<html><b>" + name + "<b></html>"));
+//		spanel.setBorder(new MatteBorder(0, 0, 1, 0, Color.GRAY));
 
 		GridBagConstraints gbc1 = new GridBagConstraints();
 		gbc1.gridwidth = GridBagConstraints.REMAINDER;
 		gbc1.weightx = 1;
 		gbc1.fill = GridBagConstraints.HORIZONTAL;
-		contactsPanel.add(spanel, gbc1, 0);
+		contactsPanel.add(new ChatNamePanel(), gbc1, 0);
 
 		validate();
 		repaint();

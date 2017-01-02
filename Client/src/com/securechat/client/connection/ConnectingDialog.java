@@ -17,6 +17,7 @@ public class ConnectingDialog extends JDialog {
 
 	public ConnectingDialog(SecureChatClient client, ConnectionInfo info) {
 		super(client.getCurrentWindow(), "Connecting to the server...", true);
+		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		setResizable(false);
 		setBounds(100, 100, 450, 117);
 		setLocationRelativeTo(client.getCurrentWindow());

@@ -1,6 +1,7 @@
 package com.securechat.client.connection;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.KeyPair;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,7 +26,7 @@ public class ConnectionStore extends ProtectedStore {
 	}
 
 	@Override
-	protected void loadContent(ByteReader bodyReader) {
+	protected void loadContent(ByteReader bodyReader) throws IOException {
 		int size = bodyReader.readInt();
 		infos.clear();
 		for (int i = 0; i < size; i++) {

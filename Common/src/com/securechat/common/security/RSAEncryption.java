@@ -1,5 +1,6 @@
 package com.securechat.common.security;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.InvalidKeyException;
@@ -74,7 +75,7 @@ public class RSAEncryption implements IEncryption {
 	}
 
 	@Override
-	public byte[] decrypt(byte[] data) {
+	public byte[] decrypt(byte[] data) throws IOException {
 		try {
 			ByteReader in = new ByteReader(data);
 			int length = in.readInt();

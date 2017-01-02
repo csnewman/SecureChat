@@ -1,5 +1,6 @@
 package com.securechat.client.network;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.security.PrivateKey;
@@ -65,7 +66,7 @@ public class NetworkClient {
 			if (type.isInstance(p)) {
 				handler.accept((T) p);
 			} else {
-				disconnectHandler.accept("Unexpected packet "+p.getClass());
+				disconnectHandler.accept("Unexpected packet " + p.getClass());
 				try {
 					socket.close();
 				} catch (IOException e) {
@@ -97,13 +98,20 @@ public class NetworkClient {
 
 				handler.accept(packet);
 			}
+		} catch (EOFException e){
+			e.printStackTrace();
+			try {
+				socket.close();
+			} catch (IOException e1) {
+			}
+			disconnectHandler.accept("Connection lost to server");
 		} catch (Exception e) {
 			e.printStackTrace();
 			try {
 				socket.close();
 			} catch (IOException e1) {
 			}
-			disconnectHandler.accept("Internal Error (" + e.getMessage() + ")");
+			disconnectHandler.accept("Internal Error (" + e.getMessage() + ":" + e.getClass() + ")");
 		}
 
 	}

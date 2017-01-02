@@ -1,5 +1,7 @@
 package com.securechat.common.packets;
 
+import java.io.IOException;
+
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
 
@@ -24,7 +26,7 @@ public class RegisterResponsePacket implements IPacket {
 	}
 
 	@Override
-	public void read(ByteReader reader) {
+	public void read(ByteReader reader) throws IOException {
 		status = reader.readEnum(RegisterStatus.class);
 		code = reader.readInt();
 	}

@@ -1,6 +1,7 @@
 package com.securechat.server;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.HashMap;
@@ -36,7 +37,7 @@ public class UserManager extends ProtectedStore {
 	}
 
 	@Override
-	protected void loadContent(ByteReader bodyReader) {
+	protected void loadContent(ByteReader bodyReader) throws IOException {
 		int size = bodyReader.readInt();
 		users.clear();
 		for (int i = 0; i < size; i++) {
