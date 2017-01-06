@@ -3,9 +3,9 @@ package com.securechat.common.packets;
 import java.io.IOException;
 import java.security.PublicKey;
 
+import com.securechat.basicencryption.RSAEncryption;
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
-import com.securechat.common.security.RSAEncryption;
 
 public class RegisterPacket implements IPacket {
 	private String username;

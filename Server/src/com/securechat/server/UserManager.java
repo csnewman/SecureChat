@@ -7,10 +7,10 @@ import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.securechat.basicencryption.RSAEncryption;
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
 import com.securechat.common.security.ProtectedStore;
-import com.securechat.common.security.RSAEncryption;
 
 public class UserManager extends ProtectedStore {
 	private static final File usersFile = new File("users.bin");

@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
+import com.securechat.basicencryption.RSAEncryption;
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
 import com.securechat.common.security.PasswordEncryption;
 import com.securechat.common.security.ProtectedDataStore;
-import com.securechat.common.security.RSAEncryption;
 import com.securechat.common.security.SecurityUtils;
 
 public class ConnectionInfo {

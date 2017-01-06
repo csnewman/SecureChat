@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
+import com.securechat.common.api.IEncryption;
 
 public abstract class ProtectedStore {
 	private static byte[] headerPrefix = new byte[] { 'S', 'C', 'P', 'S', 0X56, 0X1A, 0X11 };

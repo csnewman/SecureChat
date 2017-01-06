@@ -4,11 +4,11 @@ import java.io.Console;
 import java.io.File;
 import java.security.PublicKey;
 
+import com.securechat.basicencryption.RSAEncryption;
 import com.securechat.common.ByteWriter;
 import com.securechat.common.security.PasswordEncryption;
 import com.securechat.common.security.ProtectedDataStore;
 import com.securechat.common.security.ProtectedKeyStore;
-import com.securechat.common.security.RSAEncryption;
 import com.securechat.common.security.SecurityUtils;
 import com.securechat.server.network.NetworkServer;
 

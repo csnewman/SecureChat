@@ -1,8 +1,6 @@
-package com.securechat.common.security;
+package com.securechat.basicencryption;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -21,8 +19,9 @@ import javax.crypto.NoSuchPaddingException;
 
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
+import com.securechat.common.api.IAsymmetricEncryption;
 
-public class RSAEncryption implements IEncryption {
+public class RSAEncryption implements IAsymmetricEncryption {
 	private PublicKey pubKey;
 	private PrivateKey priKey;
 	private Cipher cipher;
@@ -131,5 +130,10 @@ public class RSAEncryption implements IEncryption {
 		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
 			throw new RuntimeException("Failed to load public key", e);
 		}
+	}
+
+	@Override
+	public String getImplName() {
+		return "official-rsa_encryption";
 	}
 }
