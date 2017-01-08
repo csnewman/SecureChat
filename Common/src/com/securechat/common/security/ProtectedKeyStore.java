@@ -13,7 +13,6 @@ import java.util.Map.Entry;
 import com.securechat.basicencryption.RSAEncryption;
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
-import com.securechat.common.api.IEncryption;
 
 public class ProtectedKeyStore extends ProtectedStore {
 	private Map<String, Key> keys;

@@ -1,4 +1,4 @@
-package com.securechat.common.api;
+package com.securechat.common.implementation;
 
 public interface IImplementation {
 	

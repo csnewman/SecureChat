@@ -7,7 +7,7 @@ public class PacketManager {
 	private static Map<String, Class<? extends IPacket>> idToPacketMap;
 	private static Map<Class<? extends IPacket>, String> packetToIdMap;
 
-	private static void registerPacket(String id, Class<? extends IPacket> clazz) {
+	public static void registerPacket(String id, Class<? extends IPacket> clazz) {
 		idToPacketMap.put(id, clazz);
 		packetToIdMap.put(clazz, id);
 	}

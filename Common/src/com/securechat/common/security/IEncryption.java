@@ -1,6 +1,8 @@
-package com.securechat.common.api;
+package com.securechat.common.security;
 
 import java.io.IOException;
+
+import com.securechat.common.implementation.IImplementation;
 
 public interface IEncryption extends IImplementation {
 

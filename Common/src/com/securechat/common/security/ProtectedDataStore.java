@@ -5,7 +5,6 @@ import java.io.IOException;
 
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
-import com.securechat.common.api.IEncryption;
 
 public class ProtectedDataStore extends ProtectedStore {
 	private byte[] content;

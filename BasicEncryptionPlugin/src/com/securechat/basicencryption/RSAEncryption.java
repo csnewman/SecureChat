@@ -19,20 +19,14 @@ import javax.crypto.NoSuchPaddingException;
 
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
-import com.securechat.common.api.IAsymmetricEncryption;
+import com.securechat.common.security.IAsymmetricKeyEncryption;
 
-public class RSAEncryption implements IAsymmetricEncryption {
+public class RSAEncryption implements IAsymmetricKeyEncryption {
 	private PublicKey pubKey;
 	private PrivateKey priKey;
 	private Cipher cipher;
 
-	public RSAEncryption(KeyPair pair) {
-		this(pair.getPublic(), pair.getPrivate());
-	}
-
-	public RSAEncryption(PublicKey pubKey, PrivateKey priKey) {
-		this.pubKey = pubKey;
-		this.priKey = priKey;
+	public RSAEncryption() {
 		try {
 			cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
@@ -40,12 +34,42 @@ public class RSAEncryption implements IAsymmetricEncryption {
 		}
 	}
 
-	public void setPublicKey(PublicKey pubKey) {
-		this.pubKey = pubKey;
+	@Override
+	public void generate() {
+		try {
+			KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+			generator.initialize(4096);
+			KeyPair pair = generator.generateKeyPair();
+			pubKey = pair.getPublic();
+			priKey = pair.getPrivate();
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("Failed to generate key pair", e);
+		}
 	}
 
-	public void setPrivateKey(PrivateKey priKey) {
-		this.priKey = priKey;
+	@Override
+	public void load(byte[] publicKey, byte[] privateKey) {
+		try {
+			pubKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(publicKey));
+		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+			throw new RuntimeException("Failed to load public key", e);
+		}
+
+		try {
+			priKey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(privateKey));
+		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+			throw new RuntimeException("Failed to load private key", e);
+		}
+	}
+
+	@Override
+	public byte[] getPublickey() {
+		return new X509EncodedKeySpec(pubKey.getEncoded()).getEncoded();
+	}
+
+	@Override
+	public byte[] getPrivatekey() {
+		return new PKCS8EncodedKeySpec(priKey.getEncoded()).getEncoded();
 	}
 
 	@Override
@@ -98,42 +122,9 @@ public class RSAEncryption implements IAsymmetricEncryption {
 		}
 	}
 
-	public static KeyPair generateKeyPair() {
-		try {
-			KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-			generator.initialize(4096);
-			return generator.generateKeyPair();
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("Failed to generate key pair", e);
-		}
-	}
-
-	public static byte[] savePublicKey(PublicKey key) {
-		return new X509EncodedKeySpec(key.getEncoded()).getEncoded();
-	}
-
-	public static PublicKey loadPublicKey(byte[] data) {
-		try {
-			return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(data));
-		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-			throw new RuntimeException("Failed to load public key", e);
-		}
-	}
-
-	public static byte[] savePrivateKey(PrivateKey key) {
-		return new PKCS8EncodedKeySpec(key.getEncoded()).getEncoded();
-	}
-
-	public static PrivateKey loadPrivateKey(byte[] data) {
-		try {
-			return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(data));
-		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-			throw new RuntimeException("Failed to load public key", e);
-		}
-	}
-
 	@Override
 	public String getImplName() {
 		return "official-rsa_encryption";
 	}
+
 }

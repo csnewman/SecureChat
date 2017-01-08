@@ -1,4 +1,4 @@
-package com.securechat.common.security;
+package com.securechat.basicencryption;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -14,17 +14,17 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
-import com.securechat.common.api.IEncryption;
+import com.securechat.common.security.IPasswordEncryption;
 
-public class PasswordEncryption implements IEncryption {
+public class PasswordEncryption implements IPasswordEncryption {
 	private static final byte[] salt = { (byte) 0x12, (byte) 0x67, (byte) 0x43, (byte) 0x32, (byte) 0x68, (byte) 0x94,
 			(byte) 0x17, (byte) 0x95 };
-
 	private SecretKey key;
 	private PBEParameterSpec pbeParamSpec;
 	private Cipher cipher;
 
-	public PasswordEncryption(char[] password) {
+	@Override
+	public void init(char[] password) {
 		try {
 			PBEKeySpec keySpec = new PBEKeySpec(password);
 			SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
@@ -34,7 +34,6 @@ public class PasswordEncryption implements IEncryption {
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeySpecException e) {
 			throw new RuntimeException("Failed to crypt data", e);
 		}
-
 	}
 
 	@Override
@@ -71,4 +70,9 @@ public class PasswordEncryption implements IEncryption {
 			throw new RuntimeException("Failed to decrypt data", e);
 		}
 	}
+
+	public String getImplName() {
+		return "official-password_encryption";
+	}
+
 }
