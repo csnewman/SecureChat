@@ -2,7 +2,9 @@ package com.securechat.client;
 
 import java.io.File;
 
+import com.securechat.common.FallbackLogger;
 import com.securechat.common.IContext;
+import com.securechat.common.ILogger;
 import com.securechat.common.gui.IGuiProvider;
 import com.securechat.common.implementation.ImplementationFactory;
 import com.securechat.common.plugins.Hooks;
@@ -19,6 +21,7 @@ public class SecureChatClient implements IContext {
 	private PropertyCollection settings;
 	private PluginManager pluginManager;
 	private ImplementationFactory implementationFactory;
+	private ILogger logger;
 
 	public void init() {
 		settings = new PropertyCollection(null);
@@ -26,21 +29,30 @@ public class SecureChatClient implements IContext {
 			settings.loadFile(settingsFile);
 		saveSettings();
 
-		pluginManager = new PluginManager(Sides.Client);
+		logger = new FallbackLogger();
+		logger.init(this);
+		
+		implementationFactory = new ImplementationFactory(settings.getPermissive(defaultsProp));
+		implementationFactory.setFallbackDefault(IGuiProvider.class, "official-basic_gui");
+		implementationFactory.setFallbackDefault(ILogger.class, "official-fallback_logger");
+		implementationFactory.register("official-fallback_logger", ILogger.class, FallbackLogger::new);
+		
+		pluginManager = new PluginManager(this);
 		pluginManager.loadPlugins();
 		pluginManager.regeneateCache();
 
-		implementationFactory = new ImplementationFactory(settings.getPermissive(defaultsProp));
-
+		pluginManager.invokeHook(Hooks.EarlyInit, this);
+		
+		logger = implementationFactory.provide(ILogger.class);
+		logger.init(this);
+		logger.debug("Logger provider: "+logger);
+		
 		pluginManager.invokeHook(Hooks.Init, this);
 		
-		implementationFactory.setConfigDefault(IGuiProvider.class, "official-basic_gui");
-		
 		IGuiProvider provider = implementationFactory.provide(IGuiProvider.class);
-		System.out.println("Gui provider: "+provider);
+		logger.debug("Gui provider: "+provider);
 		
 		provider.init();
-		
 		provider.newKeystoreGui().show(new IKeystore() {
 			
 			@Override
@@ -90,6 +102,11 @@ public class SecureChatClient implements IContext {
 	@Override
 	public void saveSettings() {
 		settings.saveToFile(settingsFile);
+	}
+	
+	@Override
+	public ILogger getLogger() {
+		return logger;
 	}
 
 	@Override

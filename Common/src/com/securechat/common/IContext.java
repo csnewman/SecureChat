@@ -15,6 +15,8 @@ public interface IContext {
 
 	public void saveSettings();
 	
+	public ILogger getLogger();
+	
 	public Sides getSide();
 	
 	public String getAppName();

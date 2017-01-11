@@ -41,7 +41,7 @@ public class ImplementationFactory {
 		return getImplementations(type).get(propertyCollection.getPermissive(property)).provide();
 	}
 
-	public <T extends IImplementation> void setConfigDefault(Class<T> type, String defaultName) {
+	public <T extends IImplementation> void setFallbackDefault(Class<T> type, String defaultName) {
 		defaults.put(type.getName(), defaultName);
 		propertyCollection.getPermissive(new PrimitiveProperty<String>(type.getName(), defaultName));
 	}

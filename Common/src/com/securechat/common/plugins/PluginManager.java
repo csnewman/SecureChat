@@ -17,14 +17,19 @@ import java.util.jar.JarInputStream;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
+import com.securechat.common.IContext;
+import com.securechat.common.ILogger;
+
 public class PluginManager {
-	private Sides side;
+	private IContext context;
+	private ILogger logger;
 	private Map<String, PluginInstance> plugins;
 	private Map<String, HookInstance> hooks;
 	private Map<Hooks, List<HookInstance>> hookCache;
 
-	public PluginManager(Sides side) {
-		this.side = side;
+	public PluginManager(IContext context) {
+		this.context = context;
+		logger = context.getLogger();
 		plugins = new HashMap<String, PluginInstance>();
 		hooks = new HashMap<String, HookInstance>();
 		hookCache = new HashMap<Hooks, List<HookInstance>>();
@@ -57,7 +62,7 @@ public class PluginManager {
 			instance.createInstance();
 
 			plugins.put(instance.getName(), instance);
-			System.out.println("Found plugin " + instance.getFullString());
+			logger.info("Found plugin " + instance.getFullString());
 
 			for (Method method : clazz.getDeclaredMethods()) {
 				if (!method.isAnnotationPresent(Hook.class)) {
@@ -65,7 +70,7 @@ public class PluginManager {
 				}
 				Hook hookAnnotation = method.getDeclaredAnnotation(Hook.class);
 				if (Modifier.isStatic(method.getModifiers())) {
-					System.out.println("Hooks can not be on static methods!");
+					logger.warning("Hooks can not be on static methods!");
 					continue;
 				}
 
@@ -77,7 +82,7 @@ public class PluginManager {
 					throw new RuntimeException("Hook already exists!");
 				}
 				hooks.put(hook.getName(), hook);
-				System.out.println("Found hook " + hook.getName());
+				logger.debug("Found hook " + hook.getName());
 			}
 		}
 	}
@@ -88,9 +93,9 @@ public class PluginManager {
 			List<HookInstance> insts = generateHook(hook);
 			hookCache.put(hook, insts);
 
-			System.out.println("Plugin hooks cache rebuilt for " + hook + "!");
+			logger.debug("Plugin hook cache rebuilt for " + hook + "!");
 			for (int i = 0; i < insts.size(); i++) {
-				System.out.println(i + ": " + (insts.get(i) != null ? insts.get(i).getName() : "root"));
+				logger.debug(i + ": " + (insts.get(i) != null ? insts.get(i).getName() : "root"));
 			}
 		}
 
@@ -100,13 +105,13 @@ public class PluginManager {
 		Map<String, HookNode> nodeMap = new HashMap<String, HookNode>();
 
 		for (HookInstance inst : hooks.values()) {
-			if (side.allows(inst.getSide())) {
+			if (context.getSide().allows(inst.getSide()) && inst.getHook() == hook) {
 				nodeMap.put(inst.getName(), new HookNode(inst));
 			}
 		}
 
 		for (HookInstance inst : hooks.values()) {
-			if (!side.allows(inst.getSide())) {
+			if (!context.getSide().allows(inst.getSide()) && inst.getHook() == hook) {
 				continue;
 			}
 			HookNode node = nodeMap.get(inst.getName());
