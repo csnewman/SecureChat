@@ -1,4 +1,4 @@
-package com.securechat.basicencryption;
+package com.securechat.basicsecurity;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;

@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.securechat.common.security.SecurityUtils;
+
 public class ByteWriter {
 	private ByteArrayOutputStream arrayStream;
 	private DataOutputStream output;
@@ -73,6 +75,12 @@ public class ByteWriter {
 
 	public void writeWriterContent(ByteWriter writer) {
 		writeArray(writer.toByteArray());
+	}
+
+	public void writeWriterWithChecksum(ByteWriter writer) {
+		byte[] content = writer.toByteArray();
+		writeArray(SecurityUtils.hashData(content));
+		writeArray(content);
 	}
 
 	public byte[] toByteArray() {

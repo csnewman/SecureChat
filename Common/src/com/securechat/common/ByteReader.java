@@ -4,6 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+
+import com.securechat.common.security.SecurityUtils;
 
 public class ByteReader {
 	private byte[] rawData;
@@ -60,6 +63,19 @@ public class ByteReader {
 	public ByteReader readReaderContent() throws IOException {
 		return new ByteReader(readArray());
 	}
+	
+	public ByteReader readReaderWithChecksum() throws IOException {
+		byte[] foundChecksum = readArray();
+		byte[] content = readArray();
+		byte[] checksum = SecurityUtils.hashData(content);
+
+		if (!Arrays.equals(checksum, foundChecksum)) {
+			throw new IOException("Invalid checksum!");
+		}
+
+		return new ByteReader(content);
+	}
+	
 
 	public int getSize() {
 		try {

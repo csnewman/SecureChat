@@ -11,7 +11,9 @@ import java.lang.annotation.Target;
 public @interface Inject {
 
 	public String[] providers() default {};
-	
+
 	public boolean allowDefault() default false;
-	
+
+	public boolean associate() default false;
+
 }

@@ -19,12 +19,12 @@ public class BasicGuiPlugin implements IGuiProvider {
 	@Hook(name = "init", hook = Hooks.Init)
 	public void init(IContext context) {
 		ImplementationFactory factory = context.getImplementationFactory();
-		factory.register("official-basic_gui", IGuiProvider.class, () -> this);
+		factory.registerInstance("official-basic_gui", IGuiProvider.class, this);
 	}
-	
+
 	@Override
 	public void init() {
-		 try {
+		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 				| UnsupportedLookAndFeelException e) {
@@ -45,6 +45,5 @@ public class BasicGuiPlugin implements IGuiProvider {
 	public String getImplName() {
 		return "official-basic_gui";
 	}
-
 
 }
