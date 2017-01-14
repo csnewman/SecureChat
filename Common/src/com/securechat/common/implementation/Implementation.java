@@ -8,11 +8,11 @@ public class Implementation<T extends IImplementation> {
 	private Supplier<? extends T> supplier;
 	private boolean inject;
 
-	public Implementation(String name, Class<T> type, Supplier<? extends T> supplier) {
+	public Implementation(String name, Class<T> type, Supplier<? extends T> supplier, boolean inject) {
 		this.name = name;
 		this.type = type;
 		this.supplier = supplier;
-		this.inject = true;
+		this.inject = inject;
 	}
 
 	public void setInject(boolean inject) {

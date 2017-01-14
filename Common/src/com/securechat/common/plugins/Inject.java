@@ -12,7 +12,7 @@ public @interface Inject {
 
 	public String[] providers() default {};
 
-	public boolean allowDefault() default false;
+	public boolean allowDefault() default true;
 
 	public boolean associate() default false;
 

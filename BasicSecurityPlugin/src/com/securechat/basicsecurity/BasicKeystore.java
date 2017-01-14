@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.securechat.common.ByteReader;
 import com.securechat.common.ByteWriter;
+import com.securechat.common.ILogger;
 import com.securechat.common.IStorage;
 import com.securechat.common.plugins.Inject;
 import com.securechat.common.security.IAsymmetricKeyEncryption;
@@ -14,14 +15,16 @@ import com.securechat.common.security.IPasswordEncryption;
 
 public class BasicKeystore implements IKeystore {
 	private static String path = "keystore.bin";
-	@Inject(allowDefault = true, associate = true)
+	@Inject
+	private ILogger log;
+	@Inject(associate = true)
 	private IPasswordEncryption passwordEncryption;
-	@Inject(allowDefault = true)
+	@Inject
 	private IStorage storage;
 
 	private boolean loaded;
 	private Map<String, byte[]> asymmetricPublicKeys, asymmetricPrivateKeys;
-
+	
 	@Override
 	public boolean generate(char[] password) {
 		if (loaded) {
@@ -29,6 +32,16 @@ public class BasicKeystore implements IKeystore {
 		}
 		passwordEncryption.init(password);
 
+		asymmetricPrivateKeys = new HashMap<String, byte[]>();
+		asymmetricPublicKeys = new HashMap<String, byte[]>();
+
+		save();
+		
+		loaded = true;
+		return true;
+	}
+
+	private void save() {
 		ByteWriter body = new ByteWriter();
 
 		body.writeInt(asymmetricPublicKeys.size());
@@ -56,7 +69,6 @@ public class BasicKeystore implements IKeystore {
 		ByteWriter finalData = new ByteWriter();
 		finalData.writeWriterWithChecksum(body);
 		storage.writeFile(path, passwordEncryption, finalData);
-		return true;
 	}
 
 	@Override
@@ -89,6 +101,7 @@ public class BasicKeystore implements IKeystore {
 				asymmetricPublicKeys.put(name, pub);
 				asymmetricPrivateKeys.put(name, pri);
 			}
+			loaded = true;
 			return true;
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -31,56 +31,34 @@ public class SecureChatClient implements IContext {
 
 		logger = new FallbackLogger();
 		logger.init(this);
-		
-		implementationFactory = new ImplementationFactory(settings.getPermissive(defaultsProp));
-		implementationFactory.setFallbackDefault(IGuiProvider.class, "official-basic_gui");
-		implementationFactory.setFallbackDefault(ILogger.class, "official-fallback_logger");
-		implementationFactory.register("official-fallback_logger", ILogger.class, FallbackLogger::new);
-		
+
+		implementationFactory = new ImplementationFactory(logger, settings.getPermissive(defaultsProp));
+		implementationFactory.registerFixedInstance("context", IContext.class, this);
+		implementationFactory.registerFixed("logger_context", ILogger.class, this::getLogger);
+
 		pluginManager = new PluginManager(this);
 		pluginManager.loadPlugins();
 		pluginManager.regeneateCache();
 
 		pluginManager.invokeHook(Hooks.EarlyInit, this);
-		
+
 		logger = implementationFactory.provide(ILogger.class);
+		
 		logger.init(this);
-		logger.debug("Logger provider: "+logger);
-		
+		logger.debug("Logger provider: " + logger);
+
 		pluginManager.invokeHook(Hooks.Init, this);
-		
+
 		IGuiProvider provider = implementationFactory.provide(IGuiProvider.class);
-		logger.debug("Gui provider: "+provider);
-		
+		logger.debug("Gui provider: " + provider);
+
+		IKeystore keystore = implementationFactory.provide(IKeystore.class);
+		logger.info("keystore " + keystore);
+		keystore.generate("".toCharArray());
+
 		provider.init();
-		provider.newKeystoreGui().show(new IKeystore() {
-			
-			@Override
-			public String getImplName() {
-				return null;
-			}
-			
-			@Override
-			public boolean load(char[] password) {
-				return false;
-			}
-			
-			@Override
-			public boolean isLoaded() {
-				return false;
-			}
-			
-			@Override
-			public boolean generate(char[] password) {
-				return false;
-			}
-			
-			@Override
-			public boolean exists() {
-				return false;
-			}
-		});
-		
+		// provider.newKeystoreGui().show();
+
 		saveSettings();
 	}
 
@@ -103,7 +81,7 @@ public class SecureChatClient implements IContext {
 	public void saveSettings() {
 		settings.saveToFile(settingsFile);
 	}
-	
+
 	@Override
 	public ILogger getLogger() {
 		return logger;
@@ -122,6 +100,11 @@ public class SecureChatClient implements IContext {
 	@Override
 	public String getAppVersion() {
 		return "1.0.0";
+	}
+
+	@Override
+	public String getImplName() {
+		return getAppName();
 	}
 
 	public static void main(String[] args) {

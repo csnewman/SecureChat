@@ -20,6 +20,7 @@ public class BasicGuiPlugin implements IGuiProvider {
 	public void init(IContext context) {
 		ImplementationFactory factory = context.getImplementationFactory();
 		factory.registerInstance("official-basic_gui", IGuiProvider.class, this);
+		factory.setFallbackDefaultIfNone(IGuiProvider.class, "official-basic_gui");
 	}
 
 	@Override

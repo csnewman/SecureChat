@@ -18,6 +18,10 @@ public class BasicSecurityPlugin {
 		factory.register("official-password_encryption", IPasswordEncryption.class, PasswordEncryption::new);
 		factory.register("official-rsa_encryption", IAsymmetricKeyEncryption.class, RSAEncryption::new);
 		factory.registerSingle("official-basic_keystore", IKeystore.class, BasicKeystore::new);
+		
+		factory.setFallbackDefaultIfNone(IPasswordEncryption.class, "official-password_encryption");
+		factory.setFallbackDefaultIfNone(IPasswordEncryption.class, "official-rsa_encryption");
+		factory.setFallbackDefaultIfNone(IKeystore.class, "official-basic_keystore");
 	}
 
 }
