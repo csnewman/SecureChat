@@ -1,5 +1,6 @@
 package com.securechat.common.properties;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -86,6 +87,11 @@ public class CollectionProperty implements IProperty<PropertyCollection> {
 		} else if (!name.equals(other.name))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "CollectionProperty [name=" + name + ", defaultProperties=" + Arrays.toString(defaultProperties) + "]";
 	}
 
 }

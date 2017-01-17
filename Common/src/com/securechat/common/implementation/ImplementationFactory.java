@@ -6,10 +6,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Supplier;
 
 import com.securechat.common.ILogger;
 import com.securechat.common.plugins.Inject;
+import com.securechat.common.plugins.InjectInstance;
 import com.securechat.common.plugins.Plugin;
 import com.securechat.common.properties.PrimitiveProperty;
 import com.securechat.common.properties.PropertyCollection;
@@ -18,6 +20,7 @@ import com.securechat.common.properties.PropertyCollection;
 public class ImplementationFactory {
 	private ILogger log;
 	private Map<Class, Map> implementations;
+	private Map<Class, Object> instances;
 	private Map<String, String> defaults;
 	private PropertyCollection propertyCollection;
 
@@ -26,6 +29,7 @@ public class ImplementationFactory {
 		implementations = new HashMap<Class, Map>();
 		defaults = new HashMap<String, String>();
 		this.propertyCollection = propertyCollection;
+		instances = new HashMap<Class, Object>();
 	}
 
 	public void inject(Object obj) {
@@ -58,6 +62,19 @@ public class ImplementationFactory {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+			} else if (field.isAnnotationPresent(InjectInstance.class)) {
+				log.debug("Found field " + field.getName() + " as " + field.getType());
+				InjectInstance annotation = field.getAnnotation(InjectInstance.class);
+				field.setAccessible(true);
+				try {
+					if (field.get(obj) == null) {
+						Object value = get(field.getType(), annotation.provide());
+						log.debug("Setting field to " + value);
+						field.set(obj, value);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
@@ -72,22 +89,15 @@ public class ImplementationFactory {
 		return fields;
 	}
 
-	public <T extends IImplementation> Implementation<T> registerSingle(String name, Class<T> type,
-			Supplier<? extends T> supplier) {
-		return register(name, type, new SingleInstance<>(this, supplier), false);
+	public <T> T get(Class<T> type, boolean provide) {
+		if (!instances.containsKey(type) && provide) {
+			instances.put(type, provide((Class) type, new String[0], true, false, null));
+		}
+		return (T) instances.get(type);
 	}
 
-	public <T extends IImplementation> Implementation<T> registerFixed(String owner, Class<T> type,
-			Supplier<? extends T> supplier) {
-		String id = "auto_" + type.getName() + "_supplier_" + owner;
-		setFallbackDefaultIfNone(type, id);
-		return register(id, type, supplier, false);
-	}
-
-	public <T extends IImplementation> Implementation<T> registerFixedInstance(String owner, Class<T> type, T inst) {
-		String id = "auto_" + type.getName() + "_" + inst.getClass().getName() + "_" + owner;
-		setFallbackDefaultIfNone(type, id);
-		return registerInstance(id, type, inst);
+	public void set(Class<?> type, Object instance) {
+		instances.put(type, instance);
 	}
 
 	public <T extends IImplementation> Implementation<T> registerInstance(String name, Class<T> type, T inst) {
@@ -145,7 +155,7 @@ public class ImplementationFactory {
 
 		PrimitiveProperty<String> associateProperty = null;
 		if (associate) {
-			associateProperty = new PrimitiveProperty<String>(associateName + "::" + type.getName(), null);
+			associateProperty = new PrimitiveProperty<String>(associateName + "/" + type.getName(), null);
 			String provider = propertyCollection.get(associateProperty);
 			if (provider != null) {
 				log.debug("Found associated provider " + provider);
@@ -156,31 +166,29 @@ public class ImplementationFactory {
 		for (String provider : providers) {
 			if (doesProviderExist(type, provider)) {
 				log.debug("Found provider " + provider);
-				propertyCollection.set(associateProperty, provider);
+				if (associate)
+					propertyCollection.set(associateProperty, provider);
 				return provider;
 			}
 		}
 
 		if (allowDefault) {
 			String provider = getDefault(type);
-			log.debug("Using default provider " + provider);
-			propertyCollection.set(associateProperty, provider);
+			if (provider == null) {
+				log.debug("Using default provider " + provider);
+			} else {
+				Map map = getImplementations(type);
+				if (map.size() > 0) {
+					provider = ((Implementation<? extends T>) map.values().iterator().next()).getName();
+					log.debug("No default found, using first: " + provider);
+				}
+			}
+			if (associate)
+				propertyCollection.set(associateProperty, provider);
 			return provider;
 		}
 
 		return null;
-	}
-
-	public <T extends IImplementation> void setFallbackDefault(Class<T> type, String defaultName) {
-		defaults.put(type.getName(), defaultName);
-		propertyCollection.getPermissive(new PrimitiveProperty<String>(type.getName(), defaultName));
-	}
-
-	public <T extends IImplementation> void setFallbackDefaultIfNone(Class<T> type, String defaultName) {
-		if (defaults.containsKey(type.getName()))
-			return;
-		defaults.put(type.getName(), defaultName);
-		propertyCollection.getPermissive(new PrimitiveProperty<String>(type.getName(), defaultName));
 	}
 
 	public <T extends IImplementation> Map<String, Implementation<? extends T>> getImplementations(Class<T> type) {
@@ -192,6 +200,22 @@ public class ImplementationFactory {
 
 	public <T extends IImplementation> boolean doesProviderExist(Class<T> type, String impName) {
 		return getImplementations(type).containsKey(impName);
+	}
+
+	public <T extends IImplementation> void setFallbackDefaultIfNone(Class<T> type, String defaultName) {
+		if (defaults.containsKey(type.getName()))
+			return;
+		setFallbackDefault(type, defaultName);
+	}
+
+	public <T extends IImplementation> void setFallbackDefault(Class<T> type, String defaultName) {
+		defaults.put(type.getName(), defaultName);
+	}
+
+	public void flushDefaults() {
+		for (Entry<String, String> entry : defaults.entrySet()) {
+			propertyCollection.getPermissive(new PrimitiveProperty<String>(entry.getKey(), entry.getValue()));
+		}
 	}
 
 	public <T extends IImplementation> String getDefault(Class<T> type) {

@@ -3,8 +3,10 @@ package com.securechat.client;
 import java.io.File;
 
 import com.securechat.common.FallbackLogger;
+import com.securechat.common.FileStorage;
 import com.securechat.common.IContext;
 import com.securechat.common.ILogger;
+import com.securechat.common.IStorage;
 import com.securechat.common.gui.IGuiProvider;
 import com.securechat.common.implementation.ImplementationFactory;
 import com.securechat.common.plugins.Hooks;
@@ -22,19 +24,25 @@ public class SecureChatClient implements IContext {
 	private PluginManager pluginManager;
 	private ImplementationFactory implementationFactory;
 	private ILogger logger;
+	private IStorage storage;
 
-	public void init() {
+	public void init(IStorage storage) {
+		this.storage = storage;
+		storage.init();
+
+		logger = new FallbackLogger();
+		logger.init(this);
+
 		settings = new PropertyCollection(null);
 		if (settingsFile.exists())
 			settings.loadFile(settingsFile);
 		saveSettings();
 
-		logger = new FallbackLogger();
-		logger.init(this);
-
 		implementationFactory = new ImplementationFactory(logger, settings.getPermissive(defaultsProp));
-		implementationFactory.registerFixedInstance("context", IContext.class, this);
-		implementationFactory.registerFixed("logger_context", ILogger.class, this::getLogger);
+		implementationFactory.set(IContext.class, this);
+		implementationFactory.set(IStorage.class, storage);
+		implementationFactory.register("fallback", ILogger.class, FallbackLogger::new);
+		implementationFactory.setFallbackDefault(ILogger.class, "fallback");
 
 		pluginManager = new PluginManager(this);
 		pluginManager.loadPlugins();
@@ -43,21 +51,23 @@ public class SecureChatClient implements IContext {
 		pluginManager.invokeHook(Hooks.EarlyInit, this);
 
 		logger = implementationFactory.provide(ILogger.class);
-		
+		implementationFactory.set(ILogger.class, logger);
 		logger.init(this);
 		logger.debug("Logger provider: " + logger);
 
 		pluginManager.invokeHook(Hooks.Init, this);
+		pluginManager.invokeHook(Hooks.LateInit, this);
 
-		IGuiProvider provider = implementationFactory.provide(IGuiProvider.class);
-		logger.debug("Gui provider: " + provider);
+		saveSettings();
 
-		IKeystore keystore = implementationFactory.provide(IKeystore.class);
-		logger.info("keystore " + keystore);
-		keystore.generate("".toCharArray());
+		IGuiProvider gui = implementationFactory.get(IGuiProvider.class, true);
+		logger.debug("Gui provider: " + gui);
+		gui.init();
 
-		provider.init();
-		// provider.newKeystoreGui().show();
+		IKeystore keystore = implementationFactory.get(IKeystore.class, true);
+		logger.info("Keystore: " + keystore);
+
+		gui.showKeystoreGui(keystore);
 
 		saveSettings();
 	}
@@ -83,8 +93,19 @@ public class SecureChatClient implements IContext {
 	}
 
 	@Override
+	public void exit() {
+		saveSettings();
+		System.exit(0);
+	}
+
+	@Override
 	public ILogger getLogger() {
 		return logger;
+	}
+
+	@Override
+	public IStorage getStorage() {
+		return storage;
 	}
 
 	@Override
@@ -109,7 +130,7 @@ public class SecureChatClient implements IContext {
 
 	public static void main(String[] args) {
 		INSTANCE = new SecureChatClient();
-		INSTANCE.init();
+		INSTANCE.init(new FileStorage());
 	}
 
 }

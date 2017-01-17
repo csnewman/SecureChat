@@ -64,4 +64,9 @@ public class PrimitiveProperty<T> implements IProperty<T> {
 		return true;
 	}
 
+	@Override
+	public String toString() {
+		return "PrimitiveProperty [name=" + name + ", defaultVal=" + defaultVal + "]";
+	}
+
 }

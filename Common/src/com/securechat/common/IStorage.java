@@ -7,7 +7,9 @@ import com.securechat.common.security.IEncryption;
 
 public interface IStorage extends IImplementation {
 
-	public List<Class<?>> getPlugins();
+	public void init();
+	
+	public List<String> loadPlugins();
 	
 	public boolean doesFileExist(String path);
 	

@@ -9,22 +9,23 @@ import com.securechat.common.ByteWriter;
 import com.securechat.common.ILogger;
 import com.securechat.common.IStorage;
 import com.securechat.common.plugins.Inject;
+import com.securechat.common.plugins.InjectInstance;
 import com.securechat.common.security.IAsymmetricKeyEncryption;
 import com.securechat.common.security.IKeystore;
 import com.securechat.common.security.IPasswordEncryption;
 
 public class BasicKeystore implements IKeystore {
 	private static String path = "keystore.bin";
-	@Inject
+	@InjectInstance
 	private ILogger log;
 	@Inject(associate = true)
 	private IPasswordEncryption passwordEncryption;
-	@Inject
+	@InjectInstance
 	private IStorage storage;
 
 	private boolean loaded;
 	private Map<String, byte[]> asymmetricPublicKeys, asymmetricPrivateKeys;
-	
+
 	@Override
 	public boolean generate(char[] password) {
 		if (loaded) {
@@ -36,7 +37,7 @@ public class BasicKeystore implements IKeystore {
 		asymmetricPublicKeys = new HashMap<String, byte[]>();
 
 		save();
-		
+
 		loaded = true;
 		return true;
 	}
@@ -83,6 +84,10 @@ public class BasicKeystore implements IKeystore {
 			asymmetricPublicKeys = new HashMap<String, byte[]>();
 
 			ByteReader fileData = storage.readFile(path, passwordEncryption);
+			if (fileData == null) {
+				return false;
+			}
+
 			ByteReader content = fileData.readReaderWithChecksum();
 
 			int size = content.readInt();
