@@ -1,5 +1,8 @@
 package com.securechat.common.plugins;
 
+import com.securechat.api.common.Sides;
+import com.securechat.api.common.plugins.Plugin;
+
 public class PluginInstance {
 	private Object instance;
 	private String name, version;

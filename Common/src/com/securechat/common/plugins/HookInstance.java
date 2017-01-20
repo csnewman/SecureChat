@@ -3,6 +3,10 @@ package com.securechat.common.plugins;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import com.securechat.api.common.Sides;
+import com.securechat.api.common.plugins.Hook;
+import com.securechat.api.common.plugins.Hooks;
+
 public class HookInstance {
 	private PluginInstance plugin;
 	private String name;

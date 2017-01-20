@@ -12,8 +12,6 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 
 public class KeystoreDialog extends JDialog {
@@ -21,23 +19,7 @@ public class KeystoreDialog extends JDialog {
 	private final JPanel contentPanel = new JPanel();
 	private JPasswordField passwordField;
 	private boolean completed;
-
-	public static void main(String[] args) {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-				| UnsupportedLookAndFeelException e) {
-			e.printStackTrace();
-		}
-		try {
-			KeystoreDialog dialog = new KeystoreDialog(true, null);
-			dialog.setVisible(true);
-			System.out.println("closed");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
+	
 	public KeystoreDialog(boolean generate, String msg) {
 		super((Frame) null, Dialog.ModalityType.TOOLKIT_MODAL);
 		completed = false;
@@ -49,7 +31,7 @@ public class KeystoreDialog extends JDialog {
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(null);
 
-		JLabel lblPleaseEnterYour = new JLabel(generate ? "Please enter a password for your keystore"
+		JLabel lblPleaseEnterYour = new JLabel(generate ? "Please enter a password for your new keystore"
 				: "Please enter your keystore password to unlock it");
 		lblPleaseEnterYour.setBounds(10, 11, 250, 14);
 		contentPanel.add(lblPleaseEnterYour);
@@ -67,12 +49,21 @@ public class KeystoreDialog extends JDialog {
 		JButton okButton = new JButton(generate ? "Set" : "Unlock");
 		buttonPane.add(okButton);
 		getRootPane().setDefaultButton(okButton);
-		buttonPane.add(new JButton("Cancel"));
+		JButton cancelButton = new JButton("Cancel");
+		buttonPane.add(cancelButton);
 		
 		okButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent paramActionEvent) {
 				completed = true;
+				setVisible(false);
+			}
+		});
+		
+		cancelButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setVisible(false);
 			}
 		});
 	}

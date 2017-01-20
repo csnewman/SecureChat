@@ -19,6 +19,7 @@ import com.securechat.client.SecureChatClient;
 import com.securechat.client.network.NetworkClient;
 import com.securechat.common.packets.RegisterPacket;
 import com.securechat.common.packets.RegisterResponsePacket;
+import com.securechat.plugins.basicgui.LoginWindow;
 
 public class InitialConnection extends JDialog {
 	private static final long serialVersionUID = 3290081829877215800L;

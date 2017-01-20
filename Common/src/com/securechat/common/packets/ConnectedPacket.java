@@ -1,7 +1,7 @@
 package com.securechat.common.packets;
 
-import com.securechat.common.ByteReader;
-import com.securechat.common.ByteWriter;
+import com.securechat.common.storage.ByteReader;
+import com.securechat.common.storage.ByteWriter;
 
 public class ConnectedPacket implements IPacket{
 	

@@ -2,8 +2,8 @@ package com.securechat.common.packets;
 
 import java.io.IOException;
 
-import com.securechat.common.ByteReader;
-import com.securechat.common.ByteWriter;
+import com.securechat.common.storage.ByteReader;
+import com.securechat.common.storage.ByteWriter;
 
 public class NewChatPacket implements IPacket {
 	private String username;

@@ -1,6 +1,8 @@
 package com.securechat.common;
 
-import com.securechat.common.plugins.Sides;
+import com.securechat.api.common.IContext;
+import com.securechat.api.common.ILogger;
+import com.securechat.api.common.Sides;
 
 public class FallbackLogger implements ILogger {
 	private Sides side;

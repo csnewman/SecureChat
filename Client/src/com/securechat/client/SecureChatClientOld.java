@@ -11,16 +11,16 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.UIManager;
 
+import com.securechat.api.common.IContext;
+import com.securechat.api.common.properties.PropertyCollection;
 import com.securechat.basicencryption.PasswordEncryption;
 import com.securechat.client.chat.MainWindow;
 import com.securechat.client.connection.ConnectionInfo;
 import com.securechat.client.connection.ConnectionStore;
-import com.securechat.client.connection.LoginWindow;
 import com.securechat.client.network.NetworkClient;
-import com.securechat.common.IContext;
-import com.securechat.common.properties.PropertyCollection;
 import com.securechat.common.security.ProtectedKeyStore;
 import com.securechat.common.security.SecurityUtils;
+import com.securechat.plugins.basicgui.LoginWindow;
 
 public class SecureChatClientOld implements IContext{
 	private static final File settingsFile = new File("settings.json");

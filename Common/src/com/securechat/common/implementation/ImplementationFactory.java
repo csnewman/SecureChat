@@ -9,15 +9,18 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Supplier;
 
-import com.securechat.common.ILogger;
-import com.securechat.common.plugins.Inject;
-import com.securechat.common.plugins.InjectInstance;
-import com.securechat.common.plugins.Plugin;
-import com.securechat.common.properties.PrimitiveProperty;
-import com.securechat.common.properties.PropertyCollection;
+import com.securechat.api.common.ILogger;
+import com.securechat.api.common.implementation.IImplementation;
+import com.securechat.api.common.implementation.IImplementationFactory;
+import com.securechat.api.common.implementation.IImplementationInstance;
+import com.securechat.api.common.plugins.Inject;
+import com.securechat.api.common.plugins.InjectInstance;
+import com.securechat.api.common.plugins.Plugin;
+import com.securechat.api.common.properties.PrimitiveProperty;
+import com.securechat.api.common.properties.PropertyCollection;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public class ImplementationFactory {
+public class ImplementationFactory implements IImplementationFactory {
 	private ILogger log;
 	private Map<Class, Map> implementations;
 	private Map<Class, Object> instances;
@@ -32,6 +35,7 @@ public class ImplementationFactory {
 		instances = new HashMap<Class, Object>();
 	}
 
+	@Override
 	public void inject(Object obj) {
 		Class<?> clazz = obj.getClass();
 
@@ -89,6 +93,7 @@ public class ImplementationFactory {
 		return fields;
 	}
 
+	@Override
 	public <T> T get(Class<T> type, boolean provide) {
 		if (!instances.containsKey(type) && provide) {
 			instances.put(type, provide((Class) type, new String[0], true, false, null));
@@ -96,41 +101,48 @@ public class ImplementationFactory {
 		return (T) instances.get(type);
 	}
 
+	@Override
 	public void set(Class<?> type, Object instance) {
 		instances.put(type, instance);
 	}
 
-	public <T extends IImplementation> Implementation<T> registerInstance(String name, Class<T> type, T inst) {
+	@Override
+	public <T extends IImplementation> ImplementationInstance<T> registerInstance(String name, Class<T> type, T inst) {
 		inject(inst);
 		return register(name, type, () -> inst, false);
 	}
 
-	public <T extends IImplementation> Implementation<T> register(String name, Class<T> type,
+	@Override
+	public <T extends IImplementation> ImplementationInstance<T> register(String name, Class<T> type,
 			Supplier<? extends T> supplier) {
 		return register(name, type, supplier, true);
 	}
 
-	public <T extends IImplementation> Implementation<T> register(String name, Class<T> type,
+	@Override
+	public <T extends IImplementation> ImplementationInstance<T> register(String name, Class<T> type,
 			Supplier<? extends T> supplier, boolean inject) {
-		Map<String, Implementation<? extends T>> map = getImplementations(type);
-		Implementation<T> implementation = new Implementation<T>(name, type, supplier, inject);
+		Map<String, IImplementationInstance<? extends T>> map = getImplementations(type);
+		ImplementationInstance<T> implementation = new ImplementationInstance<T>(name, type, supplier, inject);
 		map.put(name, implementation);
 		return implementation;
 	}
 
+	@Override
 	public <T extends IImplementation> T provide(Class<T> type) {
 		return provide(type, new String[0], true, false, null);
 	}
 
+	@Override
 	public <T extends IImplementation> T provide(Class<T> type, String impName) {
 		return provide(type, new String[] { impName }, false, false, null);
 	}
 
+	@Override
 	public <T extends IImplementation> T provide(Class<T> type, String[] providers, boolean allowDefault,
 			boolean associate, String associateName) {
 		log.debug("Providing " + type.getName());
 
-		Map<String, Implementation<? extends T>> implementations = getImplementations(type);
+		Map<String, IImplementationInstance<? extends T>> implementations = getImplementations(type);
 		String provider = getProvider(type, providers, allowDefault, associate, associateName);
 
 		log.debug("Implementations: " + implementations);
@@ -141,7 +153,7 @@ public class ImplementationFactory {
 			return null;
 		}
 
-		Implementation<? extends T> implementation = implementations.get(provider);
+		IImplementationInstance<? extends T> implementation = implementations.get(provider);
 		T value = implementation.provide();
 		if (implementation.shouldInject()) {
 			inject(value);
@@ -149,6 +161,7 @@ public class ImplementationFactory {
 		return value;
 	}
 
+	@Override
 	public <T extends IImplementation> String getProvider(Class<T> type, String[] providers, boolean allowDefault,
 			boolean associate, String associateName) {
 		log.debug("Finding provider for " + type.getName());
@@ -179,7 +192,7 @@ public class ImplementationFactory {
 			} else {
 				Map map = getImplementations(type);
 				if (map.size() > 0) {
-					provider = ((Implementation<? extends T>) map.values().iterator().next()).getName();
+					provider = ((ImplementationInstance<? extends T>) map.values().iterator().next()).getName();
 					log.debug("No default found, using first: " + provider);
 				}
 			}
@@ -191,33 +204,40 @@ public class ImplementationFactory {
 		return null;
 	}
 
-	public <T extends IImplementation> Map<String, Implementation<? extends T>> getImplementations(Class<T> type) {
+	@Override
+	public <T extends IImplementation> Map<String, IImplementationInstance<? extends T>> getImplementations(
+			Class<T> type) {
 		if (!implementations.containsKey(type)) {
-			implementations.put(type, new HashMap<String, Implementation<T>>());
+			implementations.put(type, new HashMap<String, ImplementationInstance<T>>());
 		}
 		return implementations.get(type);
 	}
 
+	@Override
 	public <T extends IImplementation> boolean doesProviderExist(Class<T> type, String impName) {
 		return getImplementations(type).containsKey(impName);
 	}
 
+	@Override
 	public <T extends IImplementation> void setFallbackDefaultIfNone(Class<T> type, String defaultName) {
 		if (defaults.containsKey(type.getName()))
 			return;
 		setFallbackDefault(type, defaultName);
 	}
 
+	@Override
 	public <T extends IImplementation> void setFallbackDefault(Class<T> type, String defaultName) {
 		defaults.put(type.getName(), defaultName);
 	}
 
+	@Override
 	public void flushDefaults() {
 		for (Entry<String, String> entry : defaults.entrySet()) {
 			propertyCollection.getPermissive(new PrimitiveProperty<String>(entry.getKey(), entry.getValue()));
 		}
 	}
 
+	@Override
 	public <T extends IImplementation> String getDefault(Class<T> type) {
 		PrimitiveProperty<String> property = new PrimitiveProperty<String>(type.getName(),
 				defaults.get(type.getName()));

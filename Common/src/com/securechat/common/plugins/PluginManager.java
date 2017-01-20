@@ -17,10 +17,14 @@ import java.util.jar.JarInputStream;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
-import com.securechat.common.IContext;
-import com.securechat.common.ILogger;
+import com.securechat.api.common.IContext;
+import com.securechat.api.common.ILogger;
+import com.securechat.api.common.plugins.Hook;
+import com.securechat.api.common.plugins.Hooks;
+import com.securechat.api.common.plugins.IPluginManager;
+import com.securechat.api.common.plugins.Plugin;
 
-public class PluginManager {
+public class PluginManager implements IPluginManager {
 	private IContext context;
 	private ILogger logger;
 	private Map<String, PluginInstance> plugins;
@@ -35,12 +39,14 @@ public class PluginManager {
 		hookCache = new HashMap<Hooks, List<HookInstance>>();
 	}
 
+	@Override
 	public void invokeHook(Hooks hook, Object... objects) {
 		for (HookInstance inst : hookCache.get(hook)) {
 			inst.invoke(objects);
 		}
 	}
 
+	@Override
 	public void loadPlugins() {
 		List<String> classes = getClasses();
 		List<String> loadedClasses = new ArrayList<String>();
@@ -87,6 +93,7 @@ public class PluginManager {
 		}
 	}
 
+	@Override
 	public void regeneateCache() {
 		hookCache.clear();
 		for (Hooks hook : Hooks.values()) {

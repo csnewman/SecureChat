@@ -8,8 +8,6 @@ import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.securechat.basicencryption.RSAEncryption;
-import com.securechat.common.ByteReader;
-import com.securechat.common.ByteWriter;
 import com.securechat.common.packets.ChallengePacket;
 import com.securechat.common.packets.ChallengeResponsePacket;
 import com.securechat.common.packets.ConnectPacket;
@@ -20,6 +18,8 @@ import com.securechat.common.packets.RegisterPacket;
 import com.securechat.common.packets.RegisterResponsePacket;
 import com.securechat.common.packets.RegisterResponsePacket.RegisterStatus;
 import com.securechat.common.security.SecurityUtils;
+import com.securechat.common.storage.ByteReader;
+import com.securechat.common.storage.ByteWriter;
 import com.securechat.server.ChatServer;
 import com.securechat.server.User;
 import com.securechat.server.UserManager;

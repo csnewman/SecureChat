@@ -10,11 +10,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import com.securechat.basicencryption.RSAEncryption;
-import com.securechat.common.ByteReader;
-import com.securechat.common.ByteWriter;
 import com.securechat.common.packets.IPacket;
 import com.securechat.common.packets.PacketManager;
 import com.securechat.common.security.SecurityUtils;
+import com.securechat.common.storage.ByteReader;
+import com.securechat.common.storage.ByteWriter;
 
 public class NetworkClient {
 	private Socket socket;

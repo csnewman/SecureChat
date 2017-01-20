@@ -6,10 +6,10 @@ import java.security.PublicKey;
 
 import com.securechat.basicencryption.PasswordEncryption;
 import com.securechat.basicencryption.RSAEncryption;
-import com.securechat.common.ByteWriter;
 import com.securechat.common.security.ProtectedDataStore;
 import com.securechat.common.security.ProtectedKeyStore;
 import com.securechat.common.security.SecurityUtils;
+import com.securechat.common.storage.ByteWriter;
 import com.securechat.server.network.NetworkServer;
 
 public class ChatServer {

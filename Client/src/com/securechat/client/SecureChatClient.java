@@ -2,23 +2,28 @@ package com.securechat.client;
 
 import java.io.File;
 
+import com.securechat.api.client.gui.IGuiProvider;
+import com.securechat.api.common.IContext;
+import com.securechat.api.common.ILogger;
+import com.securechat.api.common.Sides;
+import com.securechat.api.common.implementation.IImplementationFactory;
+import com.securechat.api.common.plugins.Hooks;
+import com.securechat.api.common.properties.CollectionProperty;
+import com.securechat.api.common.properties.PropertyCollection;
+import com.securechat.api.common.security.IKeystore;
+import com.securechat.api.common.storage.IByteReader;
+import com.securechat.api.common.storage.IByteWriter;
+import com.securechat.api.common.storage.IStorage;
 import com.securechat.common.FallbackLogger;
-import com.securechat.common.FileStorage;
-import com.securechat.common.IContext;
-import com.securechat.common.ILogger;
-import com.securechat.common.IStorage;
-import com.securechat.common.gui.IGuiProvider;
 import com.securechat.common.implementation.ImplementationFactory;
-import com.securechat.common.plugins.Hooks;
 import com.securechat.common.plugins.PluginManager;
-import com.securechat.common.plugins.Sides;
-import com.securechat.common.properties.CollectionProperty;
-import com.securechat.common.properties.PropertyCollection;
-import com.securechat.common.security.IKeystore;
+import com.securechat.common.storage.ByteReader;
+import com.securechat.common.storage.ByteWriter;
+import com.securechat.common.storage.FileStorage;
 
 public class SecureChatClient implements IContext {
 	public static final CollectionProperty defaultsProp = new CollectionProperty("defaults");
-	private static final File settingsFile = new File("settings.json");
+	private static final String settingsFile = "settings.json";
 	private static SecureChatClient INSTANCE;
 	private PropertyCollection settings;
 	private PluginManager pluginManager;
@@ -34,15 +39,20 @@ public class SecureChatClient implements IContext {
 		logger.init(this);
 
 		settings = new PropertyCollection(null);
-		if (settingsFile.exists())
-			settings.loadFile(settingsFile);
+		if (storage.doesFileExist(settingsFile))
+			settings.loadFile(storage, settingsFile);
 		saveSettings();
 
 		implementationFactory = new ImplementationFactory(logger, settings.getPermissive(defaultsProp));
 		implementationFactory.set(IContext.class, this);
 		implementationFactory.set(IStorage.class, storage);
+		implementationFactory.set(IImplementationFactory.class, implementationFactory);
 		implementationFactory.register("fallback", ILogger.class, FallbackLogger::new);
+		implementationFactory.register("official-byte_reader", IByteReader.class, ByteReader::new);
+		implementationFactory.register("official-byte_writer", IByteWriter.class, ByteWriter::new);
 		implementationFactory.setFallbackDefault(ILogger.class, "fallback");
+		implementationFactory.setFallbackDefault(IByteReader.class, "official-byte_reader");
+		implementationFactory.setFallbackDefault(IByteWriter.class, "official-byte_writer");
 
 		pluginManager = new PluginManager(this);
 		pluginManager.loadPlugins();
@@ -68,6 +78,7 @@ public class SecureChatClient implements IContext {
 		logger.info("Keystore: " + keystore);
 
 		gui.showKeystoreGui(keystore);
+		gui.getLoginGui().open();
 
 		saveSettings();
 	}
@@ -89,7 +100,7 @@ public class SecureChatClient implements IContext {
 
 	@Override
 	public void saveSettings() {
-		settings.saveToFile(settingsFile);
+		settings.saveToFile(storage, settingsFile);
 	}
 
 	@Override

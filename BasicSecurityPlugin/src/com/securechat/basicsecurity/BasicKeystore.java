@@ -4,15 +4,16 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.securechat.common.ByteReader;
-import com.securechat.common.ByteWriter;
-import com.securechat.common.ILogger;
-import com.securechat.common.IStorage;
-import com.securechat.common.plugins.Inject;
-import com.securechat.common.plugins.InjectInstance;
-import com.securechat.common.security.IAsymmetricKeyEncryption;
-import com.securechat.common.security.IKeystore;
-import com.securechat.common.security.IPasswordEncryption;
+import com.securechat.api.common.ILogger;
+import com.securechat.api.common.implementation.IImplementationFactory;
+import com.securechat.api.common.plugins.Inject;
+import com.securechat.api.common.plugins.InjectInstance;
+import com.securechat.api.common.security.IAsymmetricKeyEncryption;
+import com.securechat.api.common.security.IKeystore;
+import com.securechat.api.common.security.IPasswordEncryption;
+import com.securechat.api.common.storage.IByteReader;
+import com.securechat.api.common.storage.IByteWriter;
+import com.securechat.api.common.storage.IStorage;
 
 public class BasicKeystore implements IKeystore {
 	private static String path = "keystore.bin";
@@ -22,6 +23,8 @@ public class BasicKeystore implements IKeystore {
 	private IPasswordEncryption passwordEncryption;
 	@InjectInstance
 	private IStorage storage;
+	@InjectInstance
+	private IImplementationFactory factory;
 
 	private boolean loaded;
 	private Map<String, byte[]> asymmetricPublicKeys, asymmetricPrivateKeys;
@@ -31,6 +34,7 @@ public class BasicKeystore implements IKeystore {
 		if (loaded) {
 			throw new RuntimeException("Keystore already loaded!");
 		}
+		log.debug("Creating keystore");
 		passwordEncryption.init(password);
 
 		asymmetricPrivateKeys = new HashMap<String, byte[]>();
@@ -43,7 +47,8 @@ public class BasicKeystore implements IKeystore {
 	}
 
 	private void save() {
-		ByteWriter body = new ByteWriter();
+		log.debug("Saving keystore");
+		IByteWriter body = IByteWriter.get(factory, getImplName());
 
 		body.writeInt(asymmetricPublicKeys.size());
 		for (String name : asymmetricPublicKeys.keySet()) {
@@ -67,7 +72,7 @@ public class BasicKeystore implements IKeystore {
 			}
 		}
 
-		ByteWriter finalData = new ByteWriter();
+		IByteWriter finalData = IByteWriter.get(factory, getImplName());
 		finalData.writeWriterWithChecksum(body);
 		storage.writeFile(path, passwordEncryption, finalData);
 	}
@@ -77,18 +82,19 @@ public class BasicKeystore implements IKeystore {
 		if (loaded) {
 			throw new RuntimeException("Keystore already loaded!");
 		}
+		log.debug("Loading keystore");
 		try {
 			passwordEncryption.init(password);
 
 			asymmetricPrivateKeys = new HashMap<String, byte[]>();
 			asymmetricPublicKeys = new HashMap<String, byte[]>();
 
-			ByteReader fileData = storage.readFile(path, passwordEncryption);
+			IByteReader fileData = storage.readFile(path, passwordEncryption);
 			if (fileData == null) {
 				return false;
 			}
 
-			ByteReader content = fileData.readReaderWithChecksum();
+			IByteReader content = fileData.readReaderWithChecksum();
 
 			int size = content.readInt();
 			for (int i = 0; i < size; i++) {

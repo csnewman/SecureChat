@@ -14,7 +14,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
-import com.securechat.common.security.IPasswordEncryption;
+import com.securechat.api.common.security.IPasswordEncryption;
 
 public class PasswordEncryption implements IPasswordEncryption {
 	private static final byte[] salt = { (byte) 0x12, (byte) 0x67, (byte) 0x43, (byte) 0x32, (byte) 0x68, (byte) 0x94,

@@ -7,9 +7,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.securechat.basicencryption.RSAEncryption;
-import com.securechat.common.ByteReader;
-import com.securechat.common.ByteWriter;
 import com.securechat.common.security.ProtectedStore;
+import com.securechat.common.storage.ByteReader;
+import com.securechat.common.storage.ByteWriter;
 
 public class ConnectionStore extends ProtectedStore {
 	private static final File connectionsFile = new File("connections.bin");

@@ -4,23 +4,28 @@ import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import com.securechat.common.IContext;
-import com.securechat.common.gui.IGuiProvider;
-import com.securechat.common.implementation.ImplementationFactory;
-import com.securechat.common.plugins.Hook;
-import com.securechat.common.plugins.Hooks;
-import com.securechat.common.plugins.Plugin;
-import com.securechat.common.security.IKeystore;
+import com.securechat.api.client.gui.IGuiProvider;
+import com.securechat.api.client.gui.ILoginGui;
+import com.securechat.api.common.IContext;
+import com.securechat.api.common.ILogger;
+import com.securechat.api.common.implementation.IImplementationFactory;
+import com.securechat.api.common.plugins.Hook;
+import com.securechat.api.common.plugins.Hooks;
+import com.securechat.api.common.plugins.Plugin;
+import com.securechat.api.common.security.IKeystore;
 
 @Plugin(name = "official-basic_gui", version = "1.0.0")
 public class BasicGuiPlugin implements IGuiProvider {
 	private JFrame currentWindow;
 	private IContext context;
+	private ILogger log;
+	private LoginWindow loginGui;
 
 	@Hook(name = "init", hook = Hooks.Init)
 	public void init(IContext context) {
 		this.context = context;
-		ImplementationFactory factory = context.getImplementationFactory();
+		log = context.getLogger();
+		IImplementationFactory factory = context.getImplementationFactory();
 		factory.registerInstance("official-basic_gui", IGuiProvider.class, this);
 		factory.setFallbackDefaultIfNone(IGuiProvider.class, "official-basic_gui");
 	}
@@ -28,6 +33,7 @@ public class BasicGuiPlugin implements IGuiProvider {
 	@Override
 	public void init() {
 		try {
+			log.debug("Setting system look and feel");
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 				| UnsupportedLookAndFeelException e) {
@@ -44,6 +50,7 @@ public class BasicGuiPlugin implements IGuiProvider {
 		boolean exists = keystore.exists();
 		String msg = null;
 		while (true) {
+			log.debug("Showing " + (exists ? "unlock" : "generate") + " keystore gui, msg=" + msg);
 			KeystoreDialog dialog = new KeystoreDialog(!exists, msg);
 			dialog.setVisible(true);
 
@@ -63,6 +70,14 @@ public class BasicGuiPlugin implements IGuiProvider {
 				context.exit();
 			}
 		}
+	}
+
+	@Override
+	public ILoginGui getLoginGui() {
+		if (loginGui == null) {
+			loginGui = new LoginWindow();
+		}
+		return loginGui;
 	}
 
 	public JFrame getCurrentWindow() {

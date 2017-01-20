@@ -17,11 +17,15 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
-import com.securechat.common.ByteReader;
-import com.securechat.common.ByteWriter;
-import com.securechat.common.security.IAsymmetricKeyEncryption;
+import com.securechat.api.common.implementation.IImplementationFactory;
+import com.securechat.api.common.plugins.InjectInstance;
+import com.securechat.api.common.security.IAsymmetricKeyEncryption;
+import com.securechat.api.common.storage.IByteReader;
+import com.securechat.api.common.storage.IByteWriter;
 
 public class RSAEncryption implements IAsymmetricKeyEncryption {
+	@InjectInstance
+	private IImplementationFactory factory;
 	private PublicKey pubKey;
 	private PrivateKey priKey;
 	private Cipher cipher;
@@ -76,7 +80,7 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	public byte[] encrypt(byte[] data) {
 		try {
 			int count = (int) Math.ceil((double) data.length / 501d);
-			ByteWriter out = new ByteWriter();
+			IByteWriter out = IByteWriter.get(factory, getImplName());
 			out.writeInt(data.length);
 
 			for (int i = 0; i < count; i++) {
@@ -100,7 +104,7 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	@Override
 	public byte[] decrypt(byte[] data) throws IOException {
 		try {
-			ByteReader in = new ByteReader(data);
+			IByteReader in = IByteReader.get(factory, getImplName(), data);
 			int length = in.readInt();
 			int count = (int) Math.ceil((double) length / 501d);
 
