@@ -78,7 +78,7 @@ public class FileStorage implements IStorage {
 	@Override
 	public JSONObject readJsonFile(String path) {
 		try {
-			return new JSONObject(new String(Files.readAllBytes(new File(path).toPath())));
+			return new JSONObject(new String(Files.readAllBytes(new File(baseFolder, path).toPath())));
 		} catch (JSONException | IOException e) {
 			e.printStackTrace();
 		}
@@ -106,11 +106,11 @@ public class FileStorage implements IStorage {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public void writeJsonFile(String path, JSONObject obj) {
 		try {
-			FileWriter writer = new FileWriter(new File(path));
+			FileWriter writer = new FileWriter(new File(baseFolder, path));
 			writer.write(obj.toString(4));
 			writer.close();
 		} catch (IOException e) {
@@ -123,7 +123,7 @@ public class FileStorage implements IStorage {
 		try {
 			File file = new File(baseFolder, path);
 			byte[] data = writer.toByteArray();
-			if(encryption != null)
+			if (encryption != null)
 				data = encryption.encrypt(data);
 			Files.write(file.toPath(), data);
 		} catch (Exception e) {

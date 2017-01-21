@@ -1,9 +1,9 @@
-package com.securechat.common.packets;
+package com.securechat.api.common.packets;
 
 import java.io.IOException;
 
-import com.securechat.common.storage.ByteReader;
-import com.securechat.common.storage.ByteWriter;
+import com.securechat.api.common.storage.IByteReader;
+import com.securechat.api.common.storage.IByteWriter;
 
 public class NewChatPacket implements IPacket {
 	private String username;
@@ -16,12 +16,12 @@ public class NewChatPacket implements IPacket {
 	}
 
 	@Override
-	public void read(ByteReader reader) throws IOException {
+	public void read(IByteReader reader) throws IOException {
 		username = reader.readString();
 	}
 
 	@Override
-	public void write(ByteWriter writer) {
+	public void write(IByteWriter writer) {
 		writer.writeString(username);
 	}
 

@@ -14,11 +14,11 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import com.securechat.api.common.packets.RegisterPacket;
+import com.securechat.api.common.packets.RegisterResponsePacket;
 import com.securechat.basicencryption.RSAEncryption;
 import com.securechat.client.SecureChatClient;
 import com.securechat.client.network.NetworkClient;
-import com.securechat.common.packets.RegisterPacket;
-import com.securechat.common.packets.RegisterResponsePacket;
 import com.securechat.plugins.basicgui.LoginWindow;
 
 public class InitialConnection extends JDialog {

@@ -1,9 +1,9 @@
-package com.securechat.common.packets;
+package com.securechat.api.common.packets;
 
 import java.io.IOException;
 
-import com.securechat.common.storage.ByteReader;
-import com.securechat.common.storage.ByteWriter;
+import com.securechat.api.common.storage.IByteReader;
+import com.securechat.api.common.storage.IByteWriter;
 
 public class ChallengeResponsePacket implements IPacket {
 	private int tempCode;
@@ -16,12 +16,12 @@ public class ChallengeResponsePacket implements IPacket {
 	}
 
 	@Override
-	public void read(ByteReader reader) throws IOException {
+	public void read(IByteReader reader) throws IOException {
 		tempCode = reader.readInt();
 	}
 
 	@Override
-	public void write(ByteWriter writer) {
+	public void write(IByteWriter writer) {
 		writer.writeInt(tempCode);
 	}
 

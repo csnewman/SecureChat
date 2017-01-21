@@ -1,4 +1,4 @@
-package com.securechat.common.packets;
+package com.securechat.api.common.packets;
 
 import java.util.HashMap;
 import java.util.Map;
