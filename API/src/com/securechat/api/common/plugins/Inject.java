@@ -15,5 +15,5 @@ public @interface Inject {
 	public boolean allowDefault() default true;
 
 	public boolean associate() default false;
-
+	
 }

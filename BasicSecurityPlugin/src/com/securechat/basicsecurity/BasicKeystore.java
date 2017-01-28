@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.securechat.api.common.ILogger;
 import com.securechat.api.common.implementation.IImplementationFactory;
+import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.plugins.Inject;
 import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.security.IAsymmetricKeyEncryption;
@@ -16,6 +17,8 @@ import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
 
 public class BasicKeystore implements IKeystore {
+	public static final ImplementationMarker MARKER = new ImplementationMarker(BasicSecurityPlugin.NAME,
+			BasicSecurityPlugin.VERSION, "basic_keystore", "1.0.0");
 	private static String path = "keystore.bin";
 	@InjectInstance
 	private ILogger log;
@@ -48,7 +51,7 @@ public class BasicKeystore implements IKeystore {
 
 	private void save() {
 		log.debug("Saving keystore");
-		IByteWriter body = IByteWriter.get(factory, getImplName());
+		IByteWriter body = IByteWriter.get(factory, MARKER.getId());
 
 		body.writeInt(asymmetricPublicKeys.size());
 		for (String name : asymmetricPublicKeys.keySet()) {
@@ -72,7 +75,7 @@ public class BasicKeystore implements IKeystore {
 			}
 		}
 
-		IByteWriter finalData = IByteWriter.get(factory, getImplName());
+		IByteWriter finalData = IByteWriter.get(factory, MARKER.getId());
 		finalData.writeWriterWithChecksum(body);
 		storage.writeFile(path, passwordEncryption, finalData);
 	}
@@ -157,8 +160,8 @@ public class BasicKeystore implements IKeystore {
 	}
 
 	@Override
-	public String getImplName() {
-		return "official-basic_keystore";
+	public ImplementationMarker getMarker() {
+		return MARKER;
 	}
 
 }

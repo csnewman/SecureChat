@@ -6,7 +6,7 @@ public interface IImplementationInstance<T extends IImplementation> {
 
 	public boolean shouldInject();
 
-	public String getName();
+	public ImplementationMarker getMarker();
 
 	public Class<T> getType();
 

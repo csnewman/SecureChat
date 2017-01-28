@@ -13,25 +13,28 @@ import com.securechat.api.common.ILogger;
 import com.securechat.api.common.implementation.IImplementation;
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.implementation.IImplementationInstance;
+import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.plugins.Inject;
 import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.plugins.Plugin;
-import com.securechat.api.common.properties.PrimitiveProperty;
+import com.securechat.api.common.properties.CollectionProperty;
 import com.securechat.api.common.properties.PropertyCollection;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class ImplementationFactory implements IImplementationFactory {
+	public static final CollectionProperty DEFAULTS_PROPERTY = new CollectionProperty("defaults");
 	private ILogger log;
 	private Map<Class, Map> implementations;
 	private Map<Class, Object> instances;
-	private Map<String, String> defaults;
-	private PropertyCollection propertyCollection;
+	private Map<String, ImplementationMarker> defaults;
+	private PropertyCollection baseCollection, defaultsCollection;
 
-	public ImplementationFactory(ILogger log, PropertyCollection propertyCollection) {
+	public ImplementationFactory(ILogger log, PropertyCollection baseCollection) {
 		this.log = log;
 		implementations = new HashMap<Class, Map>();
-		defaults = new HashMap<String, String>();
-		this.propertyCollection = propertyCollection;
+		defaults = new HashMap<String, ImplementationMarker>();
+		this.baseCollection = baseCollection;
+		defaultsCollection = baseCollection.getPermissive(DEFAULTS_PROPERTY);
 		instances = new HashMap<Class, Object>();
 	}
 
@@ -44,7 +47,7 @@ public class ImplementationFactory implements IImplementationFactory {
 			baseId = clazz.getDeclaredAnnotation(Plugin.class).name();
 			log.debug("Injecting into " + obj + " (plugin)");
 		} else if (obj instanceof IImplementation) {
-			baseId = ((IImplementation) obj).getImplName();
+			baseId = ((IImplementation) obj).getMarker().getId();
 			log.debug("Injecting into " + obj + " (implementation)");
 		} else {
 			log.debug("Injecting into " + obj + " (unknown)");
@@ -58,8 +61,9 @@ public class ImplementationFactory implements IImplementationFactory {
 				field.setAccessible(true);
 				try {
 					if (field.get(obj) == null) {
-						Object value = provide((Class) field.getType(), annotation.providers(),
-								annotation.allowDefault(), annotation.associate(), baseId);
+						Object value = provide((Class) field.getType(),
+								ImplementationMarker.convert(annotation.providers()), annotation.allowDefault(),
+								annotation.associate(), baseId);
 						log.debug("Setting field to " + value);
 						field.set(obj, value);
 					}
@@ -96,7 +100,7 @@ public class ImplementationFactory implements IImplementationFactory {
 	@Override
 	public <T> T get(Class<T> type, boolean provide) {
 		if (!instances.containsKey(type) && provide) {
-			instances.put(type, provide((Class) type, new String[0], true, false, null));
+			instances.put(type, provide((Class) type, new ImplementationMarker[0], true, false, null));
 		}
 		return (T) instances.get(type);
 	}
@@ -107,43 +111,44 @@ public class ImplementationFactory implements IImplementationFactory {
 	}
 
 	@Override
-	public <T extends IImplementation> ImplementationInstance<T> registerInstance(String name, Class<T> type, T inst) {
+	public <T extends IImplementation> ImplementationInstance<T> registerInstance(ImplementationMarker marker,
+			Class<T> type, T inst) {
 		inject(inst);
-		return register(name, type, () -> inst, false);
+		return register(marker, type, () -> inst, false);
 	}
 
 	@Override
-	public <T extends IImplementation> ImplementationInstance<T> register(String name, Class<T> type,
+	public <T extends IImplementation> ImplementationInstance<T> register(ImplementationMarker marker, Class<T> type,
 			Supplier<? extends T> supplier) {
-		return register(name, type, supplier, true);
+		return register(marker, type, supplier, true);
 	}
 
 	@Override
-	public <T extends IImplementation> ImplementationInstance<T> register(String name, Class<T> type,
+	public <T extends IImplementation> ImplementationInstance<T> register(ImplementationMarker marker, Class<T> type,
 			Supplier<? extends T> supplier, boolean inject) {
-		Map<String, IImplementationInstance<? extends T>> map = getImplementations(type);
-		ImplementationInstance<T> implementation = new ImplementationInstance<T>(name, type, supplier, inject);
-		map.put(name, implementation);
+		Map<ImplementationMarker, IImplementationInstance<? extends T>> map = getImplementations(type);
+		ImplementationInstance<T> implementation = new ImplementationInstance<T>(marker, type, supplier, inject);
+		map.put(marker, implementation);
 		return implementation;
 	}
 
 	@Override
 	public <T extends IImplementation> T provide(Class<T> type) {
-		return provide(type, new String[0], true, false, null);
+		return provide(type, new ImplementationMarker[0], true, false, null);
 	}
 
 	@Override
-	public <T extends IImplementation> T provide(Class<T> type, String impName) {
-		return provide(type, new String[] { impName }, false, false, null);
+	public <T extends IImplementation> T provide(Class<T> type, ImplementationMarker marker) {
+		return provide(type, new ImplementationMarker[] { marker }, false, false, null);
 	}
 
 	@Override
-	public <T extends IImplementation> T provide(Class<T> type, String[] providers, boolean allowDefault,
+	public <T extends IImplementation> T provide(Class<T> type, ImplementationMarker[] providers, boolean allowDefault,
 			boolean associate, String associateName) {
 		log.debug("Providing " + type.getName());
 
-		Map<String, IImplementationInstance<? extends T>> implementations = getImplementations(type);
-		String provider = getProvider(type, providers, allowDefault, associate, associateName);
+		Map<ImplementationMarker, IImplementationInstance<? extends T>> implementations = getImplementations(type);
+		ImplementationMarker provider = getProvider(type, providers, allowDefault, associate, associateName);
 
 		log.debug("Implementations: " + implementations);
 		log.debug("Provider: " + provider);
@@ -162,42 +167,45 @@ public class ImplementationFactory implements IImplementationFactory {
 	}
 
 	@Override
-	public <T extends IImplementation> String getProvider(Class<T> type, String[] providers, boolean allowDefault,
-			boolean associate, String associateName) {
+	public <T extends IImplementation> ImplementationMarker getProvider(Class<T> type, ImplementationMarker[] providers,
+			boolean allowDefault, boolean associate, String associateName) {
 		log.debug("Finding provider for " + type.getName());
 
-		PrimitiveProperty<String> associateProperty = null;
+		PropertyCollection collection = null;
+		CollectionProperty property = null;
 		if (associate) {
-			associateProperty = new PrimitiveProperty<String>(associateName + "/" + type.getName(), null);
-			String provider = propertyCollection.get(associateProperty);
-			if (provider != null) {
-				log.debug("Found associated provider " + provider);
-				return provider;
+			collection = baseCollection.getPermissive(new CollectionProperty(associateName));
+			property = new CollectionProperty(type.getName());
+
+			ImplementationMarker marker = ImplementationMarker.loadMarker(collection.get(property));
+			if (marker != null) {
+				log.debug("Found associated provider " + marker);
+				return marker;
 			}
 		}
 
-		for (String provider : providers) {
+		for (ImplementationMarker provider : providers) {
 			if (doesProviderExist(type, provider)) {
 				log.debug("Found provider " + provider);
 				if (associate)
-					propertyCollection.set(associateProperty, provider);
+					collection.set(property, provider.save());
 				return provider;
 			}
 		}
 
 		if (allowDefault) {
-			String provider = getDefault(type);
+			ImplementationMarker provider = getDefault(type);
 			if (provider == null) {
 				log.debug("Using default provider " + provider);
 			} else {
 				Map map = getImplementations(type);
 				if (map.size() > 0) {
-					provider = ((ImplementationInstance<? extends T>) map.values().iterator().next()).getName();
+					provider = ((ImplementationInstance<? extends T>) map.values().iterator().next()).getMarker();
 					log.debug("No default found, using first: " + provider);
 				}
 			}
 			if (associate)
-				propertyCollection.set(associateProperty, provider);
+				collection.set(property, provider.save());
 			return provider;
 		}
 
@@ -205,7 +213,7 @@ public class ImplementationFactory implements IImplementationFactory {
 	}
 
 	@Override
-	public <T extends IImplementation> Map<String, IImplementationInstance<? extends T>> getImplementations(
+	public <T extends IImplementation> Map<ImplementationMarker, IImplementationInstance<? extends T>> getImplementations(
 			Class<T> type) {
 		if (!implementations.containsKey(type)) {
 			implementations.put(type, new HashMap<String, ImplementationInstance<T>>());
@@ -214,33 +222,39 @@ public class ImplementationFactory implements IImplementationFactory {
 	}
 
 	@Override
-	public <T extends IImplementation> boolean doesProviderExist(Class<T> type, String impName) {
-		return getImplementations(type).containsKey(impName);
+	public <T extends IImplementation> boolean doesProviderExist(Class<T> type, ImplementationMarker marker) {
+		return getImplementations(type).containsKey(marker);
 	}
 
 	@Override
-	public <T extends IImplementation> void setFallbackDefaultIfNone(Class<T> type, String defaultName) {
+	public <T extends IImplementation> void setFallbackDefaultIfNone(Class<T> type, ImplementationMarker marker) {
 		if (defaults.containsKey(type.getName()))
 			return;
-		setFallbackDefault(type, defaultName);
+		setFallbackDefault(type, marker);
 	}
 
 	@Override
-	public <T extends IImplementation> void setFallbackDefault(Class<T> type, String defaultName) {
-		defaults.put(type.getName(), defaultName);
+	public <T extends IImplementation> void setFallbackDefault(Class<T> type, ImplementationMarker marker) {
+		defaults.put(type.getName(), marker);
 	}
 
 	@Override
 	public void flushDefaults() {
-		for (Entry<String, String> entry : defaults.entrySet()) {
-			propertyCollection.getPermissive(new PrimitiveProperty<String>(entry.getKey(), entry.getValue()));
+		PropertyCollection collection = baseCollection.getPermissive(new CollectionProperty("defaults"));
+		for (Entry<String, ImplementationMarker> entry : defaults.entrySet()) {
+			CollectionProperty property = new CollectionProperty(entry.getKey());
+			if (!collection.exists(property)) {
+				collection.set(property, entry.getValue().save());
+			}
 		}
 	}
 
 	@Override
-	public <T extends IImplementation> String getDefault(Class<T> type) {
-		PrimitiveProperty<String> property = new PrimitiveProperty<String>(type.getName(),
-				defaults.get(type.getName()));
-		return propertyCollection.getPermissive(property);
+	public <T extends IImplementation> ImplementationMarker getDefault(Class<T> type) {
+		CollectionProperty property = new CollectionProperty(type.getName());
+		if (!defaultsCollection.exists(property)) {
+			defaultsCollection.set(property, defaults.get(type.getName()).save());
+		}
+		return ImplementationMarker.loadMarker(defaultsCollection.get(property));
 	}
 }

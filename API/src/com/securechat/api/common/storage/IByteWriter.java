@@ -4,6 +4,7 @@ import java.io.OutputStream;
 
 import com.securechat.api.common.implementation.IImplementation;
 import com.securechat.api.common.implementation.IImplementationFactory;
+import com.securechat.api.common.implementation.ImplementationMarker;
 
 public interface IByteWriter extends IImplementation{
 
@@ -34,7 +35,7 @@ public interface IByteWriter extends IImplementation{
 	public void close();
 	
 	public static IByteWriter get(IImplementationFactory factory, String name){
-		IByteWriter writer =  factory.provide(IByteWriter.class, new String[0], true, true, name);
+		IByteWriter writer =  factory.provide(IByteWriter.class, new ImplementationMarker[0], true, true, name);
 		writer.setMemoryOutput();
 		return writer;
 	}

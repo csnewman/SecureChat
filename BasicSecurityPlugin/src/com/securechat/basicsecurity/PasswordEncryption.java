@@ -14,9 +14,12 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
+import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.security.IPasswordEncryption;
 
 public class PasswordEncryption implements IPasswordEncryption {
+	public static final ImplementationMarker MARKER = new ImplementationMarker(BasicSecurityPlugin.NAME,
+			BasicSecurityPlugin.VERSION, "password_encryption", "1.0.0");
 	private static final byte[] salt = { (byte) 0x12, (byte) 0x67, (byte) 0x43, (byte) 0x32, (byte) 0x68, (byte) 0x94,
 			(byte) 0x17, (byte) 0x95 };
 	private SecretKey key;
@@ -71,8 +74,9 @@ public class PasswordEncryption implements IPasswordEncryption {
 		}
 	}
 
-	public String getImplName() {
-		return "official-password_encryption";
+	@Override
+	public ImplementationMarker getMarker() {
+		return MARKER;
 	}
 
 }

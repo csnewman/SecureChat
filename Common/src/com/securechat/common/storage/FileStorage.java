@@ -17,12 +17,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.securechat.api.common.implementation.IImplementationFactory;
+import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.security.IEncryption;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
 
 public class FileStorage implements IStorage {
+	public static final ImplementationMarker MARKER = new ImplementationMarker("inbuilt", "n/a", "file_storage",
+			"1.0.0");
 	private static final File baseFolder = new File("data");
 	private IImplementationFactory factory;
 
@@ -100,7 +103,7 @@ public class FileStorage implements IStorage {
 				return reader;
 			}
 
-			return IByteReader.get(factory, getImplName(), data);
+			return IByteReader.get(factory, MARKER.getId(), data);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -141,8 +144,8 @@ public class FileStorage implements IStorage {
 	}
 
 	@Override
-	public String getImplName() {
-		return "official-file_storage";
+	public ImplementationMarker getMarker() {
+		return MARKER;
 	}
 
 }

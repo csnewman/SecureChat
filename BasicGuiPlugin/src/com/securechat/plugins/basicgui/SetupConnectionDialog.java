@@ -1,4 +1,4 @@
-package com.securechat.client.connection;
+package com.securechat.plugins.basicgui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,21 +21,33 @@ import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
-import com.securechat.client.SecureChatClient;
+import com.securechat.api.common.implementation.IImplementationFactory;
+import com.securechat.api.common.network.IConnectionProfile;
+import com.securechat.api.common.network.IConnectionProfileProvider;
+import com.securechat.api.common.plugins.InjectInstance;
+import com.securechat.api.common.security.IPasswordEncryption;
+import com.securechat.api.common.storage.IStorage;
 
 public class SetupConnectionDialog extends JDialog {
 	private static final long serialVersionUID = 2659950995253670666L;
-	private SecureChatClient client;
+	private BasicGuiPlugin plugin;
 	private JPanel contentPane;
 	private JTextField fileField;
 	private JPasswordField passwordField;
 	private JLabel lblNameValue, lblStatusValue, lblIPValue, lblPortValue;
 	private JButton btnImport;
-	private ConnectionInfo connectionInfo;
+	
+	@InjectInstance
+	private IConnectionProfileProvider profileProvider;
+	@InjectInstance
+	private IStorage storage;
+	@InjectInstance
+	private IImplementationFactory factory;
+	private IConnectionProfile profile;
 
-	public SetupConnectionDialog(SecureChatClient client) {
-		super(client.getCurrentWindow(), "New Connection", true);
-		this.client = client;
+	public SetupConnectionDialog(BasicGuiPlugin plugin) {
+		super(plugin.getCurrentWindow(), "New Connection", true);
+		this.plugin = plugin;
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 436, 271);
@@ -135,40 +147,56 @@ public class SetupConnectionDialog extends JDialog {
 	}
 
 	private void decrypt(ActionEvent e) {
-		File file = new File(fileField.getText());
-		if (file.exists()) {
+		String path = fileField.getText();
+		if (storage.doesFileExist(path)) {
 			try {
-				connectionInfo = new ConnectionInfo(file, passwordField.getPassword());
-
-				lblStatusValue.setText("Decrypted");
-				lblNameValue.setText(connectionInfo.getServerName());
-				lblIPValue.setText(connectionInfo.getServerIp());
-				lblPortValue.setText(Integer.toString(connectionInfo.getServerPort()));
-				btnImport.setEnabled(true);
+				IPasswordEncryption encryption = factory.provide(IPasswordEncryption.class);
+				encryption.init(passwordField.getPassword());
+				
+				
+				profile = profileProvider.loadProfileFromFile(storage, path, encryption);
+				
+				if(profile == null){
+					setStatus(false, "Failed to decrypt");
+					profile = null;
+				}
+				
+				if(profile.isTemplate()){
+					setStatus(false, "Profile is not a template");
+					profile = null;
+					return;
+				}
+				
+				setStatus(true, "Decrypted");
+				lblNameValue.setText(profile.getName());
+				lblIPValue.setText(profile.getIP());
+				lblPortValue.setText(Integer.toString(profile.getPort()));
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				lblStatusValue.setText("Failed to decrypt");
-				lblNameValue.setText("");
-				lblIPValue.setText("");
-				lblPortValue.setText("");
-				btnImport.setEnabled(false);
-				connectionInfo = null;
+				setStatus(false, "Failed to decrypt");
+				profile = null;
 			}
 		} else {
-			lblStatusValue.setText("File not found");
+			setStatus(false, "File not found");
+			profile = null;
+		}
+	}
+	
+	private void setStatus(boolean ok, String text){
+		lblStatusValue.setText(text);
+		btnImport.setEnabled(ok);
+		if(!ok){
 			lblNameValue.setText("");
 			lblIPValue.setText("");
 			lblPortValue.setText("");
-			btnImport.setEnabled(false);
-			connectionInfo = null;
 		}
 	}
 
 	private void importConnection(ActionEvent e) {
-		if (connectionInfo != null) {
-			dispose();
-			InitialConnection ic = new InitialConnection(client, connectionInfo);
-			ic.setVisible(true);
-		}
+//		if (connectionInfo != null) {
+//			dispose();
+//			InitialConnection ic = new InitialConnection(client, connectionInfo);
+//			ic.setVisible(true);
+//		}
 	}
 }

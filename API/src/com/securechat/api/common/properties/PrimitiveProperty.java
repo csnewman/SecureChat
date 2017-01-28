@@ -7,6 +7,10 @@ public class PrimitiveProperty<T> implements IProperty<T> {
 	private String name;
 	private T defaultVal;
 
+	public PrimitiveProperty(String name) {
+		this(name, null);
+	}
+	
 	public PrimitiveProperty(String name, T defaultVal) {
 		this.name = name;
 		this.defaultVal = defaultVal;

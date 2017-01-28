@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -15,15 +16,23 @@ import javax.swing.JMenuItem;
 import javax.swing.SwingConstants;
 
 import com.securechat.api.client.gui.ILoginGui;
+import com.securechat.api.client.network.IConnectionStore;
+import com.securechat.api.client.network.IConnectionStoreUpdateListener;
+import com.securechat.api.common.implementation.ImplementationMarker;
+import com.securechat.api.common.network.IConnectionProfile;
+import com.securechat.api.common.plugins.InjectInstance;
 
-public class LoginWindow extends JFrame implements ILoginGui {
+public class LoginWindow extends JFrame implements ILoginGui, IConnectionStoreUpdateListener {
+	public static final ImplementationMarker MARKER = new ImplementationMarker(BasicGuiPlugin.NAME,
+			BasicGuiPlugin.VERSION, "login_window", "1.0.0");
 	private static final long serialVersionUID = -733929606760128273L;
-	// private SecureChatClient client;
+	@InjectInstance
+	private IConnectionStore connectionStore;
 	private boolean open;
 	private JComboBox<String> connectionBox;
 	private JLabel lblServerNameValue, lblServerHostValue;
 	private JButton btnConnect;
-	// private ConnectionInfo[] infos;
+	private IConnectionProfile[] profiles;
 
 	public LoginWindow() {
 		setResizable(false);
@@ -96,13 +105,21 @@ public class LoginWindow extends JFrame implements ILoginGui {
 	}
 
 	@Override
+	public void onConnectionStoreUpdated() {
+		updateOptions();
+	}
+
+	@Override
 	public void open() {
 		setVisible(true);
+		connectionStore.addUpdateListener(this);
+		updateOptions();
 	}
 
 	@Override
 	public void close() {
 		setVisible(false);
+		connectionStore.removeUpdateListener(this);
 	}
 
 	@Override
@@ -111,31 +128,28 @@ public class LoginWindow extends JFrame implements ILoginGui {
 	}
 
 	public void updateOptions() {
-		// infos = client.getConnectionStore().getInfos().toArray(new
-		// ConnectionInfo[0]);
-		// String[] names = new String[infos.length];
-		// for (int i = 0; i < infos.length; i++) {
-		// ConnectionInfo info = infos[i];
-		// names[i] = info.getServerName() + "(" + info.getUsername() + ")";
-		// }
-		// connectionBox.setModel(new DefaultComboBoxModel<String>(names));
-		// updateSelection();
+		profiles = connectionStore.getProfiles().toArray(new IConnectionProfile[0]);
+		String[] names = new String[profiles.length];
+		for (int i = 0; i < profiles.length; i++) {
+			IConnectionProfile profile = profiles[i];
+			names[i] = profile.getName() + "(" + profile.getUsername() + ")";
+		}
+		connectionBox.setModel(new DefaultComboBoxModel<String>(names));
+		updateSelection();
 	}
 
 	private void updateSelection() {
-		// if (infos.length == 0) {
-		// lblServerNameValue.setText("");
-		// lblServerHostValue.setText("");
-		// btnConnect.setEnabled(false);
-		// }
-		// int index = connectionBox.getSelectedIndex();
-		// ConnectionInfo info = infos[index];
-		//
-		// lblServerNameValue.setText(info.getServerName() + " (" +
-		// info.getUsername() + ")");
-		// lblServerHostValue.setText(info.getServerIp() + ":" +
-		// info.getServerPort());
-		// btnConnect.setEnabled(true);
+		int index = connectionBox.getSelectedIndex();
+		if (profiles.length == 0 || index < 0 || index >= profiles.length) {
+			lblServerNameValue.setText("");
+			lblServerHostValue.setText("");
+			btnConnect.setEnabled(false);
+			return;
+		}
+		IConnectionProfile profile = profiles[index];
+		lblServerNameValue.setText(profile.getName() + " (" + profile.getUsername() + ")");
+		lblServerHostValue.setText(profile.getIP() + ":" + profile.getPort());
+		btnConnect.setEnabled(true);
 	}
 
 	// private ConnectingDialog connectingDialog;
@@ -200,9 +214,8 @@ public class LoginWindow extends JFrame implements ILoginGui {
 	}
 
 	@Override
-	public String getImplName() {
-		// TODO Auto-generated method stub
-		return null;
+	public ImplementationMarker getMarker() {
+		return MARKER;
 	}
 
 }

@@ -8,14 +8,22 @@ import com.securechat.api.client.gui.IGuiProvider;
 import com.securechat.api.client.gui.ILoginGui;
 import com.securechat.api.common.IContext;
 import com.securechat.api.common.ILogger;
+import com.securechat.api.common.Sides;
 import com.securechat.api.common.implementation.IImplementationFactory;
+import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.plugins.Hook;
 import com.securechat.api.common.plugins.Hooks;
+import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.plugins.Plugin;
 import com.securechat.api.common.security.IKeystore;
 
-@Plugin(name = "official-basic_gui", version = "1.0.0")
+@Plugin(name = BasicGuiPlugin.NAME, version = BasicGuiPlugin.VERSION, side = Sides.Client)
 public class BasicGuiPlugin implements IGuiProvider {
+	public static final String NAME = "official-basic_gui", VERSION = "1.0.0";
+	public static final ImplementationMarker BASIC_GUI_MARKER = new ImplementationMarker(NAME, VERSION, "basic_gui",
+			"1.0.0");
+	@InjectInstance
+	private IImplementationFactory factory;
 	private JFrame currentWindow;
 	private IContext context;
 	private ILogger log;
@@ -26,8 +34,8 @@ public class BasicGuiPlugin implements IGuiProvider {
 		this.context = context;
 		log = context.getLogger();
 		IImplementationFactory factory = context.getImplementationFactory();
-		factory.registerInstance("official-basic_gui", IGuiProvider.class, this);
-		factory.setFallbackDefaultIfNone(IGuiProvider.class, "official-basic_gui");
+		factory.registerInstance(BASIC_GUI_MARKER, IGuiProvider.class, this);
+		factory.setFallbackDefaultIfNone(IGuiProvider.class, BASIC_GUI_MARKER);
 	}
 
 	@Override
@@ -76,6 +84,7 @@ public class BasicGuiPlugin implements IGuiProvider {
 	public ILoginGui getLoginGui() {
 		if (loginGui == null) {
 			loginGui = new LoginWindow();
+			factory.inject(loginGui);
 		}
 		return loginGui;
 	}
@@ -85,8 +94,8 @@ public class BasicGuiPlugin implements IGuiProvider {
 	}
 
 	@Override
-	public String getImplName() {
-		return "official-basic_gui";
+	public ImplementationMarker getMarker() {
+		return BASIC_GUI_MARKER;
 	}
 
 }

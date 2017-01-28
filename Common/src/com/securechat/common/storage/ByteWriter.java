@@ -5,10 +5,13 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.common.security.SecurityUtils;
 
 public class ByteWriter implements IByteWriter {
+	public static final ImplementationMarker MARKER = new ImplementationMarker("inbuilt", "n/a", "byte_writer",
+			"1.0.0");
 	private ByteArrayOutputStream arrayStream;
 	private DataOutputStream output;
 
@@ -22,7 +25,7 @@ public class ByteWriter implements IByteWriter {
 	public void setStream(OutputStream stream) {
 		output = new DataOutputStream(stream);
 	}
-	
+
 	@Override
 	public void writeByte(int i) {
 		try {
@@ -112,8 +115,8 @@ public class ByteWriter implements IByteWriter {
 	}
 
 	@Override
-	public String getImplName() {
-		return "official-byte_writer";
+	public ImplementationMarker getMarker() {
+		return MARKER;
 	}
 
 }

@@ -18,12 +18,15 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import com.securechat.api.common.implementation.IImplementationFactory;
+import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.security.IAsymmetricKeyEncryption;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 
 public class RSAEncryption implements IAsymmetricKeyEncryption {
+	public static final ImplementationMarker MARKER = new ImplementationMarker(BasicSecurityPlugin.NAME,
+			BasicSecurityPlugin.VERSION, "rsa_encryption", "1.0.0");
 	@InjectInstance
 	private IImplementationFactory factory;
 	private PublicKey pubKey;
@@ -80,7 +83,7 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	public byte[] encrypt(byte[] data) {
 		try {
 			int count = (int) Math.ceil((double) data.length / 501d);
-			IByteWriter out = IByteWriter.get(factory, getImplName());
+			IByteWriter out = IByteWriter.get(factory, MARKER.getId());
 			out.writeInt(data.length);
 
 			for (int i = 0; i < count; i++) {
@@ -104,7 +107,7 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	@Override
 	public byte[] decrypt(byte[] data) throws IOException {
 		try {
-			IByteReader in = IByteReader.get(factory, getImplName(), data);
+			IByteReader in = IByteReader.get(factory, MARKER.getId(), data);
 			int length = in.readInt();
 			int count = (int) Math.ceil((double) length / 501d);
 
@@ -127,8 +130,8 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	}
 
 	@Override
-	public String getImplName() {
-		return "official-rsa_encryption";
+	public ImplementationMarker getMarker() {
+		return MARKER;
 	}
 
 }

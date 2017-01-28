@@ -16,12 +16,20 @@ public class PropertyCollection {
 	private JSONObject source;
 	private List<IProperty> defaultProperties;
 
+	public PropertyCollection(){
+		this(null);
+	}
+	
 	public PropertyCollection(JSONObject source, IProperty... defaultProperties) {
 		this.source = source != null ? new JSONObject(source.toMap()) : new JSONObject();
 		properties = new HashMap<IProperty, Object>();
 		this.defaultProperties = Arrays.asList(defaultProperties);
 	}
 
+	public <T> boolean exists(IProperty<T> property){
+		return properties.containsKey(property) || source.has(property.getName());
+	}
+	
 	public <T> T getPermissive(IProperty<T> property) {
 		T val = get(property);
 		if (val == null) {

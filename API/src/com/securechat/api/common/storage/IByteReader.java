@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 import com.securechat.api.common.implementation.IImplementation;
 import com.securechat.api.common.implementation.IImplementationFactory;
+import com.securechat.api.common.implementation.ImplementationMarker;
 
 public interface IByteReader extends IImplementation {
 
@@ -37,7 +38,7 @@ public interface IByteReader extends IImplementation {
 	public void close() throws IOException;
 
 	public static IByteReader get(IImplementationFactory factory, String name, byte[] data){
-		IByteReader reader = factory.provide(IByteReader.class, new String[0], true, true, name);
+		IByteReader reader = factory.provide(IByteReader.class, new ImplementationMarker[0], true, true, name);
 		reader.setMemoryInput(data);
 		return reader;
 	}

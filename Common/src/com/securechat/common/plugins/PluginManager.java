@@ -118,9 +118,10 @@ public class PluginManager implements IPluginManager {
 		}
 
 		for (HookInstance inst : hooks.values()) {
-			if (!context.getSide().allows(inst.getSide()) && inst.getHook() == hook) {
+			if (!context.getSide().allows(inst.getSide()) || inst.getHook() != hook) {
 				continue;
 			}
+
 			HookNode node = nodeMap.get(inst.getName());
 
 			for (String name : inst.getAfter()) {

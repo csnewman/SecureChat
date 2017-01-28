@@ -4,15 +4,16 @@ import java.util.function.Supplier;
 
 import com.securechat.api.common.implementation.IImplementation;
 import com.securechat.api.common.implementation.IImplementationInstance;
+import com.securechat.api.common.implementation.ImplementationMarker;
 
 public class ImplementationInstance<T extends IImplementation> implements IImplementationInstance<T> {
-	private String name;
+	private ImplementationMarker marker;
 	private Class<T> type;
 	private Supplier<? extends T> supplier;
 	private boolean inject;
 
-	public ImplementationInstance(String name, Class<T> type, Supplier<? extends T> supplier, boolean inject) {
-		this.name = name;
+	public ImplementationInstance(ImplementationMarker marker, Class<T> type, Supplier<? extends T> supplier, boolean inject) {
+		this.marker = marker;
 		this.type = type;
 		this.supplier = supplier;
 		this.inject = inject;
@@ -34,8 +35,8 @@ public class ImplementationInstance<T extends IImplementation> implements IImple
 	}
 
 	@Override
-	public String getName() {
-		return name;
+	public ImplementationMarker getMarker() {
+		return marker;
 	}
 
 	@Override
