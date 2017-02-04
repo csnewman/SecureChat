@@ -125,8 +125,9 @@ public class BasicKeystore implements IKeystore {
 
 	@Override
 	public void addAsymmetricKey(String name, byte[] publicKey, byte[] privateKey) {
-		asymmetricPrivateKeys.put(name, publicKey);
+		asymmetricPublicKeys.put(name, publicKey);
 		asymmetricPrivateKeys.put(name, privateKey);
+		save();
 	}
 
 	@Override
@@ -147,6 +148,31 @@ public class BasicKeystore implements IKeystore {
 	@Override
 	public void loadAsymmetricKey(String name, IAsymmetricKeyEncryption encryption) {
 		encryption.load(getAsymmetricPublicKey(name), getAsymmetricPrivateKey(name));
+	}
+
+	@Override
+	public void loadAsymmetricKeyOrGenerate(String name, IAsymmetricKeyEncryption encryption) {
+		if (hasAsymmetricKey(name))
+			loadAsymmetricKey(name, encryption);
+		else {
+			encryption.generate();
+			addAsymmetricKey(name, encryption);
+		}
+	}
+
+	@Override
+	public boolean hasAsymmetricPublicKey(String name) {
+		return asymmetricPublicKeys.containsKey(name);
+	}
+
+	@Override
+	public boolean hasAsymmetricPrivateKey(String name) {
+		return asymmetricPrivateKeys.containsKey(name);
+	}
+
+	@Override
+	public boolean hasAsymmetricKey(String name) {
+		return hasAsymmetricPublicKey(name) && hasAsymmetricPrivateKey(name);
 	}
 
 	@Override

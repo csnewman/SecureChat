@@ -8,9 +8,9 @@ import com.securechat.api.common.storage.IStorage;
 
 public interface IConnectionProfileProvider extends IImplementation {
 	
-	public IConnectionProfile generateProfileTemplate(String name, String ip, int port);
+	public IConnectionProfile generateProfileTemplate(String name, String ip, int port, byte[] publicKey);
 	
-	public IConnectionProfile createProfile(IConnectionProfile template, String username, int authcode);
+	public IConnectionProfile createProfile(IConnectionProfile template, String username, int authcode, byte[] privateKey);
 	
 	public IConnectionProfile loadProfileFromFile(IStorage storage, String path, IEncryption encryption);
 	
@@ -19,5 +19,7 @@ public interface IConnectionProfileProvider extends IImplementation {
 	public void saveProfileToFIle(IConnectionProfile profile, IStorage storage, String path, IEncryption encryption);
 	
 	public void saveProfileToMemory(IConnectionProfile profile, IByteWriter writer, IEncryption encryption);
+	
+	public String getDisplayName();
 	
 }

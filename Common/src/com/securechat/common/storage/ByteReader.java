@@ -53,6 +53,14 @@ public class ByteReader implements IByteReader {
 	public String readString() throws IOException {
 		return input.readUTF();
 	}
+	
+	@Override
+	public String readStringWithNull() throws IOException {
+		if(readBoolean()){
+			return readString();
+		}
+		return null;
+	}
 
 	@Override
 	public boolean readBoolean() throws IOException {
@@ -65,6 +73,14 @@ public class ByteReader implements IByteReader {
 		byte[] buffer = new byte[size];
 		input.readFully(buffer, 0, size);
 		return buffer;
+	}
+	
+	@Override
+	public byte[] readArrayWithNull() throws IOException {
+		if(readBoolean()){
+			return readArray();
+		}
+		return null;
 	}
 
 	@Override

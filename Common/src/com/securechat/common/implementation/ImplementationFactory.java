@@ -184,12 +184,14 @@ public class ImplementationFactory implements IImplementationFactory {
 			}
 		}
 
-		for (ImplementationMarker provider : providers) {
-			if (doesProviderExist(type, provider)) {
-				log.debug("Found provider " + provider);
-				if (associate)
-					collection.set(property, provider.save());
-				return provider;
+		if (providers != null) {
+			for (ImplementationMarker provider : providers) {
+				if (doesProviderExist(type, provider)) {
+					log.debug("Found provider " + provider);
+					if (associate)
+						collection.set(property, provider.save());
+					return provider;
+				}
 			}
 		}
 
@@ -253,6 +255,10 @@ public class ImplementationFactory implements IImplementationFactory {
 	public <T extends IImplementation> ImplementationMarker getDefault(Class<T> type) {
 		CollectionProperty property = new CollectionProperty(type.getName());
 		if (!defaultsCollection.exists(property)) {
+			if(!defaults.containsKey(type.getName())){
+				return null;
+			}
+			log.debug("Setting default for "+type.getName()+" to "+defaults.get(type.getName()));
 			defaultsCollection.set(property, defaults.get(type.getName()).save());
 		}
 		return ImplementationMarker.loadMarker(defaultsCollection.get(property));

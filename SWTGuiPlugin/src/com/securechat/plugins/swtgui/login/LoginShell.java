@@ -1,6 +1,8 @@
 package com.securechat.plugins.swtgui.login;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -23,7 +25,7 @@ public class LoginShell extends Shell {
 	private Combo connectionsCombo;
 	private Button btnConnect;
 
-	public LoginShell(Display display) {
+	public LoginShell(Display display, LoginGui gui) {
 		super(display, SWT.CLOSE | SWT.TITLE);
 		setText("Secure Chat - Login");
 		setLayout(new FormLayout());
@@ -38,6 +40,15 @@ public class LoginShell extends Shell {
 		mntmFileSubmenu.setMenu(menu_1);
 
 		MenuItem mntmImportConnection = new MenuItem(menu_1, SWT.NONE);
+		mntmImportConnection.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				SetupConnectionShell scshell = new SetupConnectionShell(LoginShell.this, gui);
+				gui.getContext().getImplementationFactory().inject(scshell);
+				scshell.open();
+				scshell.layout();
+			}
+		});
 		mntmImportConnection.setText("Import Connection");
 
 		Label lblTitle = new Label(this, SWT.NONE);
@@ -65,12 +76,12 @@ public class LoginShell extends Shell {
 		lblConnection.setText("Connection");
 
 		connectionsCombo = new Combo(composite, SWT.NONE);
-//		connectionsCombo.addSelectionListener(new SelectionAdapter() {
-//			@Override
-//			public void widgetSelected(SelectionEvent e) {
-//				updateSelection();
-//			}
-//		});
+		connectionsCombo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				gui.updateSelection();
+			}
+		});
 		GridData gd_connectionsCombo = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		gd_connectionsCombo.minimumWidth = 200;
 		connectionsCombo.setLayoutData(gd_connectionsCombo);
@@ -79,14 +90,16 @@ public class LoginShell extends Shell {
 		lblServerName.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblServerName.setText("Server Name");
 
-		lblServerNameValue = new Label(composite, SWT.NONE);
+		lblServerNameValue = new Label(composite, SWT.WRAP);
+		lblServerNameValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		lblServerNameValue.setText("New Label");
 
 		Label lblServerHost = new Label(composite, SWT.NONE);
 		lblServerHost.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblServerHost.setText("Server Host");
 
-		lblServerHostValue = new Label(composite, SWT.NONE);
+		lblServerHostValue = new Label(composite, SWT.WRAP);
+		lblServerHostValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		lblServerHostValue.setText("New Label");
 		new Label(composite, SWT.NONE);
 

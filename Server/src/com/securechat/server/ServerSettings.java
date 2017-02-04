@@ -1,116 +1,61 @@
 package com.securechat.server;
 
-import java.io.File;
-
-import org.json.JSONObject;
-
-import com.securechat.common.JsonUtil;
+import com.securechat.api.common.properties.CollectionProperty;
+import com.securechat.api.common.properties.PrimitiveProperty;
+import com.securechat.api.common.properties.PropertyCollection;
 
 public class ServerSettings {
-	private static File targetFile = new File("settings.json");
-	private String serverName, publicIp, connectionInfoPassword;
-	private boolean changed, generateConnectionInfo;
-	private int port;
+	private static final PrimitiveProperty<String> NAME_PROPERY = new PrimitiveProperty<String>("name",
+			"Unnamed Server");
+	private static final PrimitiveProperty<String> IP_PROPERY = new PrimitiveProperty<String>("public_ip", "localhost");
+	private static final PrimitiveProperty<Integer> PORT_PROPERY = new PrimitiveProperty<Integer>("public_port", 1234);
+	private static final CollectionProperty NETWORK_PROPERTY = new CollectionProperty("network", IP_PROPERY,
+			PORT_PROPERY);
 
-	public void tryLoadAndSave() {
-		load();
-		save();
-	}
+	private static final PrimitiveProperty<Boolean> GENERATE_PROPERY = new PrimitiveProperty<Boolean>("generate", true);
+	private static final PrimitiveProperty<String> PASSWORD_PROPERY = new PrimitiveProperty<String>("password",
+			"unset");
+	private static final CollectionProperty PROFILE_PROPERTY = new CollectionProperty("profile", GENERATE_PROPERY,
+			PASSWORD_PROPERY);
 
-	public void loadDefaults() {
-		serverName = "Unnamed Server";
-		publicIp = "127.0.0.1";
-		port = 1234;
-		connectionInfoPassword = "!!! ENTER YOUR PASSWORD HERE !!!";
-		generateConnectionInfo = true;
-	}
+	private static final CollectionProperty SERVER_PROPERTY = new CollectionProperty("server", NAME_PROPERY,
+			NETWORK_PROPERTY);
 
-	public void load() {
-		changed = false;
-		loadDefaults();
+	private String serverName, publicIp, profilePassword;
+	private boolean generateProfile;
+	private int publicPort;
 
-		if (targetFile.exists()) {
-			JSONObject file = JsonUtil.parseFile(targetFile);
-			serverName = JsonUtil.getOrDefault(file, "serverName", serverName, String.class);
+	public ServerSettings(PropertyCollection collection) {
+		PropertyCollection server = collection.getPermissive(SERVER_PROPERTY);
+		serverName = server.get(NAME_PROPERY);
 
-			if (file.has("network")) {
-				JSONObject netConf = file.getJSONObject("network");
-				publicIp = JsonUtil.getOrDefault(netConf, "publicIP", publicIp, String.class);
-				port = JsonUtil.getOrDefault(netConf, "port", port, int.class);
-			}
+		PropertyCollection network = server.getPermissive(NETWORK_PROPERTY);
+		publicIp = network.get(IP_PROPERY);
+		publicPort = network.get(PORT_PROPERY);
 
-			if (file.has("connectionInfo")) {
-				JSONObject conInfo = file.getJSONObject("connectionInfo");
-				generateConnectionInfo = JsonUtil.getOrDefault(conInfo, "generate", generateConnectionInfo,
-						boolean.class);
-				connectionInfoPassword = JsonUtil.getOrDefault(conInfo, "password", connectionInfoPassword,
-						String.class);
-			}
-		}
-	}
-
-	public void save() {
-		changed = false;
-		JSONObject file = new JSONObject();
-		file.put("serverName", serverName);
-
-		JSONObject netConf = new JSONObject();
-		netConf.put("publicIP", publicIp);
-		netConf.put("port", port);
-		file.put("network", netConf);
-
-		JSONObject conInfo = new JSONObject();
-		conInfo.put("generate", generateConnectionInfo);
-		conInfo.put("password", connectionInfoPassword);
-		file.put("connectionInfo", conInfo);
-
-		JsonUtil.writeFile(targetFile, file);
-	}
-
-	public boolean hasChanged() {
-		return changed;
+		PropertyCollection profile = server.getPermissive(PROFILE_PROPERTY);
+		generateProfile = profile.get(GENERATE_PROPERY);
+		profilePassword = profile.get(PASSWORD_PROPERY);
 	}
 
 	public String getServerName() {
 		return serverName;
 	}
 
-	public void setServerName(String serverName) {
-		changed = true;
-		this.serverName = serverName;
-	}
-
 	public String getPublicIp() {
 		return publicIp;
 	}
 
-	public void setPublicIp(String publicIp) {
-		changed = true;
-		this.publicIp = publicIp;
+	public int getPublicPort() {
+		return publicPort;
 	}
 
-	public int getPort() {
-		return port;
+	public boolean shouldGenerateProfile() {
+		return generateProfile;
 	}
 
-	public void setPort(int port) {
-		this.port = port;
-		changed = true;
+	public String getProfilePassword() {
+		return profilePassword;
 	}
 
-	public boolean shouldGenerateConnectionInfo() {
-		return generateConnectionInfo;
-	}
-
-	public void setGenerateConnectionInfo(boolean generateConnectionInfo) {
-		this.generateConnectionInfo = generateConnectionInfo;
-	}
-
-	public String getConnectionInfoPassword() {
-		return connectionInfoPassword;
-	}
-
-	public void setConnectionInfoPassword(String connectionInfoPassword) {
-		this.connectionInfoPassword = connectionInfoPassword;
-	}
 }

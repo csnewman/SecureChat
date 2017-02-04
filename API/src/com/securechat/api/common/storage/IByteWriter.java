@@ -19,10 +19,14 @@ public interface IByteWriter extends IImplementation{
 	public void writeInt(int i);
 
 	public void writeString(String str);
-
+	
+	public void writeStringWithNull(String str);
+	
 	public void writeBoolean(boolean bool);
 
 	public void writeArray(byte[] data);
+	
+	public void writeArrayWithNull(byte[] data);
 
 	public void writeFixedArray(byte[] data);
 

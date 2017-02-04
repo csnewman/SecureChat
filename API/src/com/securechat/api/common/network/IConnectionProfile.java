@@ -16,4 +16,8 @@ public interface IConnectionProfile extends IImplementation {
 	
 	public int getAuthCode();
 	
+	public byte[] getPublicKey();
+	
+	public byte[] getPrivateKey();
+	
 }

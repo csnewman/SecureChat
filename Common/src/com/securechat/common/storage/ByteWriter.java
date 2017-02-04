@@ -57,6 +57,16 @@ public class ByteWriter implements IByteWriter {
 			throw new RuntimeException("Internal error occured", e);
 		}
 	}
+	
+	@Override
+	public void writeStringWithNull(String str) {
+		if(str == null){
+			writeBoolean(false);
+		}else{
+			writeBoolean(true);
+			writeString(str);
+		}
+	}
 
 	@Override
 	public void writeBoolean(boolean bool) {
@@ -77,6 +87,16 @@ public class ByteWriter implements IByteWriter {
 		}
 	}
 
+	@Override
+	public void writeArrayWithNull(byte[] data) {
+		if(data == null){
+			writeBoolean(false);
+		}else{
+			writeBoolean(true);
+			writeArray(data);
+		}
+	}
+	
 	@Override
 	public void writeFixedArray(byte[] data) {
 		try {

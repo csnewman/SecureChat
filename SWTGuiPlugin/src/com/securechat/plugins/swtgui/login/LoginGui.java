@@ -1,5 +1,6 @@
 package com.securechat.plugins.swtgui.login;
 
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Shell;
 
 import com.securechat.api.client.network.IConnectionStore;
@@ -24,7 +25,7 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 
 	@Override
 	protected void createShell() {
-		shell = new LoginShell(plugin.getDisplay());
+		shell = new LoginShell(plugin.getDisplay(), this);
 	}
 
 	@Override
@@ -37,21 +38,23 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 	public void onConnectionStoreUpdated() {
 		plugin.sync(this::updateOptions);
 	}
-
+	
 	private void updateOptions() {
-		System.out.println("Update Options");
 		profiles = connectionStore.getProfiles().toArray(new IConnectionProfile[0]);
 		String[] names = new String[profiles.length];
 		for (int i = 0; i < profiles.length; i++) {
 			IConnectionProfile profile = profiles[i];
 			names[i] = profile.getName() + "(" + profile.getUsername() + ")";
 		}
-		shell.getConnectionsCombo().setItems(names);
+		Combo combo = shell.getConnectionsCombo();
+		combo.setItems(names);
+		if (combo.getSelectionIndex() < 0 && names.length > 0) {
+			combo.select(0);
+		}
 		updateSelection();
 	}
 
-	private void updateSelection() {
-		System.out.println("Selection Update");
+	public void updateSelection() {
 		int index = shell.getConnectionsCombo().getSelectionIndex();
 		if (profiles.length == 0 || index < 0 || index >= profiles.length) {
 			shell.getLblServerNameValue().setText("");
@@ -75,9 +78,10 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 	public Shell getShell() {
 		return shell;
 	}
-	
+
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
 	}
+
 }

@@ -7,9 +7,14 @@ import com.securechat.api.common.ILogger;
 import com.securechat.api.common.Sides;
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.implementation.ImplementationMarker;
+import com.securechat.api.common.network.IConnectionProfile;
+import com.securechat.api.common.network.IConnectionProfileProvider;
 import com.securechat.api.common.plugins.Hooks;
 import com.securechat.api.common.properties.CollectionProperty;
 import com.securechat.api.common.properties.PropertyCollection;
+import com.securechat.api.common.security.IAsymmetricKeyEncryption;
+import com.securechat.api.common.security.IKeystore;
+import com.securechat.api.common.security.IPasswordEncryption;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
@@ -20,41 +25,40 @@ import com.securechat.common.storage.ByteReader;
 import com.securechat.common.storage.ByteWriter;
 import com.securechat.common.storage.FileStorage;
 
-public class ChatServer implements IContext{
-//	public static final String netBasePrivateKey = "netBasePrivate", netBasePublicKey = "netBasePublic";
-//	private static final File clientConnectionInfoFile = new File("clientConnectionInfo.scci");
-	public static final ImplementationMarker MARKER = new ImplementationMarker("official", "1.0.0", "server",
-			"1.0.0");
-	public static final CollectionProperty implementationsProp = new CollectionProperty("implementations");
+public class ChatServer implements IContext {
+	public static final ImplementationMarker MARKER = new ImplementationMarker("official", "1.0.0", "server", "1.0.0");
+	private static final CollectionProperty IMPLEMENTATIONS_PROPERTY = new CollectionProperty("implementations");
 	private static final String settingsFile = "settings.json";
 	private static ChatServer INSTANCE;
-	private PropertyCollection settings;
+	private PropertyCollection settingsCollection;
 	private PluginManager pluginManager;
 	private ImplementationFactory implementationFactory;
 	private ILogger logger;
 	private IStorage storage;
-	
-//	private NetworkServer networkServer;
-//	private ServerSettings settings;
-//	private ProtectedKeyStore store;
-//	private ProtectedDataStore connectionStore;
-//	private UserManager userManager;
+	private ServerSettings settings;
+	private IAsymmetricKeyEncryption networkKey;
 
-	public void init(IStorage storage) {
+	// private NetworkServer networkServer;
+	// private ProtectedDataStore connectionStore;
+	// private UserManager userManager;
+
+	public void init(IStorage storage, char[] keystorePassword) {
 		this.storage = storage;
 		storage.init();
-		
+
 		logger = new FallbackLogger();
 		logger.init(this);
-		
-		logger.info("SecureChatServer ("+MARKER.getId()+")");
 
-		settings = new PropertyCollection(null);
+		logger.info("SecureChatServer (" + MARKER.getId() + ")");
+
+		settingsCollection = new PropertyCollection(null);
 		if (storage.doesFileExist(settingsFile))
-			settings.loadFile(storage, settingsFile);
+			settingsCollection.loadFile(storage, settingsFile);
+		settings = new ServerSettings(settingsCollection);
 		saveSettings();
-		
-		implementationFactory = new ImplementationFactory(logger, settings.getPermissive(implementationsProp));
+
+		implementationFactory = new ImplementationFactory(logger,
+				settingsCollection.getPermissive(IMPLEMENTATIONS_PROPERTY));
 		implementationFactory.set(IContext.class, this);
 		implementationFactory.set(IStorage.class, storage);
 		implementationFactory.set(IImplementationFactory.class, implementationFactory);
@@ -64,7 +68,7 @@ public class ChatServer implements IContext{
 		implementationFactory.setFallbackDefault(ILogger.class, FallbackLogger.MARKER);
 		implementationFactory.setFallbackDefault(IByteReader.class, ByteReader.MARKER);
 		implementationFactory.setFallbackDefault(IByteWriter.class, ByteWriter.MARKER);
-		
+
 		pluginManager = new PluginManager(this);
 		pluginManager.loadPlugins();
 		pluginManager.regeneateCache();
@@ -75,67 +79,75 @@ public class ChatServer implements IContext{
 		implementationFactory.set(ILogger.class, logger);
 		logger.init(this);
 		logger.debug("Logger provider: " + logger);
-		
+
 		pluginManager.invokeHook(Hooks.Init, this);
 		pluginManager.invokeHook(Hooks.LateInit, this);
 
+		IKeystore keystore = implementationFactory.get(IKeystore.class, true);
+		logger.info("Keystore: " + keystore);
+
 		saveSettings();
-		
-		
-		
-		System.out.println("SecureChat Server 1.0");
-		Console console = System.console();
-		char[] password;
-		if (console == null) {
-			System.out.println("No console found! Using default 'test' password for master keystore");
-			password = new char[] { 't', 'e', 's', 't' };
+
+		if (keystore.exists()) {
+			if (!keystore.load(keystorePassword)) {
+				throw new RuntimeException("Invalid keystore password");
+			}
 		} else {
-			password = console.readPassword("Master Keystore Password: ");
+			if (!keystore.generate(keystorePassword)) {
+				throw new RuntimeException("Failed to generate keystore");
+			}
+		}
+		
+		logger.info("Loading network key");
+		networkKey = implementationFactory.provide(IAsymmetricKeyEncryption.class, null, true, true, "network");
+		keystore.loadAsymmetricKeyOrGenerate("network", networkKey);
+		
+		if (settings.shouldGenerateProfile()) {
+			logger.info("Generating connection profile");
+			IConnectionProfileProvider provider = implementationFactory.get(IConnectionProfileProvider.class, true);
+			IConnectionProfile profile = provider.generateProfileTemplate(settings.getServerName(),
+					settings.getPublicIp(), settings.getPublicPort(), networkKey.getPublickey());
+			IPasswordEncryption passwordEncryption = implementationFactory.provide(IPasswordEncryption.class, null,
+					true, true, "connection_profile");
+			passwordEncryption.init(settings.getProfilePassword().toCharArray());
+			provider.saveProfileToFIle(profile, storage, "profile.sccp", passwordEncryption);
 		}
 
-//		store = new ProtectedKeyStore(new File("data.pstore"),
-//				new PasswordEncryption(SecurityUtils.secureHashChars(password)));
-//		store.tryLoadAndSave();
-//
-//		settings = new ServerSettings();
-//		settings.tryLoadAndSave();
-//
-//		if (!store.keysExists(netBasePrivateKey, netBasePublicKey)) {
-//			System.out.println("No network public and private key found! Generaring!");
-//			store.generateKeyPair(netBasePrivateKey, netBasePublicKey);
-//			store.save();
-//		}
-//
-//		if (settings.shouldGenerateConnectionInfo()) {
-//			connectionStore = new ProtectedDataStore(clientConnectionInfoFile, new PasswordEncryption(
-//					SecurityUtils.secureHashChars(settings.getConnectionInfoPassword().toCharArray())));
-//			ByteWriter connectionInfoWriter = new ByteWriter();
-//			connectionInfoWriter.writeString(settings.getServerName());
-//			connectionInfoWriter.writeString(settings.getPublicIp());
-//			connectionInfoWriter.writeInt(settings.getPort());
-//			connectionInfoWriter
-//					.writeArray(RSAEncryption.savePublicKey(store.getKey(netBasePublicKey, PublicKey.class)));
-//			connectionStore.setContent(connectionInfoWriter);
-//			connectionStore.save();
-//		}
-//
-//		userManager = new UserManager(store.getOrGenKeyPair("users"));
-//		userManager.tryLoadAndSave();
-//		store.save();
-//
-//		networkServer = new NetworkServer(this, settings.getPort());
-//		networkServer.start();
+		saveSettings();
+
+		// settings = new ServerSettings();
+		// settings.tryLoadAndSave();
+		//
+		// if (!store.keysExists(netBasePrivateKey, netBasePublicKey)) {
+		// System.out.println("No network public and private key found!
+		// Generaring!");
+		// store.generateKeyPair(netBasePrivateKey, netBasePublicKey);
+		// store.save();
+		// }
+		//
+		// if (settings.shouldGenerateConnectionInfo()) {
+		// connectionStore = new ProtectedDataStore(clientConnectionInfoFile,
+		// new PasswordEncryption(
+		// SecurityUtils.secureHashChars(settings.getConnectionInfoPassword().toCharArray())));
+		// ByteWriter connectionInfoWriter = new ByteWriter();
+		// connectionInfoWriter.writeString(settings.getServerName());
+		// connectionInfoWriter.writeString(settings.getPublicIp());
+		// connectionInfoWriter.writeInt(settings.getPort());
+		// connectionInfoWriter
+		// .writeArray(RSAEncryption.savePublicKey(store.getKey(netBasePublicKey,
+		// PublicKey.class)));
+		// connectionStore.setContent(connectionInfoWriter);
+		// connectionStore.save();
+		// }
+		//
+		// userManager = new UserManager(store.getOrGenKeyPair("users"));
+		// userManager.tryLoadAndSave();
+		// store.save();
+		//
+		// networkServer = new NetworkServer(this, settings.getPort());
+		// networkServer.start();
 
 	}
-//
-//	public ProtectedKeyStore getStore() {
-//		return store;
-//	}
-//
-//	public UserManager getUserManager() {
-//		return userManager;
-//	}
-
 
 	@Override
 	public PluginManager getPluginManager() {
@@ -149,12 +161,12 @@ public class ChatServer implements IContext{
 
 	@Override
 	public PropertyCollection getSettings() {
-		return settings;
+		return settingsCollection;
 	}
 
 	@Override
 	public void saveSettings() {
-		settings.saveToFile(storage, settingsFile);
+		settingsCollection.saveToFile(storage, settingsFile);
 	}
 
 	@Override
@@ -187,15 +199,24 @@ public class ChatServer implements IContext{
 	public String getAppVersion() {
 		return "1.0.0";
 	}
-	
+
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
 	}
-	
+
 	public static void main(String[] args) {
+		Console console = System.console();
+		char[] password;
+		if (console == null) {
+			System.out.println("No console found! Using default 'test' password for master keystore");
+			password = new char[] { 't', 'e', 's', 't' };
+		} else {
+			password = console.readPassword("Master Keystore Password: ");
+		}
+
 		INSTANCE = new ChatServer();
-		INSTANCE.init(new FileStorage());
+		INSTANCE.init(new FileStorage(), password);
 	}
 
 }

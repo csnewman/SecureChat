@@ -86,4 +86,8 @@ public abstract class GuiBase implements IGui {
 		plugin.sync(getShell()::close);
 	}
 
+	public IContext getContext() {
+		return context;
+	}
+
 }

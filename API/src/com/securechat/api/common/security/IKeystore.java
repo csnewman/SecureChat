@@ -18,6 +18,14 @@ public interface IKeystore extends IImplementation {
 
 	public void loadAsymmetricKey(String name, IAsymmetricKeyEncryption encryption);
 
+	public void loadAsymmetricKeyOrGenerate(String name, IAsymmetricKeyEncryption encryption);
+
+	public boolean hasAsymmetricPublicKey(String name);
+
+	public boolean hasAsymmetricPrivateKey(String name);
+
+	public boolean hasAsymmetricKey(String name);
+
 	public boolean exists();
 
 	public boolean isLoaded();

@@ -24,7 +24,7 @@ import com.securechat.common.storage.FileStorage;
 
 public class SecureChatClient implements IContext {
 	public static final ImplementationMarker MARKER = new ImplementationMarker("official", "1.0.0", "client", "1.0.0");
-	public static final CollectionProperty implementationsProp = new CollectionProperty("implementations");
+	public static final CollectionProperty IMPLEMENTATIONS_PROPERTY = new CollectionProperty("implementations");
 	private static final String settingsFile = "settings.json";
 	private static SecureChatClient INSTANCE;
 	private PropertyCollection settings;
@@ -48,7 +48,7 @@ public class SecureChatClient implements IContext {
 			settings.loadFile(storage, settingsFile);
 		saveSettings();
 
-		implementationFactory = new ImplementationFactory(logger, settings.getPermissive(implementationsProp));
+		implementationFactory = new ImplementationFactory(logger, settings.getPermissive(IMPLEMENTATIONS_PROPERTY));
 		implementationFactory.set(IContext.class, this);
 		implementationFactory.set(IStorage.class, storage);
 		implementationFactory.set(IImplementationFactory.class, implementationFactory);

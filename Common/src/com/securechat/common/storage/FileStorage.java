@@ -81,7 +81,7 @@ public class FileStorage implements IStorage {
 	@Override
 	public JSONObject readJsonFile(String path) {
 		try {
-			return new JSONObject(new String(Files.readAllBytes(new File(baseFolder, path).toPath())));
+			return new JSONObject(new String(Files.readAllBytes(getPath(path).toPath())));
 		} catch (JSONException | IOException e) {
 			e.printStackTrace();
 		}
@@ -91,8 +91,7 @@ public class FileStorage implements IStorage {
 	@Override
 	public IByteReader readFile(String path, IEncryption encryption) {
 		try {
-			File file = new File(baseFolder, path);
-			byte[] data = Files.readAllBytes(file.toPath());
+			byte[] data = Files.readAllBytes(getPath(path).toPath());
 
 			if (encryption != null)
 				data = encryption.decrypt(data);
@@ -113,7 +112,7 @@ public class FileStorage implements IStorage {
 	@Override
 	public void writeJsonFile(String path, JSONObject obj) {
 		try {
-			FileWriter writer = new FileWriter(new File(baseFolder, path));
+			FileWriter writer = new FileWriter(getPath(path));
 			writer.write(obj.toString(4));
 			writer.close();
 		} catch (IOException e) {
@@ -124,11 +123,10 @@ public class FileStorage implements IStorage {
 	@Override
 	public void writeFile(String path, IEncryption encryption, IByteWriter writer) {
 		try {
-			File file = new File(baseFolder, path);
 			byte[] data = writer.toByteArray();
 			if (encryption != null)
 				data = encryption.encrypt(data);
-			Files.write(file.toPath(), data);
+			Files.write(getPath(path).toPath(), data);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -136,7 +134,15 @@ public class FileStorage implements IStorage {
 
 	@Override
 	public boolean doesFileExist(String path) {
-		return new File(baseFolder, path).exists();
+		return getPath(path).exists();
+	}
+
+	private File getPath(String path) {
+		File file = new File(path);
+		if (!file.isAbsolute()) {
+			return new File(baseFolder, path);
+		}
+		return file;
 	}
 
 	public void setImplementationFactory(IImplementationFactory factory) {

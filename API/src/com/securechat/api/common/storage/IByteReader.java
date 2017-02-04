@@ -22,10 +22,14 @@ public interface IByteReader extends IImplementation {
 	public int readInt() throws IOException;
 
 	public String readString() throws IOException;
+	
+	public String readStringWithNull() throws IOException;
 
 	public boolean readBoolean() throws IOException;
 
 	public byte[] readArray() throws IOException;
+	
+	public byte[] readArrayWithNull() throws IOException;
 
 	public byte[] readFixedArray(int size) throws IOException;
 
@@ -42,5 +46,5 @@ public interface IByteReader extends IImplementation {
 		reader.setMemoryInput(data);
 		return reader;
 	}
-	
+
 }
