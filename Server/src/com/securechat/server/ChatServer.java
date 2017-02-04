@@ -39,7 +39,6 @@ public class ChatServer implements IContext {
 	private IAsymmetricKeyEncryption networkKey;
 
 	// private NetworkServer networkServer;
-	// private ProtectedDataStore connectionStore;
 	// private UserManager userManager;
 
 	public void init(IStorage storage, char[] keystorePassword) {
@@ -115,31 +114,6 @@ public class ChatServer implements IContext {
 
 		saveSettings();
 
-		// settings = new ServerSettings();
-		// settings.tryLoadAndSave();
-		//
-		// if (!store.keysExists(netBasePrivateKey, netBasePublicKey)) {
-		// System.out.println("No network public and private key found!
-		// Generaring!");
-		// store.generateKeyPair(netBasePrivateKey, netBasePublicKey);
-		// store.save();
-		// }
-		//
-		// if (settings.shouldGenerateConnectionInfo()) {
-		// connectionStore = new ProtectedDataStore(clientConnectionInfoFile,
-		// new PasswordEncryption(
-		// SecurityUtils.secureHashChars(settings.getConnectionInfoPassword().toCharArray())));
-		// ByteWriter connectionInfoWriter = new ByteWriter();
-		// connectionInfoWriter.writeString(settings.getServerName());
-		// connectionInfoWriter.writeString(settings.getPublicIp());
-		// connectionInfoWriter.writeInt(settings.getPort());
-		// connectionInfoWriter
-		// .writeArray(RSAEncryption.savePublicKey(store.getKey(netBasePublicKey,
-		// PublicKey.class)));
-		// connectionStore.setContent(connectionInfoWriter);
-		// connectionStore.save();
-		// }
-		//
 		// userManager = new UserManager(store.getOrGenKeyPair("users"));
 		// userManager.tryLoadAndSave();
 		// store.save();

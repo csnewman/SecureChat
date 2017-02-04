@@ -40,6 +40,7 @@ public class SetupConnectionShell extends Shell {
 	private IStorage storage;
 	@InjectInstance
 	private IImplementationFactory factory;
+	private IConnectionProfileProvider profileProvider;
 	private IConnectionProfile profile;
 	private LoginShell loginShell;
 
@@ -180,7 +181,8 @@ public class SetupConnectionShell extends Shell {
 
 	private void doImport(){
 		close();
-		InitialConnectionShell connectionShell = new InitialConnectionShell(loginShell, profile);
+		InitialConnectionShell connectionShell = new InitialConnectionShell(loginShell, profileProvider, profile, loginGui);
+		factory.inject(connectionShell);
 		connectionShell.layout();
 		connectionShell.open();
 	}
@@ -191,7 +193,7 @@ public class SetupConnectionShell extends Shell {
 			profile = null;
 			return;
 		}
-		IConnectionProfileProvider profileProvider = providers[providersCombo.getSelectionIndex()];
+		profileProvider = providers[providersCombo.getSelectionIndex()];
 		
 		String path = profilePath.getText();
 		if (storage.doesFileExist(path)) {

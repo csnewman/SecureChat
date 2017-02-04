@@ -85,6 +85,10 @@ public abstract class GuiBase implements IGui {
 	public void close() {
 		plugin.sync(getShell()::close);
 	}
+	
+	public SWTGuiPlugin getPlugin() {
+		return plugin;
+	}
 
 	public IContext getContext() {
 		return context;

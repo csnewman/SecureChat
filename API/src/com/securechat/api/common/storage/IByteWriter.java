@@ -10,7 +10,7 @@ public interface IByteWriter extends IImplementation{
 
 	public void setMemoryOutput();
 	
-	public void setStream(OutputStream stream);
+	public void setOutput(OutputStream stream);
 	
 	public void writeByte(int i);
 
@@ -41,6 +41,12 @@ public interface IByteWriter extends IImplementation{
 	public static IByteWriter get(IImplementationFactory factory, String name){
 		IByteWriter writer =  factory.provide(IByteWriter.class, new ImplementationMarker[0], true, true, name);
 		writer.setMemoryOutput();
+		return writer;
+	}
+	
+	public static IByteWriter get(IImplementationFactory factory, String name, OutputStream stream){
+		IByteWriter writer =  factory.provide(IByteWriter.class, new ImplementationMarker[0], true, true, name);
+		writer.setOutput(stream);
 		return writer;
 	}
 

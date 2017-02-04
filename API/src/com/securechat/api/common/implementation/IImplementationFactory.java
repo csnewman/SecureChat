@@ -9,7 +9,7 @@ public interface IImplementationFactory {
 
 	public <T> T get(Class<T> type, boolean provide);
 
-	public void set(Class<?> type, Object instance);
+	public <T> void set(Class<T> type, T instance);
 
 	public <T extends IImplementation> IImplementationInstance<T> registerInstance(ImplementationMarker marker,
 			Class<T> type, T inst);

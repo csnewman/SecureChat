@@ -2,6 +2,7 @@ package com.securechat.client;
 
 import com.securechat.api.client.gui.IGuiProvider;
 import com.securechat.api.client.gui.IKeystoreGui;
+import com.securechat.api.client.network.IClientNetworkManager;
 import com.securechat.api.client.network.IConnectionStore;
 import com.securechat.api.common.IContext;
 import com.securechat.api.common.ILogger;
@@ -15,6 +16,7 @@ import com.securechat.api.common.security.IKeystore;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
+import com.securechat.client.network.NetworkManager;
 import com.securechat.common.FallbackLogger;
 import com.securechat.common.implementation.ImplementationFactory;
 import com.securechat.common.plugins.PluginManager;
@@ -93,6 +95,11 @@ public class SecureChatClient implements IContext {
 		IConnectionStore store = implementationFactory.get(IConnectionStore.class, true);
 		logger.info("Connection Store: " + store);
 		store.load();
+		
+		NetworkManager networkManager = new NetworkManager();
+		logger.info("Network Manager: " + networkManager);
+		implementationFactory.inject(networkManager);
+		implementationFactory.set(IClientNetworkManager.class, networkManager);
 
 		gui.getLoginGui().open();
 	}

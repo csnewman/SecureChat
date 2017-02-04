@@ -46,5 +46,11 @@ public interface IByteReader extends IImplementation {
 		reader.setMemoryInput(data);
 		return reader;
 	}
+	
+	public static IByteReader get(IImplementationFactory factory, String name, InputStream stream){
+		IByteReader reader = factory.provide(IByteReader.class, new ImplementationMarker[0], true, true, name);
+		reader.setInput(stream);
+		return reader;
+	}
 
 }

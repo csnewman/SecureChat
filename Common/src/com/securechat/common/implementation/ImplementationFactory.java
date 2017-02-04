@@ -106,7 +106,7 @@ public class ImplementationFactory implements IImplementationFactory {
 	}
 
 	@Override
-	public void set(Class<?> type, Object instance) {
+	public <T> void set(Class<T> type, T instance) {
 		instances.put(type, instance);
 	}
 

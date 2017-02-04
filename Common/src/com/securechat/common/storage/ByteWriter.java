@@ -22,7 +22,7 @@ public class ByteWriter implements IByteWriter {
 	}
 
 	@Override
-	public void setStream(OutputStream stream) {
+	public void setOutput(OutputStream stream) {
 		output = new DataOutputStream(stream);
 	}
 
