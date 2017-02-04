@@ -7,7 +7,7 @@ import com.securechat.api.common.network.IConnectionProfileProvider;
 import com.securechat.api.common.security.IEncryption;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
-import com.securechat.api.common.storage.IFileSystem;
+import com.securechat.api.common.storage.IStorage;
 
 public class BasicConnectionProfileProvider implements IConnectionProfileProvider {
 	public static final ImplementationMarker MARKER = new ImplementationMarker(BasicConnectionProfilesPlugin.NAME,
@@ -25,7 +25,7 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 	}
 
 	@Override
-	public IConnectionProfile loadProfileFromFile(IFileSystem fileSysem, String path, IEncryption encryption) {
+	public IConnectionProfile loadProfileFromFile(IStorage fileSysem, String path, IEncryption encryption) {
 		throw new NotImplementedException();
 	}
 
@@ -35,7 +35,7 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 	}
 
 	@Override
-	public void saveProfileToFIle(IConnectionProfile profile, IFileSystem fileSystem, String path,
+	public void saveProfileToFIle(IConnectionProfile profile, IStorage fileSystem, String path,
 			IEncryption encryption) {
 		throw new NotImplementedException();
 	}

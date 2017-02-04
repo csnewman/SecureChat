@@ -195,7 +195,7 @@ public class ImplementationFactory implements IImplementationFactory {
 
 		if (allowDefault) {
 			ImplementationMarker provider = getDefault(type);
-			if (provider == null) {
+			if (provider != null) {
 				log.debug("Using default provider " + provider);
 			} else {
 				Map map = getImplementations(type);

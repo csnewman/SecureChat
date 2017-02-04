@@ -193,6 +193,8 @@ public class PluginManager implements IPluginManager {
 			return Class.forName(name);
 		} catch (Exception e) {
 			return null;
+		} catch (Error e) {
+			return null;
 		}
 	}
 

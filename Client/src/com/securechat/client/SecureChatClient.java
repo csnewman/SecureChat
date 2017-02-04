@@ -1,6 +1,7 @@
 package com.securechat.client;
 
 import com.securechat.api.client.gui.IGuiProvider;
+import com.securechat.api.client.gui.IKeystoreGui;
 import com.securechat.api.client.network.IConnectionStore;
 import com.securechat.api.common.IContext;
 import com.securechat.api.common.ILogger;
@@ -22,8 +23,7 @@ import com.securechat.common.storage.ByteWriter;
 import com.securechat.common.storage.FileStorage;
 
 public class SecureChatClient implements IContext {
-	public static final ImplementationMarker MARKER = new ImplementationMarker("official", "1.0.0", "client",
-			"1.0.0");
+	public static final ImplementationMarker MARKER = new ImplementationMarker("official", "1.0.0", "client", "1.0.0");
 	public static final CollectionProperty implementationsProp = new CollectionProperty("implementations");
 	private static final String settingsFile = "settings.json";
 	private static SecureChatClient INSTANCE;
@@ -32,6 +32,7 @@ public class SecureChatClient implements IContext {
 	private ImplementationFactory implementationFactory;
 	private ILogger logger;
 	private IStorage storage;
+	private IGuiProvider gui;
 
 	public void init(IStorage storage) {
 		this.storage = storage;
@@ -39,6 +40,8 @@ public class SecureChatClient implements IContext {
 
 		logger = new FallbackLogger();
 		logger.init(this);
+
+		logger.info("SecureChatClient (" + MARKER.getId() + ")");
 
 		settings = new PropertyCollection(null);
 		if (storage.doesFileExist(settingsFile))
@@ -70,24 +73,28 @@ public class SecureChatClient implements IContext {
 		pluginManager.invokeHook(Hooks.Init, this);
 		pluginManager.invokeHook(Hooks.LateInit, this);
 
+		gui = implementationFactory.get(IGuiProvider.class, true);
+		logger.debug("Gui provider: " + gui);
+
 		saveSettings();
 
-		IGuiProvider gui = implementationFactory.get(IGuiProvider.class, true);
-		logger.debug("Gui provider: " + gui);
-		gui.init();
+		gui.init(this::guiReady);
+	}
 
+	private void guiReady() {
 		IKeystore keystore = implementationFactory.get(IKeystore.class, true);
 		logger.info("Keystore: " + keystore);
 
-		gui.showKeystoreGui(keystore);
-		
-		IConnectionStore store = implementationFactory.get(IConnectionStore.class, true);
-		logger.info("Connection Store: "+store);
-		store.load();
-		
-		gui.getLoginGui().open();
+		IKeystoreGui kgui = gui.getKeystoreGui();
+		kgui.init(keystore);
+		kgui.open();
+		kgui.awaitClose();
 
-		saveSettings();
+		IConnectionStore store = implementationFactory.get(IConnectionStore.class, true);
+		logger.info("Connection Store: " + store);
+		store.load();
+
+		gui.getLoginGui().open();
 	}
 
 	@Override
