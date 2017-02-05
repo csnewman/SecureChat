@@ -1,17 +1,21 @@
-package com.securechat.client.network;
+package com.securechat.plugins.socketnetworking.client;
 
 import java.io.IOException;
 import java.util.function.Consumer;
 
 import com.securechat.api.client.network.IClientNetworkConnection;
+import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.packets.IPacket;
-import com.securechat.common.network.NetworkConnectionBase;
+import com.securechat.plugins.socketnetworking.NetworkConnectionBase;
+import com.securechat.plugins.socketnetworking.SocketNetworkingPlugin;
 
-public class NetworkConnection extends NetworkConnectionBase implements IClientNetworkConnection {
+public class ClientNetworkConnection extends NetworkConnectionBase implements IClientNetworkConnection {
+	public static final ImplementationMarker MARKER = new ImplementationMarker(SocketNetworkingPlugin.NAME,
+			SocketNetworkingPlugin.VERSION, "client_network_connection", "1.0.0");
 	private Consumer<String> disconnectHandler;
 	private Consumer<IPacket> handler;
 
-	public NetworkConnection(Consumer<String> disconnectHandler, Consumer<IPacket> handler) {
+	public ClientNetworkConnection(Consumer<String> disconnectHandler, Consumer<IPacket> handler) {
 		this.disconnectHandler = disconnectHandler;
 		this.handler = handler;
 	}
@@ -61,6 +65,11 @@ public class NetworkConnection extends NetworkConnectionBase implements IClientN
 	@Override
 	public void disconnect() {
 		closeConnection();
+	}
+
+	@Override
+	public ImplementationMarker getMarker() {
+		return MARKER;
 	}
 
 }

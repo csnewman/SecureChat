@@ -2,10 +2,11 @@ package com.securechat.api.client.network;
 
 import java.util.function.Consumer;
 
+import com.securechat.api.common.implementation.IImplementation;
 import com.securechat.api.common.packets.IPacket;
 import com.securechat.api.common.security.IAsymmetricKeyEncryption;
 
-public interface IClientNetworkConnection {
+public interface IClientNetworkConnection extends IImplementation {
 
 	public void setHandler(Consumer<IPacket> handler);
 

@@ -6,6 +6,7 @@ import com.securechat.api.common.plugins.Hook;
 import com.securechat.api.common.plugins.Hooks;
 import com.securechat.api.common.plugins.Plugin;
 import com.securechat.api.common.security.IAsymmetricKeyEncryption;
+import com.securechat.api.common.security.IHasher;
 import com.securechat.api.common.security.IKeystore;
 import com.securechat.api.common.security.IPasswordEncryption;
 
@@ -19,10 +20,12 @@ public class BasicSecurityPlugin {
 		factory.register(PasswordEncryption.MARKER, IPasswordEncryption.class, PasswordEncryption::new);
 		factory.register(RSAEncryption.MARKER, IAsymmetricKeyEncryption.class, RSAEncryption::new);
 		factory.register(BasicKeystore.MARKER, IKeystore.class, BasicKeystore::new);
+		factory.register(SHAHasher.MARKER, IHasher.class, SHAHasher::new);
 
 		factory.setFallbackDefaultIfNone(IPasswordEncryption.class, PasswordEncryption.MARKER);
 		factory.setFallbackDefaultIfNone(IPasswordEncryption.class, RSAEncryption.MARKER);
 		factory.setFallbackDefaultIfNone(IKeystore.class, BasicKeystore.MARKER);
+		factory.setFallbackDefaultIfNone(IHasher.class, SHAHasher.MARKER);
 	}
 
 }

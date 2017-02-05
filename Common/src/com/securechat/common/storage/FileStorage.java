@@ -18,6 +18,7 @@ import org.json.JSONObject;
 
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.implementation.ImplementationMarker;
+import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.security.IEncryption;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
@@ -27,6 +28,7 @@ public class FileStorage implements IStorage {
 	public static final ImplementationMarker MARKER = new ImplementationMarker("inbuilt", "n/a", "file_storage",
 			"1.0.0");
 	private static final File baseFolder = new File("data");
+	@InjectInstance
 	private IImplementationFactory factory;
 
 	@Override

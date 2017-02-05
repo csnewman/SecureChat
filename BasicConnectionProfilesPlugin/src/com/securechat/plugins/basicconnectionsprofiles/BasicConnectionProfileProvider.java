@@ -32,7 +32,6 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 
 	@Override
 	public IConnectionProfile loadProfileFromFile(IStorage storage, String path, IEncryption encryption) {
-		storage.readFile(path, encryption);
 		return loadProfileFromMemory(storage.readFile(path, encryption), null);
 	}
 

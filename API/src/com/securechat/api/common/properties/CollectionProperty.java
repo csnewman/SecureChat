@@ -12,6 +12,10 @@ public class CollectionProperty implements IProperty<PropertyCollection> {
 	private IProperty[] defaultProperties;
 
 	public CollectionProperty(String name, IProperty... defaultProperties) {
+		if(name == null){
+			throw new RuntimeException("Invalid collection name! "+name);
+		}
+		
 		this.name = name;
 		this.defaultProperties = defaultProperties;
 	}

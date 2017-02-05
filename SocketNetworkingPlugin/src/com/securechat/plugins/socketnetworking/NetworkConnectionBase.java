@@ -1,4 +1,4 @@
-package com.securechat.common.network;
+package com.securechat.plugins.socketnetworking;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -10,13 +10,16 @@ import com.securechat.api.common.ILogger;
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.packets.IPacket;
 import com.securechat.api.common.packets.PacketManager;
+import com.securechat.api.common.plugins.Inject;
 import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.security.IAsymmetricKeyEncryption;
+import com.securechat.api.common.security.IHasher;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
-import com.securechat.common.security.SecurityUtils;
 
 public abstract class NetworkConnectionBase {
+	@Inject(associate = true)
+	protected IHasher hasher;
 	@InjectInstance
 	protected IImplementationFactory factory;
 	@InjectInstance
@@ -49,18 +52,8 @@ public abstract class NetworkConnectionBase {
 			while (active) {
 				byte[] ddata = encryption.decrypt(reader.readArray());
 				IByteReader packetData = IByteReader.get(factory, "network_connection", ddata);
-				byte[] hash = packetData.readArray();
-				byte[] original = packetData.readArray();
-				byte[] checksum = SecurityUtils.hashData(original);
-
-				log.debug("Read packet, rawLen='" + ddata.length + "', len='" + original.length + "', hash='"
-						+ Arrays.equals(checksum, hash) + "'");
-
-				if (!Arrays.equals(checksum, hash)) {
-					throw new RuntimeException("Invalid checksum!");
-				}
-
-				IByteReader data = IByteReader.get(factory, "network_connection", original);
+				IByteReader data = packetData.readReaderWithChecksum();
+				
 				String id = data.readString();
 				IPacket packet = PacketManager.createPacket(id);
 				packet.read(data);
@@ -98,12 +91,8 @@ public abstract class NetworkConnectionBase {
 			packetData.writeString(PacketManager.getPacketId(packet.getClass()));
 			packet.write(packetData);
 
-			byte[] original = packetData.toByteArray();
-			byte[] hash = SecurityUtils.hashData(original);
-
 			IByteWriter finalPacket = IByteWriter.get(factory, "network_connection");
-			finalPacket.writeArray(hash);
-			finalPacket.writeArray(original);
+			finalPacket.writeWriterWithChecksum(finalPacket);
 
 			byte[] encryptedData = encryption.encrypt(finalPacket.toByteArray());
 
@@ -115,7 +104,7 @@ public abstract class NetworkConnectionBase {
 			throw new RuntimeException("Failed to send packet", e);
 		}
 	}
-	
+
 	public void setEncryption(IAsymmetricKeyEncryption encryption) {
 		this.encryption = encryption;
 	}

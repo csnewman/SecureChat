@@ -16,7 +16,6 @@ import com.securechat.api.common.security.IKeystore;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
-import com.securechat.client.network.NetworkManager;
 import com.securechat.common.FallbackLogger;
 import com.securechat.common.implementation.ImplementationFactory;
 import com.securechat.common.plugins.PluginManager;
@@ -60,12 +59,14 @@ public class SecureChatClient implements IContext {
 		implementationFactory.setFallbackDefault(ILogger.class, FallbackLogger.MARKER);
 		implementationFactory.setFallbackDefault(IByteReader.class, ByteReader.MARKER);
 		implementationFactory.setFallbackDefault(IByteWriter.class, ByteWriter.MARKER);
+		implementationFactory.inject(storage);
 
 		pluginManager = new PluginManager(this);
 		pluginManager.loadPlugins();
 		pluginManager.regeneateCache();
 
 		pluginManager.invokeHook(Hooks.EarlyInit, this);
+		implementationFactory.inject(storage);
 
 		logger = implementationFactory.provide(ILogger.class);
 		implementationFactory.set(ILogger.class, logger);
@@ -95,11 +96,9 @@ public class SecureChatClient implements IContext {
 		IConnectionStore store = implementationFactory.get(IConnectionStore.class, true);
 		logger.info("Connection Store: " + store);
 		store.load();
-		
-		NetworkManager networkManager = new NetworkManager();
+
+		IClientNetworkManager networkManager = implementationFactory.get(IClientNetworkManager.class, true);
 		logger.info("Network Manager: " + networkManager);
-		implementationFactory.inject(networkManager);
-		implementationFactory.set(IClientNetworkManager.class, networkManager);
 
 		gui.getLoginGui().open();
 	}

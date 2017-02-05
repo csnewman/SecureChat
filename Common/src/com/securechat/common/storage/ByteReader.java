@@ -7,12 +7,15 @@ import java.io.InputStream;
 import java.util.Arrays;
 
 import com.securechat.api.common.implementation.ImplementationMarker;
+import com.securechat.api.common.plugins.Inject;
+import com.securechat.api.common.security.IHasher;
 import com.securechat.api.common.storage.IByteReader;
-import com.securechat.common.security.SecurityUtils;
 
 public class ByteReader implements IByteReader {
 	public static final ImplementationMarker MARKER = new ImplementationMarker("inbuilt", "n/a", "byte_reader",
 			"1.0.0");
+	@Inject(associate = true)
+	private IHasher hasher;
 	private byte[] rawData;
 	private ByteArrayInputStream arrayStream;
 	private DataInputStream input;
@@ -101,7 +104,7 @@ public class ByteReader implements IByteReader {
 	public IByteReader readReaderWithChecksum() throws IOException {
 		byte[] foundChecksum = readArray();
 		byte[] content = readArray();
-		byte[] checksum = SecurityUtils.hashData(content);
+		byte[] checksum = hasher.hashData(content);
 
 		if (!Arrays.equals(checksum, foundChecksum)) {
 			throw new IOException("Invalid checksum!");

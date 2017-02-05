@@ -11,6 +11,7 @@ import com.securechat.api.common.network.IConnectionProfile;
 import com.securechat.api.common.network.IConnectionProfileProvider;
 import com.securechat.api.common.plugins.Hooks;
 import com.securechat.api.common.properties.CollectionProperty;
+import com.securechat.api.common.properties.PrimitiveProperty;
 import com.securechat.api.common.properties.PropertyCollection;
 import com.securechat.api.common.security.IAsymmetricKeyEncryption;
 import com.securechat.api.common.security.IKeystore;
@@ -18,6 +19,7 @@ import com.securechat.api.common.security.IPasswordEncryption;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
+import com.securechat.api.server.network.IServerNetworkManager;
 import com.securechat.common.FallbackLogger;
 import com.securechat.common.implementation.ImplementationFactory;
 import com.securechat.common.plugins.PluginManager;
@@ -27,6 +29,12 @@ import com.securechat.common.storage.FileStorage;
 
 public class ChatServer implements IContext {
 	public static final ImplementationMarker MARKER = new ImplementationMarker("official", "1.0.0", "server", "1.0.0");
+	private static final PrimitiveProperty<Boolean> GENERATE_PROPERY = new PrimitiveProperty<Boolean>("generate", true);
+	private static final PrimitiveProperty<String> PASSWORD_PROPERY = new PrimitiveProperty<String>("password",
+			"unset");
+	private static final CollectionProperty PROFILE_PROPERTY = new CollectionProperty("profile", GENERATE_PROPERY,
+			PASSWORD_PROPERY);
+	private static final CollectionProperty SERVER_PROPERTY = new CollectionProperty("server", PROFILE_PROPERTY);
 	private static final CollectionProperty IMPLEMENTATIONS_PROPERTY = new CollectionProperty("implementations");
 	private static final String settingsFile = "settings.json";
 	private static ChatServer INSTANCE;
@@ -35,8 +43,9 @@ public class ChatServer implements IContext {
 	private ImplementationFactory implementationFactory;
 	private ILogger logger;
 	private IStorage storage;
-	private ServerSettings settings;
 	private IAsymmetricKeyEncryption networkKey;
+
+	private IServerNetworkManager networkManager;
 
 	// private NetworkServer networkServer;
 	// private UserManager userManager;
@@ -53,7 +62,7 @@ public class ChatServer implements IContext {
 		settingsCollection = new PropertyCollection(null);
 		if (storage.doesFileExist(settingsFile))
 			settingsCollection.loadFile(storage, settingsFile);
-		settings = new ServerSettings(settingsCollection);
+		PropertyCollection serverCollection = settingsCollection.getPermissive(SERVER_PROPERTY);
 		saveSettings();
 
 		implementationFactory = new ImplementationFactory(logger,
@@ -67,12 +76,14 @@ public class ChatServer implements IContext {
 		implementationFactory.setFallbackDefault(ILogger.class, FallbackLogger.MARKER);
 		implementationFactory.setFallbackDefault(IByteReader.class, ByteReader.MARKER);
 		implementationFactory.setFallbackDefault(IByteWriter.class, ByteWriter.MARKER);
+		implementationFactory.inject(storage);
 
 		pluginManager = new PluginManager(this);
 		pluginManager.loadPlugins();
 		pluginManager.regeneateCache();
 
 		pluginManager.invokeHook(Hooks.EarlyInit, this);
+		implementationFactory.inject(storage);
 
 		logger = implementationFactory.provide(ILogger.class);
 		implementationFactory.set(ILogger.class, logger);
@@ -96,23 +107,28 @@ public class ChatServer implements IContext {
 				throw new RuntimeException("Failed to generate keystore");
 			}
 		}
-		
+
 		logger.info("Loading network key");
 		networkKey = implementationFactory.provide(IAsymmetricKeyEncryption.class, null, true, true, "network");
 		keystore.loadAsymmetricKeyOrGenerate("network", networkKey);
-		
-		if (settings.shouldGenerateProfile()) {
+
+		logger.info("Loading network manager");
+		networkManager = implementationFactory.get(IServerNetworkManager.class, true);
+		networkManager.init(networkKey);
+
+		PropertyCollection profileCollection = serverCollection.getPermissive(PROFILE_PROPERTY);
+		if (profileCollection.get(GENERATE_PROPERY)) {
 			logger.info("Generating connection profile");
 			IConnectionProfileProvider provider = implementationFactory.get(IConnectionProfileProvider.class, true);
-			IConnectionProfile profile = provider.generateProfileTemplate(settings.getServerName(),
-					settings.getPublicIp(), settings.getPublicPort(), networkKey.getPublickey());
+			IConnectionProfile profile = networkManager.generateProfile(provider);
 			IPasswordEncryption passwordEncryption = implementationFactory.provide(IPasswordEncryption.class, null,
 					true, true, "connection_profile");
-			passwordEncryption.init(settings.getProfilePassword().toCharArray());
+			passwordEncryption.init(profileCollection.get(PASSWORD_PROPERY).toCharArray());
 			provider.saveProfileToFIle(profile, storage, "profile.sccp", passwordEncryption);
 		}
 
 		saveSettings();
+		
 
 		// userManager = new UserManager(store.getOrGenKeyPair("users"));
 		// userManager.tryLoadAndSave();
@@ -121,6 +137,7 @@ public class ChatServer implements IContext {
 		// networkServer = new NetworkServer(this, settings.getPort());
 		// networkServer.start();
 
+		networkManager.start();
 	}
 
 	@Override

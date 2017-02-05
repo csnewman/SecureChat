@@ -1,7 +1,6 @@
-package com.securechat.client.network;
+package com.securechat.plugins.socketnetworking.client;
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.Socket;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -11,6 +10,7 @@ import com.securechat.api.client.network.IClientNetworkConnection;
 import com.securechat.api.client.network.IClientNetworkManager;
 import com.securechat.api.client.network.IConnectionStore;
 import com.securechat.api.common.implementation.IImplementationFactory;
+import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.network.IConnectionProfile;
 import com.securechat.api.common.network.IConnectionProfileProvider;
 import com.securechat.api.common.packets.IPacket;
@@ -18,8 +18,11 @@ import com.securechat.api.common.packets.RegisterPacket;
 import com.securechat.api.common.packets.RegisterResponsePacket;
 import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.security.IAsymmetricKeyEncryption;
+import com.securechat.plugins.socketnetworking.SocketNetworkingPlugin;
 
-public class NetworkManager implements IClientNetworkManager {
+public class ClientNetworkManager implements IClientNetworkManager {
+	public static final ImplementationMarker MARKER = new ImplementationMarker(SocketNetworkingPlugin.NAME,
+			SocketNetworkingPlugin.VERSION, "client_network_manager", "1.0.0");
 	@InjectInstance
 	private IImplementationFactory factory;
 	@InjectInstance
@@ -29,7 +32,7 @@ public class NetworkManager implements IClientNetworkManager {
 	public IClientNetworkConnection openConnection(String host, int port, IAsymmetricKeyEncryption encryption,
 			Consumer<String> disconnectHandler, Consumer<IPacket> packetHandler) {
 		try {
-			NetworkConnection connection = new NetworkConnection(disconnectHandler, packetHandler);
+			ClientNetworkConnection connection = new ClientNetworkConnection(disconnectHandler, packetHandler);
 			factory.inject(connection);
 			connection.init(new Socket(host, port), encryption);
 			return connection;
@@ -37,7 +40,7 @@ public class NetworkManager implements IClientNetworkManager {
 			e.printStackTrace();
 			disconnectHandler.accept("Connection failed");
 		}
-		
+
 		return null;
 	}
 
@@ -61,11 +64,11 @@ public class NetworkManager implements IClientNetworkManager {
 			IClientNetworkConnection connection = openConnection(profile.getIP(), profile.getPort(), networkPair,
 					disconnectHandler, null);
 
-			if(connection == null){
+			if (connection == null) {
 				disconnectHandler.accept("Connection failed");
 				return;
 			}
-			
+
 			connection.setSingleHandler(RegisterResponsePacket.class, r -> {
 				switch (r.getStatus()) {
 				case Success:
@@ -91,6 +94,11 @@ public class NetworkManager implements IClientNetworkManager {
 			statusConsumer.accept(EnumConnectionSetupStatus.Disconnected, "Internal error");
 		}
 
+	}
+
+	@Override
+	public ImplementationMarker getMarker() {
+		return MARKER;
 	}
 
 }

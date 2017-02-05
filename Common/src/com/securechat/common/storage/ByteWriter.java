@@ -6,12 +6,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import com.securechat.api.common.implementation.ImplementationMarker;
+import com.securechat.api.common.plugins.Inject;
+import com.securechat.api.common.security.IHasher;
 import com.securechat.api.common.storage.IByteWriter;
-import com.securechat.common.security.SecurityUtils;
 
 public class ByteWriter implements IByteWriter {
 	public static final ImplementationMarker MARKER = new ImplementationMarker("inbuilt", "n/a", "byte_writer",
 			"1.0.0");
+	@Inject(associate = true)
+	private IHasher hasher;
 	private ByteArrayOutputStream arrayStream;
 	private DataOutputStream output;
 
@@ -114,7 +117,7 @@ public class ByteWriter implements IByteWriter {
 	@Override
 	public void writeWriterWithChecksum(IByteWriter writer) {
 		byte[] content = writer.toByteArray();
-		writeArray(SecurityUtils.hashData(content));
+		writeArray(hasher.hashData(content));
 		writeArray(content);
 	}
 

@@ -59,6 +59,11 @@ public class ImplementationFactory implements IImplementationFactory {
 				log.debug("Found field " + field.getName() + " as " + field.getType());
 				Inject annotation = field.getAnnotation(Inject.class);
 				field.setAccessible(true);
+
+				if (annotation.associate() && baseId == null) {
+					log.error("Associating usage to an unknown object");
+				}
+
 				try {
 					if (field.get(obj) == null) {
 						Object value = provide((Class) field.getType(),
@@ -174,6 +179,10 @@ public class ImplementationFactory implements IImplementationFactory {
 		PropertyCollection collection = null;
 		CollectionProperty property = null;
 		if (associate) {
+			if(associateName == null){
+				throw new RuntimeException("No associate name given!");
+			}
+			
 			collection = baseCollection.getPermissive(new CollectionProperty(associateName));
 			property = new CollectionProperty(type.getName());
 
@@ -206,11 +215,14 @@ public class ImplementationFactory implements IImplementationFactory {
 					log.debug("No default found, using first: " + provider);
 				}
 			}
-			if (associate)
-				collection.set(property, provider.save());
-			return provider;
+			if (provider != null) {
+				if (associate)
+					collection.set(property, provider.save());
+				return provider;
+			}
 		}
 
+		log.warning("Failed to find a provider for "+type);
 		return null;
 	}
 
@@ -255,10 +267,10 @@ public class ImplementationFactory implements IImplementationFactory {
 	public <T extends IImplementation> ImplementationMarker getDefault(Class<T> type) {
 		CollectionProperty property = new CollectionProperty(type.getName());
 		if (!defaultsCollection.exists(property)) {
-			if(!defaults.containsKey(type.getName())){
+			if (!defaults.containsKey(type.getName())) {
 				return null;
 			}
-			log.debug("Setting default for "+type.getName()+" to "+defaults.get(type.getName()));
+			log.debug("Setting default for " + type.getName() + " to " + defaults.get(type.getName()));
 			defaultsCollection.set(property, defaults.get(type.getName()).save());
 		}
 		return ImplementationMarker.loadMarker(defaultsCollection.get(property));
