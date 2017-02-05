@@ -57,13 +57,15 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	@Override
 	public void load(byte[] publicKey, byte[] privateKey) {
 		try {
-			pubKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(publicKey));
+			if (publicKey != null)
+				pubKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(publicKey));
 		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
 			throw new RuntimeException("Failed to load public key", e);
 		}
 
 		try {
-			priKey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(privateKey));
+			if (privateKey != null)
+				priKey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(privateKey));
 		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
 			throw new RuntimeException("Failed to load private key", e);
 		}

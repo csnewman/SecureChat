@@ -15,6 +15,7 @@ import com.securechat.api.common.properties.PrimitiveProperty;
 import com.securechat.api.common.properties.PropertyCollection;
 import com.securechat.api.common.security.IAsymmetricKeyEncryption;
 import com.securechat.api.server.network.IServerNetworkManager;
+import com.securechat.plugins.socketnetworking.NetworkConnection;
 import com.securechat.plugins.socketnetworking.SocketNetworkingPlugin;
 
 public class ServerNetworkManager implements IServerNetworkManager {
@@ -75,7 +76,6 @@ public class ServerNetworkManager implements IServerNetworkManager {
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to start network server!", e);
 		}
-		// TODO Auto-generated method stub
 	}
 
 	private void handleConnections() {
@@ -85,6 +85,17 @@ public class ServerNetworkManager implements IServerNetworkManager {
 				Socket socket = serverSocket.accept();
 				if (socket != null) {
 					log.info("Client connected from " + socket.getRemoteSocketAddress() + "!");
+					EarlyConnectionHandler handler = new EarlyConnectionHandler(this);
+					context.getImplementationFactory().inject(handler);
+					handler.updateKey();
+
+					NetworkConnection connection = new NetworkConnection(handler::handleDisconnect,
+							handler::handleFirstPacket);
+					context.getImplementationFactory().inject(connection);
+					
+					handler.setConnection(connection);
+					connection.init(socket, handler.getKey());
+
 					// NetworkClient client = new NetworkClient(server, socket);
 					// clientLock.writeLock().lock();
 					// clients.add(client);
@@ -92,6 +103,7 @@ public class ServerNetworkManager implements IServerNetworkManager {
 					// client.start();
 				}
 			} catch (Exception e) {
+				e.printStackTrace();
 				log.info("Connection failed! " + e.getMessage());
 			}
 		}
@@ -106,6 +118,10 @@ public class ServerNetworkManager implements IServerNetworkManager {
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to stop network server!", e);
 		}
+	}
+
+	public IAsymmetricKeyEncryption getNetworkKey() {
+		return networkKey;
 	}
 
 	@Override
