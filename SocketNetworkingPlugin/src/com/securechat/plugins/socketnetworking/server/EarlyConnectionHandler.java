@@ -1,5 +1,7 @@
 package com.securechat.plugins.socketnetworking.server;
 
+import java.util.Random;
+
 import com.securechat.api.common.ILogger;
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.packets.IPacket;
@@ -8,6 +10,7 @@ import com.securechat.api.common.packets.RegisterResponsePacket;
 import com.securechat.api.common.packets.RegisterResponsePacket.RegisterStatus;
 import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.security.IAsymmetricKeyEncryption;
+import com.securechat.api.server.users.IUserManager;
 import com.securechat.plugins.socketnetworking.NetworkConnection;
 
 public class EarlyConnectionHandler {
@@ -15,6 +18,8 @@ public class EarlyConnectionHandler {
 	private ILogger log;
 	@InjectInstance
 	private IImplementationFactory factory;
+	@InjectInstance
+	private IUserManager userManager;
 	private byte[] publicKey;
 	private IAsymmetricKeyEncryption key;
 	private ServerNetworkManager networkManager;
@@ -44,26 +49,23 @@ public class EarlyConnectionHandler {
 
 			publicKey = packet.getPublicKey();
 			updateKey();
-			//
-			// UserManager um = server.getUserManager();
-			// if (um.doesUserExist(packet.getUsername())) {
-			connection.sendPacket(new RegisterResponsePacket(RegisterStatus.UsernameTaken));
-			connection.setHandler(this::ignorePacket);
-//			connection.closeConnection();
-			// return;
-			// }
-			// int code = new Random().nextInt();
-			//
-			// um.registerUser(packet.getUsername(), packet.getPublicKey(),
-			// code);
-			// sendPacket(new RegisterResponsePacket(code));
 
+			String username = packet.getUsername();
+
+			if (userManager.doesUserExist(username)) {
+				connection.sendPacket(new RegisterResponsePacket(RegisterStatus.UsernameTaken));
+			} else {
+				int code = new Random().nextInt();
+				userManager.registerUser(username, publicKey, code);
+				connection.sendPacket(new RegisterResponsePacket(code));
+			}
+			connection.setHandler(this::ignorePackets);
 		} else {
 			log.warning("Unknown First Packet: " + rpacket);
 		}
 	}
 
-	private void ignorePacket(IPacket packet) {
+	private void ignorePackets(IPacket packet) {
 	}
 
 	public void handleDisconnect(String msg) {

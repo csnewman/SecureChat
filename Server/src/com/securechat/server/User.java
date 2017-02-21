@@ -1,65 +1,44 @@
 package com.securechat.server;
 
-import java.io.IOException;
-import java.security.PublicKey;
+import com.securechat.api.common.database.ITable;
+import com.securechat.api.common.database.ObjectDataInstance;
+import com.securechat.api.common.implementation.ImplementationMarker;
+import com.securechat.api.common.storage.IByteReader;
+import com.securechat.api.common.storage.IByteWriter;
+import com.securechat.api.server.users.IUser;
 
-import com.securechat.api.common.packets.ConnectedPacket;
-import com.securechat.api.common.packets.IPacket;
-import com.securechat.basicencryption.RSAEncryption;
-import com.securechat.common.storage.ByteReader;
-import com.securechat.common.storage.ByteWriter;
-import com.securechat.server.network.NetworkClient;
-
-public class User {
+public class User implements IUser {
+	public static final ImplementationMarker MARKER = new ImplementationMarker("inbuilt", "n/a", "user", "1.0.0");
+	private ITable usersTable;
 	private String username;
-	private PublicKey publicKey;
-	private int code;
-	private NetworkClient network;
+	private byte[] publicKey;
+	private int clientCode;
 
-	public User(String username, PublicKey publicKey, int code) {
-		this.username = username;
-		this.publicKey = publicKey;
-		this.code = code;
+	public User(ITable usersTable, ObjectDataInstance row) {
+		this.usersTable = usersTable;
+		username = row.getField("username", String.class);
+		publicKey = row.getField("pubkey", byte[].class);
+		clientCode = row.getField("code", Integer.class);
 	}
 
-	public User(ByteReader reader) throws IOException{
-		username = reader.readString();
-		publicKey = RSAEncryption.loadPublicKey(reader.readArray());
-		code = reader.readInt();
-	}
-
-	public void write(ByteWriter writer) {
-		writer.writeString(username);
-		writer.writeArray(RSAEncryption.savePublicKey(publicKey));
-		writer.writeInt(code);
-	}
-
-	public void handlePacket(IPacket packet) {
-		System.out.println("HandlePacket "+packet);
-	}
-
-	public void assignToNetwork(NetworkClient client) {
-		if (network != null) {
-			network.disconnect("Logged in from somewhere else");
-		}
-		network = client;
-		network.sendPacket(new ConnectedPacket());
-	}
-
-	public NetworkClient getNetwork() {
-		return network;
-	}
-
+	@Override
 	public String getUsername() {
 		return username;
 	}
 
-	public PublicKey getPublicKey() {
+	@Override
+	public byte[] getPublicKey() {
 		return publicKey;
 	}
 
-	public int getCode() {
-		return code;
+	@Override
+	public int getClientCode() {
+		return clientCode;
+	}
+
+	@Override
+	public ImplementationMarker getMarker() {
+		return MARKER;
 	}
 
 }

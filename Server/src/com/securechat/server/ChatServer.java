@@ -5,6 +5,7 @@ import java.io.Console;
 import com.securechat.api.common.IContext;
 import com.securechat.api.common.ILogger;
 import com.securechat.api.common.Sides;
+import com.securechat.api.common.database.IDatabase;
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.network.IConnectionProfile;
@@ -20,6 +21,7 @@ import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
 import com.securechat.api.server.network.IServerNetworkManager;
+import com.securechat.api.server.users.IUserManager;
 import com.securechat.common.FallbackLogger;
 import com.securechat.common.implementation.ImplementationFactory;
 import com.securechat.common.plugins.PluginManager;
@@ -44,11 +46,7 @@ public class ChatServer implements IContext {
 	private ILogger logger;
 	private IStorage storage;
 	private IAsymmetricKeyEncryption networkKey;
-
 	private IServerNetworkManager networkManager;
-
-	// private NetworkServer networkServer;
-	// private UserManager userManager;
 
 	public void init(IStorage storage, char[] keystorePassword) {
 		this.storage = storage;
@@ -73,9 +71,11 @@ public class ChatServer implements IContext {
 		implementationFactory.register(FallbackLogger.MARKER, ILogger.class, FallbackLogger::new);
 		implementationFactory.register(ByteReader.MARKER, IByteReader.class, ByteReader::new);
 		implementationFactory.register(ByteWriter.MARKER, IByteWriter.class, ByteWriter::new);
+		implementationFactory.register(UserManager.MARKER, IUserManager.class, UserManager::new);
 		implementationFactory.setFallbackDefault(ILogger.class, FallbackLogger.MARKER);
 		implementationFactory.setFallbackDefault(IByteReader.class, ByteReader.MARKER);
 		implementationFactory.setFallbackDefault(IByteWriter.class, ByteWriter.MARKER);
+		implementationFactory.setFallbackDefault(IUserManager.class, UserManager.MARKER);
 		implementationFactory.inject(storage);
 
 		pluginManager = new PluginManager(this);
@@ -91,6 +91,15 @@ public class ChatServer implements IContext {
 		logger.debug("Logger provider: " + logger);
 
 		pluginManager.invokeHook(Hooks.Init, this);
+
+		IDatabase database = implementationFactory.get(IDatabase.class, true);
+		database.init();
+		logger.debug("Database: " + database);
+		
+		IUserManager userManager = implementationFactory.get(IUserManager.class, true);
+		userManager.init();
+		logger.debug("User Manager: " + userManager);
+
 		pluginManager.invokeHook(Hooks.LateInit, this);
 
 		IKeystore keystore = implementationFactory.get(IKeystore.class, true);
@@ -128,14 +137,6 @@ public class ChatServer implements IContext {
 		}
 
 		saveSettings();
-		
-
-		// userManager = new UserManager(store.getOrGenKeyPair("users"));
-		// userManager.tryLoadAndSave();
-		// store.save();
-		//
-		// networkServer = new NetworkServer(this, settings.getPort());
-		// networkServer.start();
 
 		networkManager.start();
 	}

@@ -7,7 +7,7 @@ import com.securechat.api.common.network.IConnectionProfile;
 
 public interface IConnectionStore extends IImplementation {
 
-	public void load();
+	public void init();
 
 	public void addUpdateListener(IConnectionStoreUpdateListener listener);
 	

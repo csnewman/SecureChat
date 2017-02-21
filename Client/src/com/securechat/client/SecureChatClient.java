@@ -95,7 +95,7 @@ public class SecureChatClient implements IContext {
 
 		IConnectionStore store = implementationFactory.get(IConnectionStore.class, true);
 		logger.info("Connection Store: " + store);
-		store.load();
+		store.init();
 
 		IClientNetworkManager networkManager = implementationFactory.get(IClientNetworkManager.class, true);
 		logger.info("Network Manager: " + networkManager);

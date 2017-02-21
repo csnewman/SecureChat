@@ -44,7 +44,6 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 			return new BasicConnectionProfile(reader.readBoolean(), reader.readStringWithNull(),
 					reader.readStringWithNull(), reader.readStringWithNull(), reader.readInt(), reader.readInt(),
 					reader.readArrayWithNull(), reader.readArrayWithNull());
-
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;

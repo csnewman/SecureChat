@@ -34,7 +34,7 @@ public class ImplementationFactory implements IImplementationFactory {
 		implementations = new HashMap<Class, Map>();
 		defaults = new HashMap<String, ImplementationMarker>();
 		this.baseCollection = baseCollection;
-		defaultsCollection = baseCollection.getPermissive(DEFAULTS_PROPERTY);
+		defaultsCollection = baseCollection != null ? baseCollection.getPermissive(DEFAULTS_PROPERTY) : null;
 		instances = new HashMap<Class, Object>();
 	}
 
@@ -179,10 +179,10 @@ public class ImplementationFactory implements IImplementationFactory {
 		PropertyCollection collection = null;
 		CollectionProperty property = null;
 		if (associate) {
-			if(associateName == null){
+			if (associateName == null) {
 				throw new RuntimeException("No associate name given!");
 			}
-			
+
 			collection = baseCollection.getPermissive(new CollectionProperty(associateName));
 			property = new CollectionProperty(type.getName());
 
@@ -222,7 +222,7 @@ public class ImplementationFactory implements IImplementationFactory {
 			}
 		}
 
-		log.warning("Failed to find a provider for "+type);
+		log.warning("Failed to find a provider for " + type);
 		return null;
 	}
 
