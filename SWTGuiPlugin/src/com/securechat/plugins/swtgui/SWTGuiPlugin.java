@@ -17,6 +17,7 @@ import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.plugins.Plugin;
 import com.securechat.plugins.swtgui.keystore.KeystoreGui;
 import com.securechat.plugins.swtgui.login.LoginGui;
+import com.securechat.plugins.swtgui.main.MainGui;
 
 @Plugin(name = SWTGuiPlugin.NAME, version = SWTGuiPlugin.VERSION, side = Sides.Client)
 public class SWTGuiPlugin implements IGuiProvider {
@@ -28,6 +29,7 @@ public class SWTGuiPlugin implements IGuiProvider {
 	private Display display;
 	private LoginGui loginGui;
 	private KeystoreGui keystoreGui;
+	private MainGui mainGui;
 
 	@Hook(name = "init", hook = Hooks.Init)
 	public void init(IContext context) {
@@ -64,6 +66,15 @@ public class SWTGuiPlugin implements IGuiProvider {
 			factory.inject(loginGui);
 		}
 		return loginGui;
+	}
+	
+	@Override
+	public IGui getMainGui() {
+		if(mainGui == null){
+			mainGui = new MainGui(this);
+			factory.inject(mainGui);
+		}
+		return mainGui;
 	}
 
 	public void async(Runnable run) {

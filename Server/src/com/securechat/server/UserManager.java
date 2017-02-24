@@ -3,6 +3,8 @@ package com.securechat.server;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.JSONObject;
+
 import com.securechat.api.common.database.FieldType;
 import com.securechat.api.common.database.IDatabase;
 import com.securechat.api.common.database.ITable;
@@ -49,6 +51,7 @@ public class UserManager implements IUserManager {
 		data.setField("username", username);
 		data.setField("pubkey", publicKey);
 		data.setField("code", clientCode);
+		data.setField("plugindata", new JSONObject());
 		usersTable.insertRow(data);
 		users.put(username, new User(usersTable, data));
 	}
@@ -76,7 +79,7 @@ public class UserManager implements IUserManager {
 		USERS_FORMAT.addField("username", PrimitiveDataFormat.String, FieldType.Primary);
 		USERS_FORMAT.addField("pubkey", PrimitiveDataFormat.ByteArray, FieldType.Required);
 		USERS_FORMAT.addField("code", PrimitiveDataFormat.Integer, FieldType.Required);
-		USERS_FORMAT.addField("plugindata", PrimitiveDataFormat.String, FieldType.Required);
+		USERS_FORMAT.addField("plugindata", PrimitiveDataFormat.JSON, FieldType.Required);
 	}
 
 }

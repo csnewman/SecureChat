@@ -106,6 +106,13 @@ public class LoginShell extends Shell {
 		btnConnect = new Button(composite, SWT.NONE);
 		btnConnect.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnConnect.setText("Connect");
+		
+		btnConnect.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				gui.connect();
+			}
+		});
 
 		Point size = computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		setSize(size);

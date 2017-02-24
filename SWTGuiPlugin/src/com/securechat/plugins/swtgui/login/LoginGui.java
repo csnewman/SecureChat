@@ -1,8 +1,11 @@
 package com.securechat.plugins.swtgui.login;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import com.securechat.api.client.network.IClientNetworkManager;
 import com.securechat.api.client.network.IConnectionStore;
 import com.securechat.api.client.network.IConnectionStoreUpdateListener;
 import com.securechat.api.common.implementation.ImplementationMarker;
@@ -16,6 +19,8 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 			"login_gui", "1.0.0");
 	@InjectInstance
 	private IConnectionStore connectionStore;
+	@InjectInstance
+	private IClientNetworkManager networkManager;
 	private IConnectionProfile[] profiles;
 	private LoginShell shell;
 
@@ -38,7 +43,7 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 	public void onConnectionStoreUpdated() {
 		plugin.sync(this::updateOptions);
 	}
-	
+
 	private void updateOptions() {
 		profiles = connectionStore.getProfiles().toArray(new IConnectionProfile[0]);
 		String[] names = new String[profiles.length];
@@ -66,6 +71,26 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 		shell.getLblServerNameValue().setText(profile.getName() + " (" + profile.getUsername() + ")");
 		shell.getLblServerHostValue().setText(profile.getIP() + ":" + profile.getPort());
 		shell.getBtnConnect().setEnabled(true);
+	}
+
+	public void connect() {
+		int index = shell.getConnectionsCombo().getSelectionIndex();
+		if (profiles.length == 0 || index < 0 || index >= profiles.length) {
+			updateSelection();
+			return;
+		}
+		IConnectionProfile profile = profiles[index];
+		shell.setEnabled(false);
+		networkManager.connect(profile, (s, r) -> {
+			if (s) {
+				close();
+			} else {
+				MessageBox messageBox = new MessageBox(shell, SWT.ICON_ERROR);
+				messageBox.setMessage("Failed to connect!\n"+r);
+				messageBox.open();
+				shell.setEnabled(true);
+			}
+		});
 	}
 
 	@Override

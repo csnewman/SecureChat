@@ -17,5 +17,7 @@ public interface IClientNetworkManager extends IImplementation{
 
 	public void setupConnection(IConnectionProfileProvider profileProvider, IConnectionProfile profile, String username,
 			BiConsumer<EnumConnectionSetupStatus, String> statusConsumer);
+	
+	public void connect(IConnectionProfile profile, BiConsumer<Boolean, String> status);
 
 }

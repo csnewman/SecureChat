@@ -6,13 +6,15 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public enum PrimitiveDataFormat implements IDataFormat {
-	String, Integer, Long, ByteArray;
+	String, JSON, Integer, Long, ByteArray;
 
 	@Override
 	public boolean validate(Object value) {
 		switch (this) {
 		case String:
 			return value instanceof String;
+		case JSON:
+			return value instanceof JSONObject;
 		case Integer:
 			return value instanceof Integer;
 		case Long:
@@ -37,6 +39,7 @@ public enum PrimitiveDataFormat implements IDataFormat {
 		switch (this) {
 		case String:
 		case Integer:
+		case JSON:
 		case Long:
 			return a.equals(b);
 		case ByteArray:
@@ -52,6 +55,7 @@ public enum PrimitiveDataFormat implements IDataFormat {
 		case String:
 		case Integer:
 		case Long:
+		case JSON:
 			return data;
 		case ByteArray:
 			byte[] array = (byte[]) data;
@@ -71,6 +75,7 @@ public enum PrimitiveDataFormat implements IDataFormat {
 		case String:
 		case Integer:
 		case Long:
+		case JSON:
 			return data;
 		case ByteArray:
 			JSONArray array = (JSONArray) data;

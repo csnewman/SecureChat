@@ -123,6 +123,9 @@ public class InitialConnectionShell extends Shell {
 			break;
 		case Success:
 			setStatus(false, "Account Created!");
+			loginGui.getPlugin().sync(()->{
+				close();
+			});
 			break;
 		case Disconnected:
 			setStatus(true, "Disconnected: " + msg);
