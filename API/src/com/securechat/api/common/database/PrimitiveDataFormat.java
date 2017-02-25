@@ -1,12 +1,13 @@
 package com.securechat.api.common.database;
 
 import java.util.Arrays;
+import java.util.Base64;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public enum PrimitiveDataFormat implements IDataFormat {
-	String, JSON, Integer, Long, ByteArray;
+	String, JSON, Integer, Long, Boolean, ByteArray;
 
 	@Override
 	public boolean validate(Object value) {
@@ -19,6 +20,8 @@ public enum PrimitiveDataFormat implements IDataFormat {
 			return value instanceof Integer;
 		case Long:
 			return value instanceof Long;
+		case Boolean:
+			return value instanceof Boolean;
 		case ByteArray:
 			return value instanceof byte[];
 		default:
@@ -41,6 +44,7 @@ public enum PrimitiveDataFormat implements IDataFormat {
 		case Integer:
 		case JSON:
 		case Long:
+		case Boolean:
 			return a.equals(b);
 		case ByteArray:
 			return Arrays.equals((byte[]) a, (byte[]) b);
@@ -56,14 +60,16 @@ public enum PrimitiveDataFormat implements IDataFormat {
 		case Integer:
 		case Long:
 		case JSON:
+		case Boolean:
 			return data;
 		case ByteArray:
-			byte[] array = (byte[]) data;
-			JSONArray out = new JSONArray();
-			for (byte b : array) {
-				out.put(b);
-			}
-			return out;
+			// byte[] array = (byte[]) data;
+			// JSONArray out = new JSONArray();
+			// for (byte b : array) {
+			// out.put(b);
+			// }
+			// return out;
+			return Base64.getEncoder().encodeToString((byte[]) data);
 		default:
 			return null;
 		}
@@ -76,14 +82,16 @@ public enum PrimitiveDataFormat implements IDataFormat {
 		case Integer:
 		case Long:
 		case JSON:
+		case Boolean:
 			return data;
 		case ByteArray:
-			JSONArray array = (JSONArray) data;
-			byte[] out = new byte[array.length()];
-			for (int i = 0; i < array.length(); i++) {
-				out[i] = (byte) array.getInt(i);
-			}
-			return out;
+			// JSONArray array = (JSONArray) data;
+			// byte[] out = new byte[array.length()];
+			// for (int i = 0; i < array.length(); i++) {
+			// out[i] = (byte) array.getInt(i);
+			// }
+			// return out;
+			return Base64.getDecoder().decode((String) data);
 		default:
 			return null;
 		}

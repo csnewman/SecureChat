@@ -23,6 +23,7 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 	private IClientNetworkManager networkManager;
 	private IConnectionProfile[] profiles;
 	private LoginShell shell;
+	private boolean completed;
 
 	public LoginGui(SWTGuiPlugin plugin) {
 		super(plugin);
@@ -83,12 +84,15 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 		shell.setEnabled(false);
 		networkManager.connect(profile, (s, r) -> {
 			if (s) {
+				completed = true;
 				close();
 			} else {
-				MessageBox messageBox = new MessageBox(shell, SWT.ICON_ERROR);
-				messageBox.setMessage("Failed to connect!\n"+r);
-				messageBox.open();
-				shell.setEnabled(true);
+				plugin.sync(() -> {
+					MessageBox messageBox = new MessageBox(shell, SWT.ICON_ERROR);
+					messageBox.setMessage("Failed to connect!\n" + r);
+					messageBox.open();
+					shell.setEnabled(true);
+				});
 			}
 		});
 	}
@@ -96,7 +100,9 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 	@Override
 	protected void onClose() {
 		connectionStore.removeUpdateListener(this);
-		context.exit();
+		if(!completed){
+			context.exit();
+		}
 	}
 
 	@Override

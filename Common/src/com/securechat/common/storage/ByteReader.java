@@ -51,6 +51,11 @@ public class ByteReader implements IByteReader {
 	public int readInt() throws IOException {
 		return input.readInt();
 	}
+	
+	@Override
+	public long readLong() throws IOException {
+		return input.readLong();
+	}
 
 	@Override
 	public String readString() throws IOException {

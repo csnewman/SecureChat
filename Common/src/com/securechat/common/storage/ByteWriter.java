@@ -51,6 +51,15 @@ public class ByteWriter implements IByteWriter {
 			throw new RuntimeException("Internal error occured", e);
 		}
 	}
+	
+	@Override
+	public void writeLong(long l) {
+		try {
+			output.writeLong(l);
+		} catch (IOException e) {
+			throw new RuntimeException("Internal error occured", e);
+		}
+	}
 
 	@Override
 	public void writeString(String str) {

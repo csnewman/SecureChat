@@ -20,6 +20,7 @@ import com.securechat.api.common.security.IPasswordEncryption;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
+import com.securechat.api.server.IServerManager;
 import com.securechat.api.server.network.IServerNetworkManager;
 import com.securechat.api.server.users.IUserManager;
 import com.securechat.common.FallbackLogger;
@@ -72,10 +73,12 @@ public class ChatServer implements IContext {
 		implementationFactory.register(ByteReader.MARKER, IByteReader.class, ByteReader::new);
 		implementationFactory.register(ByteWriter.MARKER, IByteWriter.class, ByteWriter::new);
 		implementationFactory.register(UserManager.MARKER, IUserManager.class, UserManager::new);
+		implementationFactory.register(ServerManager.MARKER, IServerManager.class, ServerManager::new);
 		implementationFactory.setFallbackDefault(ILogger.class, FallbackLogger.MARKER);
 		implementationFactory.setFallbackDefault(IByteReader.class, ByteReader.MARKER);
 		implementationFactory.setFallbackDefault(IByteWriter.class, ByteWriter.MARKER);
 		implementationFactory.setFallbackDefault(IUserManager.class, UserManager.MARKER);
+		implementationFactory.setFallbackDefault(IServerManager.class, ServerManager.MARKER);
 		implementationFactory.inject(storage);
 
 		pluginManager = new PluginManager(this);
@@ -139,6 +142,9 @@ public class ChatServer implements IContext {
 		saveSettings();
 
 		networkManager.start();
+		
+		IServerManager manager = implementationFactory.get(IServerManager.class, true);
+		manager.init();
 	}
 
 	@Override
@@ -163,6 +169,9 @@ public class ChatServer implements IContext {
 
 	@Override
 	public void exit() {
+		StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
+		StackTraceElement e = stacktrace[2];
+		logger.info("Exit requested by "+e.getMethodName()+" in "+e.getClassName());
 		saveSettings();
 		System.exit(0);
 	}

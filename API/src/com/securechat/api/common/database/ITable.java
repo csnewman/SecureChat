@@ -10,6 +10,8 @@ public interface ITable {
 
 	public ObjectDataInstance[] getRows(ObjectDataInstance data);
 	
+	public void updateRow(Object primaryKey, ObjectDataInstance data);
+	
 	public void deleteRow(Object primaryKey);
 	
 	public ObjectDataFormat getFormat();

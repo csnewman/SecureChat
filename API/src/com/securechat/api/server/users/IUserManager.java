@@ -12,4 +12,6 @@ public interface IUserManager extends IImplementation {
 	
 	public IUser getUser(String username);
 	
+	public String[] getAllUsernames();
+	
 }

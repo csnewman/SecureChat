@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -91,6 +92,15 @@ public class JsonTable implements ITable {
 	public ObjectDataInstance getRow(Object primaryValue) {
 		Integer id = primaryCache.get(primaryValue);
 		return id != null ? rows[id] : null;
+	}
+	
+	@Override
+	public void updateRow(Object primaryKey, ObjectDataInstance data) {
+		ObjectDataInstance row = getRow(primaryKey);
+		for(Entry<String, Object> entry : data.getValues().entrySet()){
+			row.setField(entry.getKey(), entry.getValue());
+		}
+		save();
 	}
 
 	@Override

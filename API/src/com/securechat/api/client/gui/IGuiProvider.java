@@ -10,6 +10,6 @@ public interface IGuiProvider extends IImplementation {
 
 	public IGui getLoginGui();
 
-	public IGui getMainGui();
+	public IMainGui getMainGui();
 
 }

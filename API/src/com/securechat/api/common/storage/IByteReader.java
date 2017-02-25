@@ -20,6 +20,8 @@ public interface IByteReader extends IImplementation {
 	public <T extends Enum<T>> T readEnum(Class<T> type) throws IOException;
 
 	public int readInt() throws IOException;
+	
+	public long readLong() throws IOException;
 
 	public String readString() throws IOException;
 	

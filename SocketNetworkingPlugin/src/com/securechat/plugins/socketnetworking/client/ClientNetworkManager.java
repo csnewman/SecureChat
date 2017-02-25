@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import com.securechat.api.client.IClientManager;
 import com.securechat.api.client.gui.IGui;
 import com.securechat.api.client.gui.IGuiProvider;
 import com.securechat.api.client.network.EnumConnectionSetupStatus;
@@ -37,7 +38,9 @@ public class ClientNetworkManager implements IClientNetworkManager {
 	private IConnectionStore connectionStore;
 	@InjectInstance
 	private IGuiProvider guiProvider;
-
+	@InjectInstance
+	private IClientManager clientManager;
+	
 	@Override
 	public INetworkConnection openConnection(IConnectionProfile profile, IAsymmetricKeyEncryption encryption,
 			Consumer<String> disconnectHandler, Consumer<IPacket> packetHandler) {
@@ -121,8 +124,7 @@ public class ClientNetworkManager implements IClientNetworkManager {
 			if(p instanceof ConnectedPacket){
 				status.accept(true, null);
 				
-				IGui gui = guiProvider.getMainGui();
-				gui.open();
+				clientManager.handleConnected(profile, connection);
 			}else if(p instanceof DisconnectPacket){
 				disconnectHandler.accept("Disconnected: "+((DisconnectPacket)p).getReason());
 			}else{

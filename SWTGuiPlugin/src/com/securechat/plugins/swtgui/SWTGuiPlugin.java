@@ -1,5 +1,15 @@
 package com.securechat.plugins.swtgui;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.core.internal.runtime.Activator;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.SWTResourceManager;
@@ -7,6 +17,7 @@ import org.eclipse.wb.swt.SWTResourceManager;
 import com.securechat.api.client.gui.IGui;
 import com.securechat.api.client.gui.IGuiProvider;
 import com.securechat.api.client.gui.IKeystoreGui;
+import com.securechat.api.client.gui.IMainGui;
 import com.securechat.api.common.IContext;
 import com.securechat.api.common.Sides;
 import com.securechat.api.common.implementation.IImplementationFactory;
@@ -41,6 +52,8 @@ public class SWTGuiPlugin implements IGuiProvider {
 	@Override
 	public void init(Runnable ready) {
 		display = Display.getDefault();
+		errorDialogWithStackTrace("Hello world", new Throwable());
+		
 		new Thread(ready).start();
 		while (!display.isDisposed()) {
 			if (!display.readAndDispatch()) {
@@ -69,13 +82,38 @@ public class SWTGuiPlugin implements IGuiProvider {
 	}
 	
 	@Override
-	public IGui getMainGui() {
+	public IMainGui getMainGui() {
 		if(mainGui == null){
 			mainGui = new MainGui(this);
 			factory.inject(mainGui);
 		}
 		return mainGui;
 	}
+	
+	public static void errorDialogWithStackTrace(String msg, Throwable t) {
+
+	    StringWriter sw = new StringWriter();
+	    PrintWriter pw = new PrintWriter(sw);
+	    t.printStackTrace(pw);
+
+	    final String trace = sw.toString(); // stack trace as a string
+
+	    // Temp holder of child statuses
+	    List<Status> childStatuses = new ArrayList<>();
+
+	    // Split output by OS-independend new-line
+	    for (String line : trace.split(System.getProperty("line.separator"))) {
+	        // build & add status
+	        childStatuses.add(new Status(IStatus.ERROR, "Activator.PLUGIN_ID", line));
+	    }
+
+	    MultiStatus ms = new MultiStatus("Activator.PLUGIN_ID", IStatus.ERROR,
+	            childStatuses.toArray(new Status[] {}), // convert to array of statuses
+	            t.getLocalizedMessage(), t);
+
+	    ErrorDialog.openError(null, "DIALOG_TITLE", msg, ms);
+	}
+	
 
 	public void async(Runnable run) {
 		display.asyncExec(run);

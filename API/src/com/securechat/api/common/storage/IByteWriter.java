@@ -17,6 +17,8 @@ public interface IByteWriter extends IImplementation{
 	public void writeEnum(Enum<?> e);
 
 	public void writeInt(int i);
+	
+	public void writeLong(long l);
 
 	public void writeString(String str);
 	

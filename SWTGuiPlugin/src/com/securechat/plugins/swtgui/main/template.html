@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	
+		li{
+		    display: block;
+ 		   clear: both;
+		}
+		ul.messages {
+			padding: 10px;
+   			list-style-type: none;
+		}
+
+		ul.messages li {
+			display: block;
+			position: relative;
+			float: left;
+			background: #a6acba;
+			border: 4px solid transparent;
+			border-radius: 4px;
+			padding: 5px;
+			color: #fff;
+			margin-bottom: 15px;
+		}
+
+		ul.messages li:after, ul.messages li:before {
+			right: 100%;
+			top: 50%;
+			border: solid transparent;
+			content: " ";
+			height: 0;
+			width: 0;
+			position: absolute;
+			pointer-events: none;
+		}
+
+		ul.messages li:after {
+			border-color: rgba(166, 172, 186, 0);
+			border-right-color: #a6acba;
+			border-width: 11px;
+			margin-top: -16px;
+		}
+	
+
+		ul.messages .right {
+			background: #76a0be;
+			float: right;
+		}
+		
+		ul.messages .right:after, ul.messages .right:before {
+			border-right-color: transparent;
+			left: 100%;
+		}
+
+		ul.messages .right:after {
+			border-left-color: #76a0be;
+		}
+		ul.messages .right:before {
+			border-left-color: transparent;
+		} 
+</style>
+</head>
+<body>
+<ul class="messages">
+			@MESSAGES@
+		</ul>
+
+<script>
+  window.scrollTo(0,document.body.scrollHeight);
+</script>
+
+</body>
+</html>

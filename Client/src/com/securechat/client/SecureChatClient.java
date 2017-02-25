@@ -1,5 +1,6 @@
 package com.securechat.client;
 
+import com.securechat.api.client.IClientManager;
 import com.securechat.api.client.gui.IGuiProvider;
 import com.securechat.api.client.gui.IKeystoreGui;
 import com.securechat.api.client.network.IClientNetworkManager;
@@ -56,9 +57,11 @@ public class SecureChatClient implements IContext {
 		implementationFactory.register(FallbackLogger.MARKER, ILogger.class, FallbackLogger::new);
 		implementationFactory.register(ByteReader.MARKER, IByteReader.class, ByteReader::new);
 		implementationFactory.register(ByteWriter.MARKER, IByteWriter.class, ByteWriter::new);
+		implementationFactory.register(ClientManager.MARKER, IClientManager.class, ClientManager::new);
 		implementationFactory.setFallbackDefault(ILogger.class, FallbackLogger.MARKER);
 		implementationFactory.setFallbackDefault(IByteReader.class, ByteReader.MARKER);
 		implementationFactory.setFallbackDefault(IByteWriter.class, ByteWriter.MARKER);
+		implementationFactory.setFallbackDefault(IClientManager.class, ClientManager.MARKER);
 		implementationFactory.inject(storage);
 
 		pluginManager = new PluginManager(this);
@@ -80,6 +83,9 @@ public class SecureChatClient implements IContext {
 		logger.debug("Gui provider: " + gui);
 
 		saveSettings();
+
+		IClientManager clientManager = implementationFactory.get(IClientManager.class, true);
+		clientManager.init();
 
 		gui.init(this::guiReady);
 	}
@@ -125,6 +131,9 @@ public class SecureChatClient implements IContext {
 
 	@Override
 	public void exit() {
+		StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
+		StackTraceElement e = stacktrace[2];
+		logger.info("Exit requested by " + e.getMethodName() + " in " + e.getClassName());
 		saveSettings();
 		System.exit(0);
 	}

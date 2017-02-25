@@ -60,7 +60,7 @@ public class JsonDatabase implements IDatabase {
 			createTable(name, format);
 		} else {
 			if (!getTable(name).getFormat().equals(format)) {
-				throw new RuntimeException("Invalid format!");
+				throw new RuntimeException("Invalid format on file for "+name+"!");
 			}
 		}
 	}

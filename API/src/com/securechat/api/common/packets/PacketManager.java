@@ -38,6 +38,11 @@ public class PacketManager {
 		registerPacket("CONNECTED", ConnectedPacket.class);
 		
 		registerPacket("DISCONNECT", DisconnectPacket.class);
-		registerPacket("NEW_CHAT", NewChatPacket.class);
+		registerPacket("USER_LIST", UserListPacket.class);
+		registerPacket("CHAT_LIST", ChatListPacket.class);
+		registerPacket("CREATE_CHAT", CreateChatPacket.class);
+		registerPacket("SEND_MESSAGE", SendMessagePacket.class);
+		
+		
 	}
 }

@@ -1,53 +1,44 @@
 package com.securechat.plugins.swtgui.main;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.stream.Collectors;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.CTabFolder2Adapter;
+import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.wb.swt.SWTResourceManager;
-
-import com.securechat.plugins.swtgui.login.LoginGui;
 
 import swing2swt.layout.BorderLayout;
 
 public class MainShell extends Shell {
 	private final FormToolkit formToolkit = new FormToolkit(Display.getDefault());
 	private Table chatsTable;
-	private Table invitesTable;
+	// private Table invitesTable;
 	private Table usersTable;
-	private Text textMessage;
+	private CTabFolder chatsTabFolder;
+
 	private Label lblServerName, lblServerInfo;
-	
 
 	public MainShell(Display display, MainGui gui) {
-		super(display, SWT.CLOSE | SWT.TITLE);
+		super(display, SWT.SHELL_TRIM | SWT.BORDER);
 		setText("Secure Chat");
 		setSize(450, 433);
 		setLayout(new BorderLayout(0, 0));
@@ -71,6 +62,7 @@ public class MainShell extends Shell {
 		lblServerName.setText("...");
 
 		lblServerInfo = new Label(composite_1, SWT.NONE);
+		lblServerInfo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		formToolkit.adapt(lblServerInfo, true, true);
 		lblServerInfo.setText("...");
 
@@ -87,6 +79,15 @@ public class MainShell extends Shell {
 		formToolkit.paintBordersFor(chatsTable);
 		chatsTable.setHeaderVisible(true);
 
+		chatsTable.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				if (chatsTable.getSelectionCount() > 0) {
+					gui.openChat(chatsTable.getSelectionIndex());
+				}
+			}
+		});
+
 		TableColumn tblclmnUnread = new TableColumn(chatsTable, SWT.NONE);
 		tblclmnUnread.setWidth(70);
 		tblclmnUnread.setText("Unread");
@@ -95,33 +96,20 @@ public class MainShell extends Shell {
 		tblclmnChatNames.setWidth(100);
 		tblclmnChatNames.setText("Name");
 
-		TableItem tableItem = new TableItem(chatsTable, SWT.NONE);
-		tableItem.setText("12");
+		// TabItem tbtmInvites = new TabItem(leftTabFolder, SWT.NONE);
+		// tbtmInvites.setText("Invites");
+		//
+		// invitesTable = new Table(leftTabFolder, SWT.BORDER |
+		// SWT.FULL_SELECTION);
+		// invitesTable.setLinesVisible(true);
+		// invitesTable.setHeaderVisible(true);
+		// tbtmInvites.setControl(invitesTable);
+		// formToolkit.paintBordersFor(invitesTable);
 
-		TableItem tableItem_1 = new TableItem(chatsTable, 0);
-		tableItem_1.setText("New TableItem");
-
-		TableItem tableItem_2 = new TableItem(chatsTable, 0);
-		tableItem_2.setText("New TableItem");
-
-		TableItem tableItem_3 = new TableItem(chatsTable, 0);
-		tableItem_3.setText("New TableItem");
-
-		TableItem tableItem_4 = new TableItem(chatsTable, 0);
-		tableItem_4.setText("New TableItem");
-
-		TabItem tbtmInvites = new TabItem(leftTabFolder, SWT.NONE);
-		tbtmInvites.setText("Invites");
-
-		invitesTable = new Table(leftTabFolder, SWT.BORDER | SWT.FULL_SELECTION);
-		invitesTable.setLinesVisible(true);
-		invitesTable.setHeaderVisible(true);
-		tbtmInvites.setControl(invitesTable);
-		formToolkit.paintBordersFor(invitesTable);
-
-		TableColumn tblclmnInviteNames = new TableColumn(invitesTable, SWT.NONE);
-		tblclmnInviteNames.setWidth(100);
-		tblclmnInviteNames.setText("Name");
+		// TableColumn tblclmnInviteNames = new TableColumn(invitesTable,
+		// SWT.NONE);
+		// tblclmnInviteNames.setWidth(100);
+		// tblclmnInviteNames.setText("Name");
 
 		TabItem tbtmUsers = new TabItem(leftTabFolder, SWT.NONE);
 		tbtmUsers.setText("Users");
@@ -132,6 +120,27 @@ public class MainShell extends Shell {
 		tbtmUsers.setControl(usersTable);
 		formToolkit.paintBordersFor(usersTable);
 
+		Menu menuTable = new Menu(usersTable);
+		usersTable.setMenu(menuTable);
+
+		MenuItem miTest = new MenuItem(menuTable, SWT.NONE);
+		miTest.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				gui.startChat(usersTable.getSelectionIndex());
+			}
+		});
+		miTest.setText("Open Chat");
+
+		usersTable.addListener(SWT.MenuDetect, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				if (usersTable.getSelectionCount() <= 0) {
+					event.doit = false;
+				}
+			}
+		});
+
 		TableColumn tblclmnUsername = new TableColumn(usersTable, SWT.NONE);
 		tblclmnUsername.setWidth(100);
 		tblclmnUsername.setText("Username");
@@ -140,71 +149,46 @@ public class MainShell extends Shell {
 		tblclmnStatus.setWidth(100);
 		tblclmnStatus.setText("Status");
 
-		CTabFolder chatsTabFolder = new CTabFolder(sashForm, SWT.BORDER | SWT.CLOSE);
+		chatsTabFolder = new CTabFolder(sashForm, SWT.BORDER | SWT.CLOSE);
 		formToolkit.adapt(chatsTabFolder);
 		formToolkit.paintBordersFor(chatsTabFolder);
 		chatsTabFolder.setSelectionBackground(
 				Display.getCurrent().getSystemColor(SWT.COLOR_TITLE_INACTIVE_BACKGROUND_GRADIENT));
 
-		CTabItem tbtmChat = new CTabItem(chatsTabFolder, SWT.NONE);
-		tbtmChat.setShowClose(true);
-		tbtmChat.setText("New Item");
+		chatsTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
+			@Override
+			public void close(CTabFolderEvent event) {
+				System.out.println("close " + event.item);
+				// event.item
 
-		Composite tabComposite = new Composite(chatsTabFolder, SWT.NONE);
-		tbtmChat.setControl(tabComposite);
-		formToolkit.paintBordersFor(tabComposite);
-		tabComposite.setLayout(new GridLayout(1, false));
-		
-		Composite messagesComposite = new Composite(tabComposite, SWT.NONE);
-		messagesComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
-		
-		Browser messagesBrowser = new Browser(messagesComposite, SWT.NONE);
-
-		String result = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/test.html"))).lines()
-				.collect(Collectors.joining("\n"));
-		
-		String msg = "";
-		
-		for(int i = 0; i < 50; i++){
-			msg += "<li class=\"right\">hello</li>";
-			msg += "<li>hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello </li>";
-		}
-		
-		result = result.replace("@MESSAGES@", msg);
-		
-		messagesBrowser.setText(result);
-		
-		String stringToAdd = "wee";
-		messagesBrowser.execute(String.format("document.write('%s')", stringToAdd
-		                .replace("\\", "\\\\")
-		                .replace("'", "\\'")
-		                .replace("\"", "\\\"")));
-		
-		messagesComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1));
-		formToolkit.adapt(messagesComposite);
-		formToolkit.paintBordersFor(messagesComposite);
-
-		Composite lowerComposite = new Composite(tabComposite, SWT.NONE);
-		lowerComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		formToolkit.adapt(lowerComposite);
-		formToolkit.paintBordersFor(lowerComposite);
-		lowerComposite.setLayout(new GridLayout(2, false));
-
-		textMessage = new Text(lowerComposite, SWT.BORDER);
-		textMessage.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		textMessage.setBounds(0, 0, 81, 40);
-		formToolkit.adapt(textMessage, true, true);
-
-		Button btnSend = new Button(lowerComposite, SWT.NONE);
-		btnSend.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-		formToolkit.adapt(btnSend, true, true);
-		btnSend.setText("Send");
+			}
+		});
 
 		sashForm.setWeights(new int[] { 20, 80 });
 	}
+
+	public FormToolkit getFormToolkit() {
+		return formToolkit;
+	}
+
+	public Label getLblServerName() {
+		return lblServerName;
+	}
+
+	public Label getLblServerInfo() {
+		return lblServerInfo;
+	}
+
+	public Table getChatsTable() {
+		return chatsTable;
+	}
+
+	public Table getUsersTable() {
+		return usersTable;
+	}
 	
-	public void updateServerInfo(String msg){
-		lblServerInfo.setText(msg);
+	public CTabFolder getChatsTabFolder() {
+		return chatsTabFolder;
 	}
 
 	@Override
