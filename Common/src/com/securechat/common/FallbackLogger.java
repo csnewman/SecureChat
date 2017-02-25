@@ -9,15 +9,18 @@ public class FallbackLogger implements ILogger {
 	public static final ImplementationMarker MARKER = new ImplementationMarker("inbuilt", "n/a", "fallback_logger",
 			"1.0.0");
 	private Sides side;
+	private boolean showDebug;
 
 	@Override
-	public void init(IContext context) {
+	public void init(IContext context, boolean showDebug) {
 		side = context.getSide();
+		this.showDebug = showDebug;
 	}
 
 	@Override
 	public void debug(String message) {
-		System.out.println("[" + side + "] [DEBUG] " + message);
+		if (showDebug)
+			System.out.println("[" + side + "] [DEBUG] " + message);
 	}
 
 	@Override

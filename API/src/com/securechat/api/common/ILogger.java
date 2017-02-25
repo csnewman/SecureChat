@@ -4,7 +4,7 @@ import com.securechat.api.common.implementation.IImplementation;
 
 public interface ILogger extends IImplementation {
 	
-	public void init(IContext context);
+	public void init(IContext context, boolean debug);
 	
 	public void debug(String message);
 	

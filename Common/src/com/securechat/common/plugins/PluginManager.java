@@ -48,7 +48,7 @@ public class PluginManager implements IPluginManager {
 
 	@Override
 	public void loadPlugins() {
-		List<String> classes = getClasses();
+		List<String> classes = context.getStorage().loadPlugins();
 		List<String> loadedClasses = new ArrayList<String>();
 
 		for (String clazzName : classes) {
@@ -192,53 +192,14 @@ public class PluginManager implements IPluginManager {
 		try {
 			return Class.forName(name);
 		} catch (Exception e) {
+//			System.out.println("Failed to load " + name);
+			// e.printStackTrace();
 			return null;
 		} catch (Error e) {
+//			System.out.println("Failed to load " + name);
+			// e.printStackTrace();
 			return null;
 		}
-	}
-
-	private List<String> getClasses() {
-		List<String> classes = new ArrayList<String>();
-		List<String> paths;
-
-		String javaClassPath = System.getProperty("java.class.path");
-		if (javaClassPath != null) {
-			paths = Arrays.asList(javaClassPath.split(File.pathSeparator));
-		} else {
-			paths = new ArrayList<String>();
-		}
-
-		for (String path : paths) {
-			try {
-				if (path.endsWith(".jar")) {
-					JarInputStream jis = new JarInputStream(new FileInputStream(path));
-					ZipEntry entry = null;
-					while ((entry = jis.getNextJarEntry()) != null) {
-						if (entry.getName().endsWith(".class")) {
-							String name = entry.getName();
-							name = name.replaceAll("/", ".");
-							name = name.replaceAll("\\\\", ".");
-							name = name.replace(".class", "");
-							classes.add(name);
-						}
-					}
-					jis.close();
-				} else {
-					File sDir = new File(path).getAbsoluteFile();
-					String basePath = sDir.getAbsolutePath();
-					List<String> found = Files.walk(Paths.get(sDir.toURI())).filter(Files::isRegularFile)
-							.filter(p -> p.toString().endsWith(".class")).map(p -> p.toFile().getAbsolutePath())
-							.map(s -> s.substring(basePath.length() + 1))
-							.map(s -> s.replaceAll("/", ".").replaceAll("\\\\", ".").replace(".class", ""))
-							.collect(Collectors.toList());
-					classes.addAll(found);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return classes;
 	}
 
 }

@@ -49,12 +49,12 @@ public class ChatServer implements IContext {
 	private IAsymmetricKeyEncryption networkKey;
 	private IServerNetworkManager networkManager;
 
-	public void init(IStorage storage, char[] keystorePassword) {
+	public void init(IStorage storage, boolean showDebug, char[] keystorePassword) {
 		this.storage = storage;
 		storage.init();
 
 		logger = new FallbackLogger();
-		logger.init(this);
+		logger.init(this, showDebug);
 
 		logger.info("SecureChatServer (" + MARKER.getId() + ")");
 
@@ -68,6 +68,7 @@ public class ChatServer implements IContext {
 				settingsCollection.getPermissive(IMPLEMENTATIONS_PROPERTY));
 		implementationFactory.set(IContext.class, this);
 		implementationFactory.set(IStorage.class, storage);
+		implementationFactory.set(ILogger.class, logger);
 		implementationFactory.set(IImplementationFactory.class, implementationFactory);
 		implementationFactory.register(FallbackLogger.MARKER, ILogger.class, FallbackLogger::new);
 		implementationFactory.register(ByteReader.MARKER, IByteReader.class, ByteReader::new);
@@ -86,7 +87,7 @@ public class ChatServer implements IContext {
 
 		logger = implementationFactory.provide(ILogger.class);
 		implementationFactory.set(ILogger.class, logger);
-		logger.init(this);
+		logger.init(this, showDebug);
 		logger.debug("Logger provider: " + logger);
 
 		pluginManager.invokeHook(Hooks.Init, this);
@@ -205,6 +206,24 @@ public class ChatServer implements IContext {
 	}
 
 	@Override
+	public String getOsType() {
+		String osName = System.getProperty("os.name").toLowerCase();
+		if (osName.contains("win")) {
+			return "win";
+		} else if (osName.contains("mac")) {
+			return "osx";
+		} else if (osName.contains("linux") || osName.contains("nix")) {
+			return "linux";
+		}
+		return "unknown";
+	}
+
+	@Override
+	public String getPlatform() {
+		return System.getProperty("os.arch").toLowerCase().contains("64") ? "64" : "32";
+	}
+
+	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
 	}
@@ -221,7 +240,7 @@ public class ChatServer implements IContext {
 
 		INSTANCE = new ChatServer();
 		try {
-			INSTANCE.init(new FileStorage(), password);
+			INSTANCE.init(new FileStorage(), args.length > 0 && args[0].equalsIgnoreCase("-debug"), password);
 		} catch (Exception e) {
 			INSTANCE.handleCrash(e);
 		}

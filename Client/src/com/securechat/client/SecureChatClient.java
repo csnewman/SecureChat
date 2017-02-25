@@ -36,12 +36,12 @@ public class SecureChatClient implements IContext {
 	private IStorage storage;
 	private IGuiProvider gui;
 
-	public void init(IStorage storage) {
+	public void init(IStorage storage, boolean showDebug) {
 		this.storage = storage;
 		storage.init();
 
 		logger = new FallbackLogger();
-		logger.init(this);
+		logger.init(this, showDebug);
 
 		logger.info("SecureChatClient (" + MARKER.getId() + ")");
 
@@ -53,6 +53,7 @@ public class SecureChatClient implements IContext {
 		implementationFactory = new ImplementationFactory(logger, settings.getPermissive(IMPLEMENTATIONS_PROPERTY));
 		implementationFactory.set(IContext.class, this);
 		implementationFactory.set(IStorage.class, storage);
+		implementationFactory.set(ILogger.class, logger);
 		implementationFactory.set(IImplementationFactory.class, implementationFactory);
 		implementationFactory.register(FallbackLogger.MARKER, ILogger.class, FallbackLogger::new);
 		implementationFactory.register(ByteReader.MARKER, IByteReader.class, ByteReader::new);
@@ -71,7 +72,7 @@ public class SecureChatClient implements IContext {
 
 		logger = implementationFactory.provide(ILogger.class);
 		implementationFactory.set(ILogger.class, logger);
-		logger.init(this);
+		logger.init(this, showDebug);
 		logger.debug("Logger provider: " + logger);
 
 		pluginManager.invokeHook(Hooks.Init, this);
@@ -177,6 +178,24 @@ public class SecureChatClient implements IContext {
 	}
 
 	@Override
+	public String getOsType() {
+		String osName = System.getProperty("os.name").toLowerCase();
+		if (osName.contains("win")) {
+			return "win";
+		} else if (osName.contains("mac")) {
+			return "osx";
+		} else if (osName.contains("linux") || osName.contains("nix")) {
+			return "linux";
+		}
+		return "unknown";
+	}
+
+	@Override
+	public String getPlatform() {
+		return System.getProperty("os.arch").toLowerCase().contains("64") ? "64" : "32";
+	}
+
+	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
 	}
@@ -184,7 +203,7 @@ public class SecureChatClient implements IContext {
 	public static void main(String[] args) {
 		INSTANCE = new SecureChatClient();
 		try {
-			INSTANCE.init(new FileStorage());
+			INSTANCE.init(new FileStorage(), args.length > 0 && args[0].equalsIgnoreCase("-debug"));
 		} catch (Exception e) {
 			INSTANCE.handleCrash(e);
 		}

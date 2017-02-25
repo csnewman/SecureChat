@@ -31,8 +31,10 @@ public class ChatInstance {
 	private CTabFolder chatsTabFolder;
 	private CTabItem tbtmChat;
 	private Browser messagesBrowser;
+	private MainGui gui;
 
-	public ChatInstance(String localUser,  IChat chat) {
+	public ChatInstance(MainGui gui, String localUser, IChat chat) {
+		this.gui = gui;
 		this.localUser = localUser;
 		this.chat = chat;
 	}
@@ -103,6 +105,7 @@ public class ChatInstance {
 		chatsTabFolder.setRedraw(true);
 		chatsTabFolder.setSelection(tbtmChat);
 		chatsTabFolder.showSelection();
+		gui.opened(chat.getOtherUser());
 	}
 
 	public void updateMessages() {

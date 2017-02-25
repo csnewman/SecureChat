@@ -18,4 +18,6 @@ public interface IMainGui extends IGui {
 
 	public void disconnected(String msg);
 
+	public void updateChatUnread(IChat chat);
+
 }

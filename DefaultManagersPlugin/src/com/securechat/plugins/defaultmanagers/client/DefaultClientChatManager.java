@@ -96,6 +96,7 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 				if (!chats.containsKey(user)) {
 					Chat chat = new Chat(this, chatIds[i], user, chatProtected[i], testData[i]);
 					factory.inject(chat);
+					chat.load();
 					chats.put(user, chat);
 					chatIdMap.put(chatIds[i], chat);
 				}

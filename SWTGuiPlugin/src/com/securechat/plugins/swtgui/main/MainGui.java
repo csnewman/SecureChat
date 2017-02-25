@@ -37,6 +37,8 @@ public class MainGui extends GuiBase implements IMainGui {
 	private String[] usernames;
 	private Map<String, ChatInstance> instances;
 	private Map<CTabItem, String> tabMappings;
+	private Map<IChat, TableItem> chatTableMap;
+	private String lastSelection;
 
 	public MainGui(SWTGuiPlugin plugin) {
 		super(plugin);
@@ -48,6 +50,7 @@ public class MainGui extends GuiBase implements IMainGui {
 		tabMappings = new HashMap<CTabItem, String>();
 		name = clientManager.getConnectionProfile().getName();
 		username = clientManager.getConnectionProfile().getUsername();
+		chatTableMap = new HashMap<IChat, TableItem>();
 	}
 
 	@Override
@@ -94,15 +97,27 @@ public class MainGui extends GuiBase implements IMainGui {
 		plugin.sync(() -> {
 			Table table = shell.getChatsTable();
 			table.removeAll();
+			chatTableMap.clear();
 
 			for (IChat chat : chats) {
-				TableItem item = new TableItem(table, 0);
-				item.setText(new String[] { chat.isUnlocked() ? Integer.toString(chat.getUnread()) : "LOCKED",
-						chat.getOtherUser() });
-				item.setGrayed(!chat.isUnlocked());
+				chatTableMap.put(chat, new TableItem(table, 0));
+				updateChatUnread(chat);
 			}
 
 			MainGui.this.chats = chats;
+		});
+	}
+
+	@Override
+	public void updateChatUnread(IChat chat) {
+		TableItem item = chatTableMap.get(chat);
+		if (item == null)
+			return;
+
+		plugin.sync(() -> {
+			item.setText(new String[] { chat.isUnlocked() ? Integer.toString(chat.getUnread()) : "LOCKED",
+					chat.getOtherUser() });
+			item.setGrayed(!chat.isUnlocked());
 		});
 	}
 
@@ -147,7 +162,7 @@ public class MainGui extends GuiBase implements IMainGui {
 			chat.unlock(dialog.getValue());
 		}
 
-		ChatInstance instance = new ChatInstance(username, chat);
+		ChatInstance instance = new ChatInstance(this, username, chat);
 		instances.put(with, instance);
 		plugin.sync(() -> {
 			instance.createGui(shell.getFormToolkit(), shell.getChatsTabFolder());
@@ -155,6 +170,22 @@ public class MainGui extends GuiBase implements IMainGui {
 			instance.switchTo();
 			instance.updateMessages();
 		});
+	}
+
+	public void opened(CTabItem selection) {
+		opened(selection != null ? tabMappings.get(selection) : null);
+	}
+
+	public void opened(String selection) {
+		if (lastSelection != null && !lastSelection.equals(selection)) {
+			chatManager.getChat(lastSelection).markReading(false);
+		}
+
+		if (selection != null) {
+			chatManager.getChat(selection).markReading(true);
+		}
+
+		lastSelection = selection;
 	}
 
 	public void closeChat(CTabItem item) {
@@ -169,6 +200,7 @@ public class MainGui extends GuiBase implements IMainGui {
 
 		plugin.sync(() -> {
 			instance.getTbtmChat().dispose();
+			opened(shell.getChatsTabFolder().getSelection());
 		});
 
 		instances.remove(username);

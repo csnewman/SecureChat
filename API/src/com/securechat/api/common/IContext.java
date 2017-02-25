@@ -29,5 +29,9 @@ public interface IContext extends IImplementation {
 	public String getAppName();
 
 	public String getAppVersion();
+	
+	public String getOsType();
+	
+	public String getPlatform();
 
 }

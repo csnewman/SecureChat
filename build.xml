@@ -1,0 +1,218 @@
+<project>	
+	<property name="debug" value="true" />
+	<property name="jars" location="build/jars" />
+	<property name="api.src" location="API/src" />
+	<property name="api.libs" location="API/libs" />
+	<property name="api.jar" location="${jars}/API.jar" />
+	<property name="api.bin" location="build/classes/api" />
+
+	<property name="common.src" location="Common/src" />
+	<property name="common.jar" location="${jars}/Common.jar" />
+	<property name="common.bin" location="build/classes/common" />
+
+	<property name="client.src" location="Client/src" />
+	<property name="client.jar" location="${jars}/Client.jar" />
+	<property name="client.bin" location="build/classes/client" />
+
+	<property name="server.src" location="Server/src" />
+	<property name="server.jar" location="${jars}/Server.jar" />
+	<property name="server.bin" location="build/classes/server" />
+
+	<property name="bcpp.src" location="BasicConnectionProfilesPlugin/src" />
+	<property name="bcpp.jar" location="${jars}/plugins/BasicConnectionProfilesPlugin.jar" />
+	<property name="bcpp.bin" location="build/classes/bcpp" />
+
+	<property name="dmp.src" location="DefaultManagersPlugin/src" />
+	<property name="dmp.jar" location="${jars}/plugins/DefaultManagersPlugin.jar" />
+	<property name="dmp.bin" location="build/classes/dmp" />
+
+	<property name="jsp.src" location="JavaSecurityPlugin/src" />
+	<property name="jsp.jar" location="${jars}/plugins/JavaSecurityPlugin.jar" />
+	<property name="jsp.bin" location="build/classes/jsp" />
+
+	<property name="jdp.src" location="JsonDatabasePlugin/src" />
+	<property name="jdp.jar" location="${jars}/plugins/JsonDatabasePlugin.jar" />
+	<property name="jdp.bin" location="build/classes/jdp" />
+
+	<property name="snp.src" location="SocketNetworkingPlugin/src" />
+	<property name="snp.jar" location="${jars}/plugins/SocketNetworkingPlugin.jar" />
+	<property name="snp.bin" location="build/classes/snp" />
+
+	<property name="swtgp.src" location="SWTGuiPlugin/src" />
+	<property name="swtgp.libs" location="SWTGuiPlugin/libs" />
+	<property name="swtgp.jar" location="${jars}/plugins/SWTGuiPlugin.jar" />
+	<property name="swtgp.bin" location="build/classes/swtgp" />
+
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+
+    <target name="build">
+        <mkdir dir="${jars}"/>
+
+	<mkdir dir="${api.bin}"/>
+	<javac encoding="UTF-8" compiler="modern" source="1.8" target="1.8" destdir="${api.bin}" debug="${debug}" >
+            <classpath>
+                <pathelement location="${api.libs}\JSON--java.jar" />
+            </classpath>
+            <src path="${api.src}" />
+        </javac>
+	<jar destfile="${api.jar}">
+		<fileset dir="${api.bin}" includes="**" />
+		 <zipgroupfileset dir="${api.libs}" includes="**/*.jar" />
+        </jar>
+
+	<mkdir dir="${common.bin}"/>
+	<javac encoding="UTF-8" compiler="modern" source="1.8" target="1.8" destdir="${common.bin}" debug="${debug}" >
+            <classpath>
+                <pathelement location="${api.jar}" />
+            </classpath>
+            <src path="${common.src}" />
+        </javac>
+	<jar destfile="${common.jar}">
+		<fileset dir="${api.bin}" includes="**" />
+		<zipgroupfileset dir="${api.libs}" includes="**/*.jar" />
+		<fileset dir="${common.bin}" includes="**" />
+        </jar>
+
+	<mkdir dir="${client.bin}"/>
+	<javac encoding="UTF-8" compiler="modern" source="1.8" target="1.8" destdir="${client.bin}" debug="${debug}" >
+            <classpath>
+                <pathelement location="${api.jar}" />
+                <pathelement location="${common.jar}" />
+            </classpath>
+            <src path="${client.src}" />
+        </javac>
+	<jar destfile="${client.jar}">
+		<manifest>
+ 			<attribute name="Main-Class" value="com.securechat.client.SecureChatClient"  />
+		</manifest>
+		<fileset dir="${api.bin}" includes="**" />
+		<zipgroupfileset dir="${api.libs}" includes="**/*.jar" />
+		<fileset dir="${common.bin}" includes="**" />
+		<fileset dir="${client.bin}" includes="**" />
+        </jar>
+
+	<mkdir dir="${server.bin}"/>
+	<javac encoding="UTF-8" compiler="modern" source="1.8" target="1.8" destdir="${server.bin}" debug="${debug}" >
+            <classpath>
+                <pathelement location="${api.jar}" />
+                <pathelement location="${common.jar}" />
+            </classpath>
+            <src path="${server.src}" />
+        </javac>
+	<jar destfile="${server.jar}">
+		<manifest>
+ 			<attribute name="Main-Class" value="com.securechat.server.ChatServer" />
+		</manifest>
+		<fileset dir="${api.bin}" includes="**" />
+		<zipgroupfileset dir="${api.libs}" includes="**/*.jar" />
+		<fileset dir="${common.bin}" includes="**" />
+		<fileset dir="${server.bin}" includes="**" />
+        </jar>
+
+	<mkdir dir="${bcpp.bin}"/>
+	<javac encoding="UTF-8" compiler="modern" source="1.8" target="1.8" destdir="${bcpp.bin}" debug="${debug}" >
+            <classpath>
+                <pathelement location="${api.jar}" />
+            </classpath>
+            <src path="${bcpp.src}" />
+        </javac>
+	<jar destfile="${bcpp.jar}">
+		<fileset dir="${bcpp.bin}" includes="**" />
+        </jar>
+
+	<mkdir dir="${dmp.bin}"/>
+	<javac encoding="UTF-8" compiler="modern" source="1.8" target="1.8" destdir="${dmp.bin}" debug="${debug}" >
+            <classpath>
+                <pathelement location="${api.jar}" />
+            </classpath>
+            <src path="${dmp.src}" />
+        </javac>
+	<jar destfile="${dmp.jar}">
+		<fileset dir="${dmp.bin}" includes="**" />
+        </jar>
+
+	<mkdir dir="${jsp.bin}"/>
+	<javac encoding="UTF-8" compiler="modern" source="1.8" target="1.8" destdir="${jsp.bin}" debug="${debug}" >
+            <classpath>
+                <pathelement location="${api.jar}" />
+            </classpath>
+            <src path="${jsp.src}" />
+        </javac>
+	<jar destfile="${jsp.jar}">
+		<fileset dir="${jsp.bin}" includes="**" />
+        </jar>
+
+	<mkdir dir="${jdp.bin}"/>
+	<javac encoding="UTF-8" compiler="modern" source="1.8" target="1.8" destdir="${jdp.bin}" debug="${debug}" >
+            <classpath>
+                <pathelement location="${api.jar}" />
+            </classpath>
+            <src path="${jdp.src}" />
+        </javac>
+	<jar destfile="${jdp.jar}">
+		<fileset dir="${jdp.bin}" includes="**" />
+        </jar>
+
+	<mkdir dir="${snp.bin}"/>
+	<javac encoding="UTF-8" compiler="modern" source="1.8" target="1.8" destdir="${snp.bin}" debug="${debug}" >
+            <classpath>
+                <pathelement location="${api.jar}" />
+            </classpath>
+            <src path="${snp.src}" />
+        </javac>
+	<jar destfile="${snp.jar}">
+		<fileset dir="${snp.bin}" includes="**" />
+        </jar>
+
+	<mkdir dir="${swtgp.bin}"/>
+	<javac encoding="UTF-8" compiler="modern" source="1.8" target="1.8" destdir="${swtgp.bin}" debug="${debug}" >
+            <classpath>
+                <pathelement location="${api.jar}" />
+ 		<pathelement location="${swtgp.libs}/swing2swt.jar" />
+		<pathelement location="${swtgp.libs}/swt-linux64-4.6.2.jar" />
+		<pathelement location="${swtgp.libs}/com.ibm.icu_56.1.0.v201601250100.jar" />
+		<pathelement location="${swtgp.libs}/org.eclipse.core.commands_3.8.0.v20160316-1921.jar" />
+		<pathelement location="${swtgp.libs}/org.eclipse.core.runtime_3.12.0.v20160606-1342.jar" />
+		<pathelement location="${swtgp.libs}/org.eclipse.equinox.common_3.8.0.v20160509-1230.jar" />
+		<pathelement location="${swtgp.libs}/org.eclipse.equinox.registry_3.6.100.v20160223-2218.jar" />
+		<pathelement location="${swtgp.libs}/org.eclipse.jface.text_3.11.2.v20161113-1700.jar" />
+		<pathelement location="${swtgp.libs}/org.eclipse.jface_3.12.1.v20160923-1528.jar" />
+		<pathelement location="${swtgp.libs}/org.eclipse.osgi_3.11.2.v20161107-1947.jar" />
+		<pathelement location="${swtgp.libs}/org.eclipse.text_3.6.0.v20160503-1849.jar" />
+		<pathelement location="${swtgp.libs}/org.eclipse.ui.forms_3.7.0.v20160518-1929.jar" />
+		<pathelement location="${swtgp.libs}/org.eclipse.ui.workbench_3.108.2.v20161025-2029.jar" />
+		<pathelement location="${swtgp.libs}/jar-in-jar-loader.jar" />
+            </classpath>
+            <src path="${swtgp.src}" />
+        </javac>
+	<jar destfile="${swtgp.jar}">
+		<fileset dir="${swtgp.bin}" includes="**" />
+        </jar>
+	<jar jarfile="${swtgp.jar}">
+		<manifest>
+ 			<attribute name="Loader-Class" value="com.securechat.plugins.swtgui.SWTLoader"  />
+		</manifest>
+		<fileset dir="${swtgp.bin}" includes="**/*.class" />
+		<zipfileset excludes="META-INF/*" src="${swtgp.libs}/swing2swt.jar"/>
+		<zipfileset excludes="META-INF/*" src="${swtgp.libs}/com.ibm.icu_56.1.0.v201601250100.jar"/>
+		<zipfileset excludes="META-INF/*" src="${swtgp.libs}/org.eclipse.core.commands_3.8.0.v20160316-1921.jar"/>
+		<zipfileset excludes="META-INF/*" src="${swtgp.libs}/org.eclipse.core.runtime_3.12.0.v20160606-1342.jar"/>
+		<zipfileset excludes="META-INF/*" src="${swtgp.libs}/org.eclipse.equinox.common_3.8.0.v20160509-1230.jar"/>
+		<zipfileset excludes="META-INF/*" src="${swtgp.libs}/org.eclipse.equinox.registry_3.6.100.v20160223-2218.jar"/>
+		<zipfileset excludes="META-INF/*" src="${swtgp.libs}/org.eclipse.jface.text_3.11.2.v20161113-1700.jar"/>
+		<zipfileset excludes="META-INF/*" src="${swtgp.libs}/org.eclipse.jface_3.12.1.v20160923-1528.jar"/>
+		<zipfileset excludes="META-INF/*" src="${swtgp.libs}/org.eclipse.osgi_3.11.2.v20161107-1947.jar"/>
+		<zipfileset excludes="META-INF/*" src="${swtgp.libs}/org.eclipse.text_3.6.0.v20160503-1849.jar"/>
+		<zipfileset excludes="META-INF/*" src="${swtgp.libs}/org.eclipse.ui.forms_3.7.0.v20160518-1929.jar"/>
+		<zipfileset excludes="META-INF/*" src="${swtgp.libs}/org.eclipse.ui.workbench_3.108.2.v20161025-2029.jar"/>
+		<zipfileset excludes="META-INF/*" src="${swtgp.libs}/jar-in-jar-loader.jar"/>
+		<fileset dir="${swtgp.libs}" includes="swt-*-4.6.2.jar" />
+		<fileset dir="${swtgp.src}" excludes="**/*.java" />
+	</jar>
+
+
+    </target>
+
+</project>

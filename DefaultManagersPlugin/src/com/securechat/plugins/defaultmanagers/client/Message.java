@@ -29,6 +29,7 @@ public class Message implements IMessage {
 		}
 	}
 
+	@Override
 	public byte[] getContent() {
 		return content;
 	}

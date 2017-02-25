@@ -159,7 +159,14 @@ public class MainShell extends Shell {
 		chatsTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
 			@Override
 			public void close(CTabFolderEvent event) {
-				gui.closeChat((CTabItem)event.item);
+				gui.closeChat((CTabItem) event.item);
+			}
+		});
+
+		chatsTabFolder.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent paramSelectionEvent) {
+				gui.opened(chatsTabFolder.getSelection());
 			}
 		});
 
@@ -185,7 +192,7 @@ public class MainShell extends Shell {
 	public Table getUsersTable() {
 		return usersTable;
 	}
-	
+
 	public CTabFolder getChatsTabFolder() {
 		return chatsTabFolder;
 	}
