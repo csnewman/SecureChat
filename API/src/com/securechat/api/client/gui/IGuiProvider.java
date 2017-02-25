@@ -11,5 +11,7 @@ public interface IGuiProvider extends IImplementation {
 	public IGui getLoginGui();
 
 	public IMainGui getMainGui();
+	
+	public void handleCrash(Throwable reason);
 
 }

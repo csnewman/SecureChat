@@ -3,9 +3,11 @@ package com.securechat.plugins.socketnetworking;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
+import com.securechat.api.common.IContext;
 import com.securechat.api.common.ILogger;
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.implementation.ImplementationMarker;
@@ -24,6 +26,8 @@ public class NetworkConnection implements INetworkConnection {
 			SocketNetworkingPlugin.VERSION, "network_connection", "1.0.0");
 	@Inject(associate = true)
 	protected IHasher hasher;
+	@InjectInstance
+	protected IContext context;
 	@InjectInstance
 	protected IImplementationFactory factory;
 	@InjectInstance
@@ -71,7 +75,7 @@ public class NetworkConnection implements INetworkConnection {
 
 				handler.accept(packet);
 			}
-		} catch (EOFException e) {
+		} catch (EOFException | SocketException e ) {
 			e.printStackTrace();
 			try {
 				socket.close();
@@ -86,7 +90,7 @@ public class NetworkConnection implements INetworkConnection {
 			} catch (IOException e1) {
 			}
 			active = false;
-			disconnectHandler.accept("Internal Error (" + e.getMessage() + ":" + e.getClass() + ")");
+			context.handleCrash(e);
 		}
 	}
 

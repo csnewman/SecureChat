@@ -16,6 +16,8 @@ public interface IContext extends IImplementation {
 
 	public void saveSettings();
 
+	public void handleCrash(Throwable reason);
+	
 	public void exit();
 
 	public ILogger getLogger();

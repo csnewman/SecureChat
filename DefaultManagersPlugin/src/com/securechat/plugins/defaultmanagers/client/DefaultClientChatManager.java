@@ -1,59 +1,52 @@
-package com.securechat.client;
+package com.securechat.plugins.defaultmanagers.client;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.securechat.api.client.IChat;
 import com.securechat.api.client.IClientManager;
+import com.securechat.api.client.chat.IChat;
+import com.securechat.api.client.chat.IClientChatManager;
 import com.securechat.api.client.gui.IGuiProvider;
 import com.securechat.api.client.gui.IMainGui;
 import com.securechat.api.common.ILogger;
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.implementation.ImplementationMarker;
-import com.securechat.api.common.network.IConnectionProfile;
-import com.securechat.api.common.network.INetworkConnection;
 import com.securechat.api.common.packets.ChatListPacket;
 import com.securechat.api.common.packets.CreateChatPacket;
 import com.securechat.api.common.packets.IPacket;
-import com.securechat.api.common.packets.UserListPacket;
+import com.securechat.api.common.packets.IPacketHandler;
+import com.securechat.api.common.packets.MessageHistoryPacket;
+import com.securechat.api.common.packets.NewMessagePacket;
 import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.security.IPasswordEncryption;
+import com.securechat.plugins.defaultmanagers.DefaultManagersPlugin;
 
-public class ClientManager implements IClientManager {
+public class DefaultClientChatManager implements IClientChatManager, IPacketHandler {
+	public static final ImplementationMarker MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME,
+			DefaultManagersPlugin.VERSION, "client_chat_manager", "1.0.0");
 	public static final byte[] TEST = "TEST".getBytes();
-	public static final ImplementationMarker MARKER = new ImplementationMarker("inbuilt", "n/a", "client_manager",
-			"1.0.0");
 	@InjectInstance
 	private ILogger log;
 	@InjectInstance
 	private IGuiProvider guiProvider;
 	@InjectInstance
 	private IImplementationFactory factory;
-	private INetworkConnection connection;
+	@InjectInstance
+	private IClientManager clientManager;
 	private IMainGui mainGui;
-	private IConnectionProfile profile;
 	private Map<String, Chat> chats;
+	private Map<String, Chat> chatIdMap;
 	private Map<String, String> tempChatCache;
 
 	@Override
 	public void init() {
-		chats = new HashMap<String, Chat>();
-		tempChatCache = new HashMap<String, String>();
-	}
-
-	@Override
-	public void handleConnected(IConnectionProfile profile, INetworkConnection connection) {
-		this.connection = connection;
-		this.profile = profile;
-		log.info("Connected");
-		chats.clear();
-		connection.setHandler(this::handlePacket);
-		connection.setDisconnectHandler(this::handleError);
-
+		clientManager.addPacketHandler(this);
 		mainGui = guiProvider.getMainGui();
-		mainGui.init(this);
-		mainGui.open();
+
+		chats = new HashMap<String, Chat>();
+		chatIdMap = new HashMap<String, Chat>();
+		tempChatCache = new HashMap<String, String>();
 	}
 
 	@Override
@@ -82,32 +75,20 @@ public class ClientManager implements IClientManager {
 
 			tempChatCache.put(username, password);
 
-			sendPacket(new CreateChatPacket(username, test, protect));
+			clientManager.sendPacket(new CreateChatPacket(username, test, protect));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void handlePacket(IPacket packet) {
-		log.debug("HANDLE PACKET " + packet);
-		if (packet instanceof UserListPacket) {
-			UserListPacket usp = (UserListPacket) packet;
-			String[] names = usp.getUsernames();
-			boolean[] online = usp.getOnline();
-
-			mainGui.updateUserList(names, online);
-
-			int count = 0;
-			for (boolean b : online) {
-				if (b)
-					count++;
-			}
-			mainGui.updateOnlineCount(count, names.length);
-		} else if (packet instanceof ChatListPacket) {
+	@Override
+	public boolean handlePacket(IPacket packet) {
+		if (packet instanceof ChatListPacket) {
 			ChatListPacket clp = (ChatListPacket) packet;
 			String[] chatIds = clp.getChatIds();
 			String[] chatUsers = clp.getChatUsers();
 			boolean[] chatProtected = clp.getChatProtected();
+			int[] lastIds = clp.getLastIds();
 			byte[][] testData = clp.getTestData();
 
 			for (int i = 0; i < chatIds.length; i++) {
@@ -116,42 +97,65 @@ public class ClientManager implements IClientManager {
 					Chat chat = new Chat(this, chatIds[i], user, chatProtected[i], testData[i]);
 					factory.inject(chat);
 					chats.put(user, chat);
+					chatIdMap.put(chatIds[i], chat);
 				}
+				Chat chat = chats.get(user);
 				if (tempChatCache.containsKey(user)) {
-					Chat chat = chats.get(user);
 					if (!chat.unlock(tempChatCache.get(user))) {
 						throw new RuntimeException("Unlock failed!");
 					}
 					tempChatCache.remove(user);
 					mainGui.openChat(user);
 				}
+				chat.checkLast(lastIds[i]);
 			}
 			mainGui.updateChatList(chats.values().toArray(new Chat[0]));
+			return true;
+		} else if (packet instanceof MessageHistoryPacket) {
+			MessageHistoryPacket mhp = (MessageHistoryPacket) packet;
+
+			if (!chatIdMap.containsKey(mhp.getChatId())) {
+				log.error("Chat id unknown");
+				return true;
+			}
+
+			Chat chat = chatIdMap.get(mhp.getChatId());
+
+			Message[] messages = new Message[mhp.getSenders().length];
+			for (int i = 0; i < messages.length; i++) {
+				messages[i] = new Message(mhp.getContents()[i], chat.isProtected(), mhp.getSenders()[i],
+						mhp.getTimes()[i]);
+			}
+
+			chat.importMessages(messages, mhp.getLastId());
+		} else if (packet instanceof NewMessagePacket) {
+			NewMessagePacket nmp = (NewMessagePacket) packet;
+
+			if (!chatIdMap.containsKey(nmp.getChatId())) {
+				log.error("Chat id unknown");
+				return true;
+			}
+
+			Chat chat = chatIdMap.get(nmp.getChatId());
+			chat.importMessages(
+					new Message[] { new Message(nmp.getContent(), chat.isProtected(), nmp.getSender(), nmp.getTime()) },
+					nmp.getMessageId());
+			return true;
 		}
+		return false;
 	}
 
-	@Override
-	public void sendPacket(IPacket packet) {
-		connection.sendPacket(packet);
+	public IMainGui getMainGui() {
+		return mainGui;
 	}
 
-	private void handleError(String msg) {
-		log.debug("HANDLE ERROR " + msg);
+	public IClientManager getClientManager() {
+		return clientManager;
 	}
 
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
-	}
-
-	@Override
-	public IConnectionProfile getConnectionProfile() {
-		return profile;
-	}
-
-	@Override
-	public INetworkConnection getConnection() {
-		return connection;
 	}
 
 }

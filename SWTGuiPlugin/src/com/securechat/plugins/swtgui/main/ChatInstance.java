@@ -22,8 +22,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
-import com.securechat.api.client.IChat;
-import com.securechat.api.client.IMessage;
+import com.securechat.api.client.chat.IChat;
+import com.securechat.api.client.chat.IMessage;
 
 public class ChatInstance {
 	private String localUser;
@@ -53,6 +53,7 @@ public class ChatInstance {
 		messagesComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
 
 		messagesBrowser = new Browser(messagesComposite, SWT.NONE);
+		messagesBrowser.setText(loading);
 
 		messagesComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1));
 		formToolkit.adapt(messagesComposite);
@@ -105,6 +106,11 @@ public class ChatInstance {
 	}
 
 	public void updateMessages() {
+		if(!chat.hasLoaded()){
+			messagesBrowser.setText(loading);
+			return;
+		}
+		
 		List<IMessage> messages = chat.getMessages();
 		Collections.sort(messages, (o1, o2) -> Long.compare(o1.getTime(), o2.getTime()));
 
@@ -125,6 +131,9 @@ public class ChatInstance {
 
 	private static final String template = new BufferedReader(new InputStreamReader(
 			ChatInstance.class.getResourceAsStream("/com/securechat/plugins/swtgui/main/template.html"))).lines()
+					.collect(Collectors.joining("\n"));
+	private static final String loading = new BufferedReader(new InputStreamReader(
+			ChatInstance.class.getResourceAsStream("/com/securechat/plugins/swtgui/main/loading.html"))).lines()
 					.collect(Collectors.joining("\n"));
 
 }

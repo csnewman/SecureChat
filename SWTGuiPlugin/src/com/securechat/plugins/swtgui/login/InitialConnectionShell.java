@@ -17,12 +17,15 @@ import org.eclipse.swt.widgets.Text;
 
 import com.securechat.api.client.network.EnumConnectionSetupStatus;
 import com.securechat.api.client.network.IClientNetworkManager;
+import com.securechat.api.common.IContext;
 import com.securechat.api.common.network.IConnectionProfile;
 import com.securechat.api.common.network.IConnectionProfileProvider;
 import com.securechat.api.common.plugins.InjectInstance;
 
 public class InitialConnectionShell extends Shell {
 	private LoginGui loginGui;
+	@InjectInstance
+	private IContext context;
 	@InjectInstance
 	private IClientNetworkManager networkManager;
 	private Text username;
@@ -103,7 +106,11 @@ public class InitialConnectionShell extends Shell {
 		String usernameValue = username.getText();
 
 		new Thread(() -> {
-			networkManager.setupConnection(provider, profile, usernameValue, this::handleUpdate);
+			try {
+				networkManager.setupConnection(provider, profile, usernameValue, this::handleUpdate);
+			} catch (Exception e) {
+				context.handleCrash(e);
+			}
 		}).start();
 	}
 
@@ -123,7 +130,7 @@ public class InitialConnectionShell extends Shell {
 			break;
 		case Success:
 			setStatus(false, "Account Created!");
-			loginGui.getPlugin().sync(()->{
+			loginGui.getPlugin().sync(() -> {
 				close();
 			});
 			break;

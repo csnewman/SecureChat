@@ -4,19 +4,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 
-import com.securechat.api.client.IChat;
 import com.securechat.api.client.IClientManager;
+import com.securechat.api.client.chat.IChat;
+import com.securechat.api.client.chat.IClientChatManager;
 import com.securechat.api.client.gui.IMainGui;
 import com.securechat.api.common.implementation.ImplementationMarker;
+import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.plugins.swtgui.GuiBase;
 import com.securechat.plugins.swtgui.SWTGuiPlugin;
 
@@ -24,21 +27,25 @@ public class MainGui extends GuiBase implements IMainGui {
 	public static final ImplementationMarker MARKER = new ImplementationMarker(SWTGuiPlugin.NAME, SWTGuiPlugin.VERSION,
 			"main_gui", "1.0.0");
 	private MainShell shell;
+	@InjectInstance
+	private IClientChatManager chatManager;
+	@InjectInstance
 	private IClientManager clientManager;
 	private String username, name;
 	private int online, totalUsers;
 	private IChat[] chats;
 	private String[] usernames;
 	private Map<String, ChatInstance> instances;
+	private Map<CTabItem, String> tabMappings;
 
 	public MainGui(SWTGuiPlugin plugin) {
 		super(plugin);
 	}
 
 	@Override
-	public void init(IClientManager clientManager) {
-		this.clientManager = clientManager;
+	public void init() {
 		instances = new HashMap<String, ChatInstance>();
+		tabMappings = new HashMap<CTabItem, String>();
 		name = clientManager.getConnectionProfile().getName();
 		username = clientManager.getConnectionProfile().getUsername();
 	}
@@ -70,7 +77,7 @@ public class MainGui extends GuiBase implements IMainGui {
 	public void updateUserList(String[] usernames, boolean[] onlines) {
 		plugin.sync(() -> {
 			Table table = shell.getUsersTable();
-			table.clearAll();
+			table.removeAll();
 
 			for (int i = 0; i < usernames.length; i++) {
 				TableItem item = new TableItem(table, 0);
@@ -86,7 +93,7 @@ public class MainGui extends GuiBase implements IMainGui {
 	public void updateChatList(IChat[] chats) {
 		plugin.sync(() -> {
 			Table table = shell.getChatsTable();
-			table.clearAll();
+			table.removeAll();
 
 			for (IChat chat : chats) {
 				TableItem item = new TableItem(table, 0);
@@ -117,15 +124,15 @@ public class MainGui extends GuiBase implements IMainGui {
 			return;
 		}
 
-		IChat chat = clientManager.getChat(with);
+		IChat chat = chatManager.getChat(with);
 		if (chat == null) {
 			return;
 		}
-		
-		while(!chat.isUnlocked()){
+
+		while (!chat.isUnlocked()) {
 			InputDialog dialog = new InputDialog(shell, "Secure Chat - Unlock chat",
 					"Your chat with " + with
-							+  " is protected with a password. You need to enter this password to unlock this chat.",
+							+ " is protected with a password. You need to enter this password to unlock this chat.",
 					"", s -> s.length() == 0 ? "Too short" : null) {
 				@Override
 				protected int getInputTextStyle() {
@@ -136,7 +143,7 @@ public class MainGui extends GuiBase implements IMainGui {
 			if (dialog.open() != Window.OK) {
 				return;
 			}
-			
+
 			chat.unlock(dialog.getValue());
 		}
 
@@ -144,9 +151,28 @@ public class MainGui extends GuiBase implements IMainGui {
 		instances.put(with, instance);
 		plugin.sync(() -> {
 			instance.createGui(shell.getFormToolkit(), shell.getChatsTabFolder());
+			tabMappings.put(instance.getTbtmChat(), with);
 			instance.switchTo();
 			instance.updateMessages();
 		});
+	}
+
+	public void closeChat(CTabItem item) {
+		closeChat(tabMappings.get(item));
+	}
+
+	public void closeChat(String username) {
+		if (!instances.containsKey(username))
+			return;
+
+		ChatInstance instance = instances.get(username);
+
+		plugin.sync(() -> {
+			instance.getTbtmChat().dispose();
+		});
+
+		instances.remove(username);
+		tabMappings.remove(instance.getTbtmChat());
 	}
 
 	public void startChat(int index) {
@@ -155,7 +181,7 @@ public class MainGui extends GuiBase implements IMainGui {
 			return;
 		}
 
-		if (clientManager.doesChatExist(with)) {
+		if (chatManager.doesChatExist(with)) {
 			openChat(with);
 			return;
 		}
@@ -164,7 +190,7 @@ public class MainGui extends GuiBase implements IMainGui {
 				"You can protect your new chat with " + with
 						+ " with a password. The other user will also have to type in this password to view the messages you have sent them.\n"
 						+ "If no password is entered, the chat will be left unprotected.",
-				"", this::inputValidator) {
+				"", text -> "Your chat " + (text.length() > 0 ? "WILL" : "will NOT") + " be protected") {
 			@Override
 			public void setErrorMessage(String errorMessage) {
 				super.setErrorMessage(errorMessage);
@@ -182,7 +208,7 @@ public class MainGui extends GuiBase implements IMainGui {
 
 		if (dialog.open() == Window.OK) {
 			String pwd = dialog.getValue();
-			clientManager.startChat(with, pwd.length() > 0, pwd);
+			chatManager.startChat(with, pwd.length() > 0, pwd);
 		}
 	}
 
@@ -195,8 +221,14 @@ public class MainGui extends GuiBase implements IMainGui {
 		}
 	}
 
-	private String inputValidator(String text) {
-		return "Your chat " + (text.length() > 0 ? "WILL" : "will NOT") + " be protected";
+	@Override
+	public void disconnected(String msg) {
+		plugin.sync(() -> {
+			MessageBox messageBox = new MessageBox(shell, SWT.ICON_ERROR);
+			messageBox.setMessage("Disconnected from server!\n" + msg);
+			messageBox.open();
+		});
+		context.exit();
 	}
 
 	@Override
@@ -213,4 +245,5 @@ public class MainGui extends GuiBase implements IMainGui {
 	public ImplementationMarker getMarker() {
 		return MARKER;
 	}
+
 }

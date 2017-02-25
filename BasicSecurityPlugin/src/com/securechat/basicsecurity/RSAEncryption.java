@@ -11,6 +11,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -32,9 +33,11 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	private PublicKey pubKey;
 	private PrivateKey priKey;
 	private Cipher cipher;
+	private ReentrantLock lock;
 
 	public RSAEncryption() {
 		try {
+			lock = new ReentrantLock();
 			cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
 			throw new RuntimeException("Failed to crypt data", e);
@@ -44,22 +47,27 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	@Override
 	public void generate() {
 		try {
+			lock.lock();
 			KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
 			generator.initialize(4096);
 			KeyPair pair = generator.generateKeyPair();
 			pubKey = pair.getPublic();
 			priKey = pair.getPrivate();
+			lock.unlock();
 		} catch (NoSuchAlgorithmException e) {
+			lock.unlock();
 			throw new RuntimeException("Failed to generate key pair", e);
 		}
 	}
 
 	@Override
 	public void load(byte[] publicKey, byte[] privateKey) {
+		lock.lock();
 		try {
 			if (publicKey != null)
 				pubKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(publicKey));
 		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+			lock.unlock();
 			throw new RuntimeException("Failed to load public key", e);
 		}
 
@@ -67,23 +75,32 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 			if (privateKey != null)
 				priKey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(privateKey));
 		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+			lock.unlock();
 			throw new RuntimeException("Failed to load private key", e);
 		}
+		lock.unlock();
 	}
 
 	@Override
 	public byte[] getPublickey() {
-		return new X509EncodedKeySpec(pubKey.getEncoded()).getEncoded();
+		lock.lock();
+		byte[] data = new X509EncodedKeySpec(pubKey.getEncoded()).getEncoded();
+		lock.unlock();
+		return data;
 	}
 
 	@Override
 	public byte[] getPrivatekey() {
-		return new PKCS8EncodedKeySpec(priKey.getEncoded()).getEncoded();
+		lock.lock();
+		byte[] data = new PKCS8EncodedKeySpec(priKey.getEncoded()).getEncoded();
+		lock.unlock();
+		return data;
 	}
 
 	@Override
 	public byte[] encrypt(byte[] data) {
 		try {
+			lock.lock();
 			int count = (int) Math.ceil((double) data.length / 501d);
 			IByteWriter out = IByteWriter.get(factory, MARKER.getId());
 			out.writeInt(data.length);
@@ -100,8 +117,10 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 				out.writeArray(temp);
 			}
 
+			lock.unlock();
 			return out.toByteArray();
 		} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+			lock.unlock();
 			throw new RuntimeException("Failed to encrypt data", e);
 		}
 	}
@@ -109,6 +128,7 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	@Override
 	public byte[] decrypt(byte[] data) throws IOException {
 		try {
+			lock.lock();
 			IByteReader in = IByteReader.get(factory, MARKER.getId(), data);
 			int length = in.readInt();
 			int count = (int) Math.ceil((double) length / 501d);
@@ -125,8 +145,10 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 				System.arraycopy(temp, 0, result, start, temp.length);
 			}
 
+			lock.unlock();
 			return result;
 		} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+			lock.unlock();
 			throw new RuntimeException("Failed to decrypt data", e);
 		}
 	}

@@ -57,11 +57,9 @@ public class SecureChatClient implements IContext {
 		implementationFactory.register(FallbackLogger.MARKER, ILogger.class, FallbackLogger::new);
 		implementationFactory.register(ByteReader.MARKER, IByteReader.class, ByteReader::new);
 		implementationFactory.register(ByteWriter.MARKER, IByteWriter.class, ByteWriter::new);
-		implementationFactory.register(ClientManager.MARKER, IClientManager.class, ClientManager::new);
 		implementationFactory.setFallbackDefault(ILogger.class, FallbackLogger.MARKER);
 		implementationFactory.setFallbackDefault(IByteReader.class, ByteReader.MARKER);
 		implementationFactory.setFallbackDefault(IByteWriter.class, ByteWriter.MARKER);
-		implementationFactory.setFallbackDefault(IClientManager.class, ClientManager.MARKER);
 		implementationFactory.inject(storage);
 
 		pluginManager = new PluginManager(this);
@@ -91,22 +89,26 @@ public class SecureChatClient implements IContext {
 	}
 
 	private void guiReady() {
-		IKeystore keystore = implementationFactory.get(IKeystore.class, true);
-		logger.info("Keystore: " + keystore);
+		try {
+			IKeystore keystore = implementationFactory.get(IKeystore.class, true);
+			logger.info("Keystore: " + keystore);
 
-		IKeystoreGui kgui = gui.getKeystoreGui();
-		kgui.init(keystore);
-		kgui.open();
-		kgui.awaitClose();
+			IKeystoreGui kgui = gui.getKeystoreGui();
+			kgui.init(keystore);
+			kgui.open();
+			kgui.awaitClose();
 
-		IConnectionStore store = implementationFactory.get(IConnectionStore.class, true);
-		logger.info("Connection Store: " + store);
-		store.init();
+			IConnectionStore store = implementationFactory.get(IConnectionStore.class, true);
+			logger.info("Connection Store: " + store);
+			store.init();
 
-		IClientNetworkManager networkManager = implementationFactory.get(IClientNetworkManager.class, true);
-		logger.info("Network Manager: " + networkManager);
+			IClientNetworkManager networkManager = implementationFactory.get(IClientNetworkManager.class, true);
+			logger.info("Network Manager: " + networkManager);
 
-		gui.getLoginGui().open();
+			gui.getLoginGui().open();
+		} catch (Exception e) {
+			handleCrash(e);
+		}
 	}
 
 	@Override
@@ -127,6 +129,17 @@ public class SecureChatClient implements IContext {
 	@Override
 	public void saveSettings() {
 		settings.saveToFile(storage, settingsFile);
+	}
+
+	@Override
+	public void handleCrash(Throwable reason) {
+		logger.error("Crashed! Trace:");
+		reason.printStackTrace();
+		if (gui != null) {
+			gui.handleCrash(reason);
+		} else {
+			exit();
+		}
 	}
 
 	@Override
@@ -170,7 +183,11 @@ public class SecureChatClient implements IContext {
 
 	public static void main(String[] args) {
 		INSTANCE = new SecureChatClient();
-		INSTANCE.init(new FileStorage());
+		try {
+			INSTANCE.init(new FileStorage());
+		} catch (Exception e) {
+			INSTANCE.handleCrash(e);
+		}
 	}
 
 }

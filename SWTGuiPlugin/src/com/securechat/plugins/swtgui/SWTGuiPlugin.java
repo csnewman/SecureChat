@@ -36,6 +36,8 @@ public class SWTGuiPlugin implements IGuiProvider {
 	public static final ImplementationMarker PROVIDER_MARKER = new ImplementationMarker(NAME, VERSION, "swt_gui",
 			"1.0.0");
 	@InjectInstance
+	private IContext context;
+	@InjectInstance
 	private IImplementationFactory factory;
 	private Display display;
 	private LoginGui loginGui;
@@ -52,15 +54,13 @@ public class SWTGuiPlugin implements IGuiProvider {
 	@Override
 	public void init(Runnable ready) {
 		display = Display.getDefault();
-		errorDialogWithStackTrace("Hello world", new Throwable());
-		
+
 		new Thread(ready).start();
 		while (!display.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
 		}
-
 	}
 
 	@Override
@@ -80,47 +80,55 @@ public class SWTGuiPlugin implements IGuiProvider {
 		}
 		return loginGui;
 	}
-	
+
 	@Override
 	public IMainGui getMainGui() {
-		if(mainGui == null){
+		if (mainGui == null) {
 			mainGui = new MainGui(this);
 			factory.inject(mainGui);
 		}
 		return mainGui;
 	}
-	
-	public static void errorDialogWithStackTrace(String msg, Throwable t) {
 
-	    StringWriter sw = new StringWriter();
-	    PrintWriter pw = new PrintWriter(sw);
-	    t.printStackTrace(pw);
+	@Override
+	public void handleCrash(Throwable reason) {
+		display.syncExec(() -> {
+			StringWriter traceWriter = new StringWriter();
+			PrintWriter pw = new PrintWriter(traceWriter);
+			reason.printStackTrace(pw);
+			String trace = traceWriter.toString();
 
-	    final String trace = sw.toString(); // stack trace as a string
+			List<Status> childStatuses = new ArrayList<>();
+			for (String line : trace.split(System.getProperty("line.separator"))) {
+				childStatuses.add(new Status(IStatus.ERROR, "client", line));
+			}
 
-	    // Temp holder of child statuses
-	    List<Status> childStatuses = new ArrayList<>();
-
-	    // Split output by OS-independend new-line
-	    for (String line : trace.split(System.getProperty("line.separator"))) {
-	        // build & add status
-	        childStatuses.add(new Status(IStatus.ERROR, "Activator.PLUGIN_ID", line));
-	    }
-
-	    MultiStatus ms = new MultiStatus("Activator.PLUGIN_ID", IStatus.ERROR,
-	            childStatuses.toArray(new Status[] {}), // convert to array of statuses
-	            t.getLocalizedMessage(), t);
-
-	    ErrorDialog.openError(null, "DIALOG_TITLE", msg, ms);
+			MultiStatus ms = new MultiStatus("client", IStatus.ERROR, childStatuses.toArray(new Status[] {}),
+					reason.getLocalizedMessage(), reason);
+			ErrorDialog.openError(null, "Secure Chat - Crash",
+					"Sorry! Secure chat client has crashed and will now close.", ms);
+		});
+		context.exit();
 	}
-	
 
 	public void async(Runnable run) {
-		display.asyncExec(run);
+		display.asyncExec(() -> {
+			try {
+				run.run();
+			} catch (Exception e) {
+				context.handleCrash(e);
+			}
+		});
 	}
 
 	public void sync(Runnable run) {
-		display.syncExec(run);
+		display.syncExec(() -> {
+			try {
+				run.run();
+			} catch (Exception e) {
+				context.handleCrash(e);
+			}
+		});
 	}
 
 	public Font getFont(int size, int style) {

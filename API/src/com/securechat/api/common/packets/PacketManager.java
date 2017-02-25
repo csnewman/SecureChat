@@ -36,13 +36,15 @@ public class PacketManager {
 		registerPacket("CHALLENGE", ChallengePacket.class);
 		registerPacket("CHALLENGE_RESPONSE", ChallengeResponsePacket.class);
 		registerPacket("CONNECTED", ConnectedPacket.class);
-		
+
 		registerPacket("DISCONNECT", DisconnectPacket.class);
 		registerPacket("USER_LIST", UserListPacket.class);
 		registerPacket("CHAT_LIST", ChatListPacket.class);
 		registerPacket("CREATE_CHAT", CreateChatPacket.class);
+		registerPacket("REQUEST_HISTORY", RequestMessageHistoryPacket.class);
+		registerPacket("MESSAGE_HISTORY", MessageHistoryPacket.class);
 		registerPacket("SEND_MESSAGE", SendMessagePacket.class);
-		
-		
+		registerPacket("NEW_MESSAGE", NewMessagePacket.class);
+
 	}
 }

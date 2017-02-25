@@ -72,13 +72,9 @@ public class ChatServer implements IContext {
 		implementationFactory.register(FallbackLogger.MARKER, ILogger.class, FallbackLogger::new);
 		implementationFactory.register(ByteReader.MARKER, IByteReader.class, ByteReader::new);
 		implementationFactory.register(ByteWriter.MARKER, IByteWriter.class, ByteWriter::new);
-		implementationFactory.register(UserManager.MARKER, IUserManager.class, UserManager::new);
-		implementationFactory.register(ServerManager.MARKER, IServerManager.class, ServerManager::new);
 		implementationFactory.setFallbackDefault(ILogger.class, FallbackLogger.MARKER);
 		implementationFactory.setFallbackDefault(IByteReader.class, ByteReader.MARKER);
 		implementationFactory.setFallbackDefault(IByteWriter.class, ByteWriter.MARKER);
-		implementationFactory.setFallbackDefault(IUserManager.class, UserManager.MARKER);
-		implementationFactory.setFallbackDefault(IServerManager.class, ServerManager.MARKER);
 		implementationFactory.inject(storage);
 
 		pluginManager = new PluginManager(this);
@@ -98,7 +94,7 @@ public class ChatServer implements IContext {
 		IDatabase database = implementationFactory.get(IDatabase.class, true);
 		database.init();
 		logger.debug("Database: " + database);
-		
+
 		IUserManager userManager = implementationFactory.get(IUserManager.class, true);
 		userManager.init();
 		logger.debug("User Manager: " + userManager);
@@ -142,7 +138,7 @@ public class ChatServer implements IContext {
 		saveSettings();
 
 		networkManager.start();
-		
+
 		IServerManager manager = implementationFactory.get(IServerManager.class, true);
 		manager.init();
 	}
@@ -168,10 +164,17 @@ public class ChatServer implements IContext {
 	}
 
 	@Override
+	public void handleCrash(Throwable reason) {
+		logger.error("Crashed! Trace:");
+		reason.printStackTrace();
+		exit();
+	}
+
+	@Override
 	public void exit() {
 		StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
 		StackTraceElement e = stacktrace[2];
-		logger.info("Exit requested by "+e.getMethodName()+" in "+e.getClassName());
+		logger.info("Exit requested by " + e.getMethodName() + " in " + e.getClassName());
 		saveSettings();
 		System.exit(0);
 	}
@@ -217,7 +220,11 @@ public class ChatServer implements IContext {
 		}
 
 		INSTANCE = new ChatServer();
-		INSTANCE.init(new FileStorage(), password);
+		try {
+			INSTANCE.init(new FileStorage(), password);
+		} catch (Exception e) {
+			INSTANCE.handleCrash(e);
+		}
 	}
 
 }

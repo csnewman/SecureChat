@@ -1,4 +1,4 @@
-package com.securechat.api.client;
+package com.securechat.api.client.chat;
 
 import java.util.List;
 
@@ -19,5 +19,7 @@ public interface IChat {
 	public void sendMessage(String text);
 
 	public List<IMessage> getMessages();
+	
+	public boolean hasLoaded();
 
 }

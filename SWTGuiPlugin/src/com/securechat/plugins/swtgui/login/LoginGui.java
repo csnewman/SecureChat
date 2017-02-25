@@ -88,7 +88,7 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 				close();
 			} else {
 				plugin.sync(() -> {
-					MessageBox messageBox = new MessageBox(shell, SWT.ICON_ERROR);
+					MessageBox messageBox = new MessageBox(shell.isDisposed() ? null : shell, SWT.ICON_ERROR);
 					messageBox.setMessage("Failed to connect!\n" + r);
 					messageBox.open();
 					shell.setEnabled(true);

@@ -1,11 +1,10 @@
 package com.securechat.api.client.gui;
 
-import com.securechat.api.client.IChat;
-import com.securechat.api.client.IClientManager;
+import com.securechat.api.client.chat.IChat;
 
 public interface IMainGui extends IGui {
 
-	public void init(IClientManager clientManager);
+	public void init();
 
 	public void updateUserList(String[] username, boolean[] online);
 
@@ -16,5 +15,7 @@ public interface IMainGui extends IGui {
 	public void openChat(String username);
 	
 	public void updateMessages(String username);
+
+	public void disconnected(String msg);
 
 }

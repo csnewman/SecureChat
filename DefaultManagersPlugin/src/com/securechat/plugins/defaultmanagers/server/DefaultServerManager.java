@@ -1,25 +1,31 @@
-package com.securechat.server;
+package com.securechat.plugins.defaultmanagers.server;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.securechat.api.common.ILogger;
+import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.packets.IPacket;
 import com.securechat.api.common.packets.UserListPacket;
 import com.securechat.api.common.plugins.InjectInstance;
+import com.securechat.api.server.IServerChatManager;
 import com.securechat.api.server.IServerManager;
 import com.securechat.api.server.users.IUser;
 import com.securechat.api.server.users.IUserManager;
+import com.securechat.plugins.defaultmanagers.DefaultManagersPlugin;
 
-public class ServerManager implements IServerManager {
-	public static final ImplementationMarker MARKER = new ImplementationMarker("inbuilt", "n/a", "server_manager",
-			"1.0.0");
+public class DefaultServerManager implements IServerManager {
+	public static final ImplementationMarker MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME,
+			DefaultManagersPlugin.VERSION, "server_manager", "1.0.0");
 	@InjectInstance
 	private ILogger log;
 	@InjectInstance
 	private IUserManager userManager;
+	@InjectInstance
+	private IImplementationFactory factory;
+	private IServerChatManager chatManager;
 	private Map<String, IUser> onlineUsers;
 	private ReentrantLock lock;
 
@@ -27,6 +33,8 @@ public class ServerManager implements IServerManager {
 	public void init() {
 		onlineUsers = new HashMap<String, IUser>();
 		lock = new ReentrantLock();
+		chatManager = factory.get(IServerChatManager.class, true);
+		chatManager.init();
 	}
 
 	@Override
@@ -36,7 +44,8 @@ public class ServerManager implements IServerManager {
 		onlineUsers.put(user.getUsername(), user);
 		updateUserList();
 		lock.unlock();
-		user.sendChatList();
+		chatManager.onUserConnected(user);
+		chatManager.sendChatList(user);
 	}
 
 	@Override
@@ -59,7 +68,7 @@ public class ServerManager implements IServerManager {
 
 		sendPacketToAll(new UserListPacket(users, online));
 	}
-	
+
 	@Override
 	public boolean isUserOnline(String username) {
 		return onlineUsers.containsKey(username);
@@ -71,7 +80,7 @@ public class ServerManager implements IServerManager {
 	}
 
 	private void sendPacketToAll(IPacket packet) {
-		log.debug("Sending packet to all "+packet);
+		log.debug("Sending packet to all " + packet);
 		for (IUser user : onlineUsers.values()) {
 			user.sendPacket(packet);
 		}

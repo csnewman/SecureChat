@@ -4,6 +4,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -25,16 +26,24 @@ public class PasswordEncryption implements IPasswordEncryption {
 	private SecretKey key;
 	private PBEParameterSpec pbeParamSpec;
 	private Cipher cipher;
+	private ReentrantLock lock;
+
+	public PasswordEncryption() {
+		lock = new ReentrantLock();
+	}
 
 	@Override
 	public void init(char[] password) {
 		try {
+			lock.lock();
 			PBEKeySpec keySpec = new PBEKeySpec(password);
 			SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
 			key = keyFactory.generateSecret(keySpec);
 			pbeParamSpec = new PBEParameterSpec(salt, 4096);
 			cipher = Cipher.getInstance("PBEWithMD5AndDES");
+			lock.unlock();
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeySpecException e) {
+			lock.unlock();
 			throw new RuntimeException("Failed to crypt data", e);
 		}
 	}
@@ -42,6 +51,7 @@ public class PasswordEncryption implements IPasswordEncryption {
 	@Override
 	public byte[] encrypt(byte[] data) {
 		try {
+			lock.lock();
 			int extraPadding = 8 - (data.length % 8);
 
 			byte[] tempData = new byte[data.length + extraPadding];
@@ -52,9 +62,12 @@ public class PasswordEncryption implements IPasswordEncryption {
 			}
 
 			cipher.init(Cipher.ENCRYPT_MODE, key, pbeParamSpec);
-			return cipher.doFinal(tempData);
+			byte[] result = cipher.doFinal(tempData);
+			lock.unlock();
+			return result;
 		} catch (InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException
 				| BadPaddingException e) {
+			lock.unlock();
 			throw new RuntimeException("Failed to encrypt data", e);
 		}
 	}
@@ -62,14 +75,17 @@ public class PasswordEncryption implements IPasswordEncryption {
 	@Override
 	public byte[] decrypt(byte[] data) {
 		try {
+			lock.lock();
 			cipher.init(Cipher.DECRYPT_MODE, key, pbeParamSpec);
 			byte[] tempData = cipher.doFinal(data);
 			int extraPadding = tempData[tempData.length - 1];
 			byte[] finalData = new byte[tempData.length - extraPadding];
 			System.arraycopy(tempData, 0, finalData, 0, finalData.length);
+			lock.unlock();
 			return finalData;
 		} catch (InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException
 				| BadPaddingException e) {
+			lock.unlock();
 			throw new RuntimeException("Failed to decrypt data", e);
 		}
 	}
