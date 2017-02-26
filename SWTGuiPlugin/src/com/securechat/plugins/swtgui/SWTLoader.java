@@ -24,7 +24,7 @@ public class SWTLoader {
 				log.warning("SWTGui should not be installed on a server!");
 			}
 			log.info("Attempting to load SWT");
-			String file = "swt-" + context.getOsType() + context.getPlatform() + "-" + SWT_VERSION + ".jar";
+			String file = "swt-" + context.getOsType() + context.getPlatformArch() + "-" + SWT_VERSION + ".jar";
 			log.info("SWT jar: " + file);
 			URLClassLoader cl = (URLClassLoader) SWTLoader.class.getClassLoader();
 			URL.setURLStreamHandlerFactory(new RsrcURLStreamHandlerFactory(cl));

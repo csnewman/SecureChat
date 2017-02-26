@@ -6,32 +6,100 @@ import com.securechat.api.common.plugins.IPluginManager;
 import com.securechat.api.common.properties.PropertyCollection;
 import com.securechat.api.common.storage.IStorage;
 
+/**
+ * Represents the context that the plugins are running under, either the server
+ * or client.
+ */
 public interface IContext extends IImplementation {
 
-	public IPluginManager getPluginManager();
+	/**
+	 * Gets the plugin manager instance.
+	 * 
+	 * @return the plugin manager instance
+	 */
+	IPluginManager getPluginManager();
 
-	public IImplementationFactory getImplementationFactory();
+	/**
+	 * Gets the implementation factory instance
+	 * 
+	 * @return the implementation factory instance
+	 */
+	IImplementationFactory getImplementationFactory();
 
-	public PropertyCollection getSettings();
+	/**
+	 * Gets the settings file
+	 * 
+	 * @return the settings
+	 */
+	PropertyCollection getSettings();
 
-	public void saveSettings();
+	/**
+	 * Saves any changes made to the settings
+	 */
+	void saveSettings();
 
-	public void handleCrash(Throwable reason);
-	
-	public void exit();
+	/**
+	 * Handles a crash that has occurred outside of the auto detection range.
+	 * 
+	 * @param reason
+	 *            the error
+	 */
+	void handleCrash(Throwable reason);
 
-	public ILogger getLogger();
+	/**
+	 * Causes the program to exit
+	 */
+	void exit();
 
-	public IStorage getStorage();
+	/**
+	 * Gets the logger instance
+	 * 
+	 * @return the logger
+	 */
+	ILogger getLogger();
 
-	public Sides getSide();
+	/**
+	 * Gets the storage instance
+	 * 
+	 * @return the storage instance
+	 */
+	IStorage getStorage();
 
-	public String getAppName();
+	/**
+	 * Gets the side the context is responsible for.
+	 * 
+	 * @return the current side.
+	 */
+	Sides getSide();
 
-	public String getAppVersion();
-	
-	public String getOsType();
-	
-	public String getPlatform();
+	/**
+	 * Gets the name of the context implementation.
+	 * 
+	 * @return the name
+	 */
+	String getAppName();
+
+	/**
+	 * Gets the version of the context implementation.
+	 * 
+	 * @return the version
+	 */
+	String getAppVersion();
+
+	/**
+	 * Gets the OS type we are running on. 'win' on Windows, 'linux' on Linux
+	 * and 'osx' on Mac.
+	 * 
+	 * @return the OS type
+	 */
+	String getOsType();
+
+	/**
+	 * Gets the architecture of the platform we are running on. Normally either
+	 * '64' or '32'.
+	 * 
+	 * @return the architecture
+	 */
+	String getPlatformArch();
 
 }

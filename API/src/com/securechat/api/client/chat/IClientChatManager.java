@@ -2,15 +2,44 @@ package com.securechat.api.client.chat;
 
 import com.securechat.api.common.implementation.IImplementation;
 
-public interface IClientChatManager extends IImplementation{
-	
-	public void init();
-	
-	public boolean doesChatExist(String username);
+/**
+ * Handles the management of all client side chats.
+ */
+public interface IClientChatManager extends IImplementation {
 
-	public IChat getChat(String username);
+	/**
+	 * Called by the client manager once connected to a server.
+	 */
+	void init();
 
-	public void startChat(String username, boolean protect, String password);
+	/**
+	 * Attempts to start a chat with the other user.
+	 * 
+	 * @param username
+	 *            the username of the other person
+	 * @param protect
+	 *            whether to encrypt the chat
+	 * @param password
+	 *            the password to use if encrypted
+	 */
+	void startChat(String username, boolean protect, String password);
 
-	
+	/**
+	 * Checks whether a chat exists with a given user.
+	 * 
+	 * @param username
+	 *            the username of the other person
+	 * @return whether a chat exists
+	 */
+	boolean doesChatExist(String username);
+
+	/**
+	 * Gets the chat instance with the other user.
+	 * 
+	 * @param username
+	 *            the username of the other person
+	 * @return the chat instance
+	 */
+	IChat getChat(String username);
+
 }

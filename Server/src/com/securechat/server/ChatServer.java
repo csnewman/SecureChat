@@ -219,7 +219,7 @@ public class ChatServer implements IContext {
 	}
 
 	@Override
-	public String getPlatform() {
+	public String getPlatformArch() {
 		return System.getProperty("os.arch").toLowerCase().contains("64") ? "64" : "32";
 	}
 

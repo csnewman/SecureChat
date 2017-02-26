@@ -2,16 +2,47 @@ package com.securechat.api.client.gui;
 
 import com.securechat.api.common.implementation.IImplementation;
 
+/**
+ * Provides access to the GUI
+ */
 public interface IGuiProvider extends IImplementation {
 
-	public void init(Runnable ready);
+	/**
+	 * Initialises the display ready for a GUI to be opened. Calls ready once
+	 * done.
+	 * 
+	 * @param ready
+	 *            the method to call afterwards
+	 */
+	void init(Runnable ready);
 
-	public IKeystoreGui getKeystoreGui();
+	/**
+	 * Gets the Keystore GUI instance.
+	 * 
+	 * @return keystore gui instance
+	 */
+	IKeystoreGui getKeystoreGui();
 
-	public IGui getLoginGui();
+	/**
+	 * Gets the Login GUI instance.
+	 * 
+	 * @return login gui instance
+	 */
+	IGui getLoginGui();
 
-	public IMainGui getMainGui();
-	
-	public void handleCrash(Throwable reason);
+	/**
+	 * Gets the Main GUI instance.
+	 * 
+	 * @return main gui instance
+	 */
+	IMainGui getMainGui();
+
+	/**
+	 * Displays a crash dialog and then exits once closed.
+	 * 
+	 * @param reason
+	 *            the error
+	 */
+	void handleCrash(Throwable reason);
 
 }
