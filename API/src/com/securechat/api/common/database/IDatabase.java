@@ -3,7 +3,7 @@ package com.securechat.api.common.database;
 import com.securechat.api.common.implementation.IImplementation;
 
 /**
- * Provides access to a database connection
+ * Provides access to a database connection.
  */
 public interface IDatabase extends IImplementation {
 
@@ -33,7 +33,7 @@ public interface IDatabase extends IImplementation {
 	void ensureTable(String name, ObjectDataFormat format);
 
 	/**
-	 * Checks whether a table exists
+	 * Checks whether a table exists.
 	 * 
 	 * @param name
 	 *            the name of the table
@@ -42,7 +42,7 @@ public interface IDatabase extends IImplementation {
 	boolean tableExists(String name);
 
 	/**
-	 * Gets a table by its given name
+	 * Gets a table by its given name.
 	 * 
 	 * @param name
 	 *            the name of the table

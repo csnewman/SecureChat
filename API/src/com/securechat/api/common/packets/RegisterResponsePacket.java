@@ -5,6 +5,10 @@ import java.io.IOException;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 
+/**
+ * Sent by the server to inform the client whether their registration was a
+ * success and their unique auth code.
+ */
 public class RegisterResponsePacket implements IPacket {
 	private RegisterStatus status;
 	private int code;

@@ -1,17 +1,22 @@
 package com.securechat.api.common.implementation;
 
-import com.securechat.api.common.properties.CollectionProperty;
 import com.securechat.api.common.properties.PrimitiveProperty;
 import com.securechat.api.common.properties.PropertyCollection;
 
+/**
+ * Represents an implementation.
+ */
 public class ImplementationMarker {
-	private static final PrimitiveProperty<String> PLUGIN_NAME_PROPERTY = new PrimitiveProperty<String>("plugin-name");
-	private static final PrimitiveProperty<String> PLUGIN_VERSION_PROPERTY = new PrimitiveProperty<String>(
-			"plugin-version");
-	private static final PrimitiveProperty<String> NAME_PROPERTY = new PrimitiveProperty<String>("name");
-	private static final PrimitiveProperty<String> VERSION_PROPERTY = new PrimitiveProperty<String>("version");
+	private static final PrimitiveProperty<String> PLUGIN_NAME_PROPERTY, PLUGIN_VERSION_PROPERTY, NAME_PROPERTY,
+			VERSION_PROPERTY;
 	private String pluginName, pluginVersion, name, version;
 
+	/**
+	 * Loads an implementation marker from a colon separated string.
+	 * 
+	 * @param id
+	 *            the colon seperated string
+	 */
 	public ImplementationMarker(String id) {
 		String[] parts = id.split(":");
 		if (parts.length != 4) {
@@ -23,6 +28,18 @@ public class ImplementationMarker {
 		version = parts[3];
 	}
 
+	/**
+	 * Creates a marker from the given information.
+	 * 
+	 * @param pluginName
+	 *            the name of the plugin that owns this implementation
+	 * @param pluginVersion
+	 *            the version of the plugin that owns this implementation
+	 * @param name
+	 *            the name of this implementation
+	 * @param version
+	 *            the version of this implementation
+	 */
 	public ImplementationMarker(String pluginName, String pluginVersion, String name, String version) {
 		this.pluginName = pluginName;
 		this.pluginVersion = pluginVersion;
@@ -30,43 +47,82 @@ public class ImplementationMarker {
 		this.version = version;
 	}
 
-	public PropertyCollection save() {
+	/**
+	 * Converts this marker into a property collection.
+	 * 
+	 * @return the property collection
+	 */
+	public PropertyCollection toJSON() {
 		PropertyCollection collection = new PropertyCollection();
-		save(collection);
+		toJSON(collection);
 		return collection;
 	}
 
-	public void save(PropertyCollection collection) {
+	/**
+	 * Sets the markers information into the given collection.
+	 * 
+	 * @param collection
+	 *            the collection to update
+	 */
+	public void toJSON(PropertyCollection collection) {
 		collection.set(PLUGIN_NAME_PROPERTY, pluginName);
 		collection.set(PLUGIN_VERSION_PROPERTY, pluginVersion);
 		collection.set(NAME_PROPERTY, name);
 		collection.set(VERSION_PROPERTY, version);
 	}
 
+	/**
+	 * Returns the colon separated id string.
+	 * 
+	 * @return the colon separated id string
+	 */
 	public String getId() {
 		return pluginName + ":" + pluginVersion + ":" + name + ":" + version;
 	}
 
+	/**
+	 * Gets the owning plugins name.
+	 * 
+	 * @return the plugins name
+	 */
 	public String getPluginName() {
 		return pluginName;
 	}
 
+	/**
+	 * Gets the owning plugins version.
+	 * 
+	 * @return the plugins version
+	 */
 	public String getPluginVersion() {
 		return pluginVersion;
 	}
 
+	/**
+	 * Gets the implementation name.
+	 * 
+	 * @return the implementation name
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Gets the implementations version.
+	 * 
+	 * @return the implementation version
+	 */
 	public String getVersion() {
 		return version;
 	}
 
-	public static ImplementationMarker loadMarker(PropertyCollection parent, String name) {
-		return loadMarker(parent.get(new CollectionProperty(name)));
-	}
-
+	/**
+	 * Loads a marker from the property collection
+	 * 
+	 * @param collection
+	 *            the collection to load from
+	 * @return the loaded version
+	 */
 	public static ImplementationMarker loadMarker(PropertyCollection collection) {
 		if (collection == null)
 			return null;
@@ -78,6 +134,13 @@ public class ImplementationMarker {
 		return new ImplementationMarker(pluginName, pluginVersion, name, version);
 	}
 
+	/**
+	 * Converts the array of implementation ids into an array of markers.
+	 * 
+	 * @param ids
+	 *            the ids to convert
+	 * @return the converted markers
+	 */
 	public static ImplementationMarker[] convert(String[] ids) {
 		ImplementationMarker[] markers = new ImplementationMarker[ids.length];
 
@@ -135,6 +198,13 @@ public class ImplementationMarker {
 		} else if (!version.equals(other.version))
 			return false;
 		return true;
+	}
+
+	static {
+		PLUGIN_NAME_PROPERTY = new PrimitiveProperty<String>("plugin-name");
+		PLUGIN_VERSION_PROPERTY = new PrimitiveProperty<String>("plugin-version");
+		NAME_PROPERTY = new PrimitiveProperty<String>("name");
+		VERSION_PROPERTY = new PrimitiveProperty<String>("version");
 	}
 
 }

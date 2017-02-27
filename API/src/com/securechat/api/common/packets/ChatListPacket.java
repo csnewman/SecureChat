@@ -5,6 +5,10 @@ import java.io.IOException;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 
+/**
+ * Sent by the server to inform the client of all open chats they have on the
+ * server.
+ */
 public class ChatListPacket implements IPacket {
 	private String[] chatIds, chatUsers;
 	private boolean[] chatProtected;
@@ -14,7 +18,8 @@ public class ChatListPacket implements IPacket {
 	public ChatListPacket() {
 	}
 
-	public ChatListPacket(String[] chatIds, String[] chatUsers, boolean[] chatProtected, int[] lastIds, byte[][] testData) {
+	public ChatListPacket(String[] chatIds, String[] chatUsers, boolean[] chatProtected, int[] lastIds,
+			byte[][] testData) {
 		this.chatIds = chatIds;
 		this.chatUsers = chatUsers;
 		this.chatProtected = chatProtected;
@@ -62,11 +67,11 @@ public class ChatListPacket implements IPacket {
 	public boolean[] getChatProtected() {
 		return chatProtected;
 	}
-	
+
 	public int[] getLastIds() {
 		return lastIds;
 	}
-	
+
 	public byte[][] getTestData() {
 		return testData;
 	}

@@ -17,6 +17,7 @@ import com.securechat.api.common.packets.PacketManager;
 import com.securechat.api.common.plugins.Inject;
 import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.security.IAsymmetricKeyEncryption;
+import com.securechat.api.common.security.IEncryption;
 import com.securechat.api.common.security.IHasher;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
@@ -38,7 +39,7 @@ public class NetworkConnection implements INetworkConnection {
 	protected ReentrantLock sendLock;
 	protected Thread readThread;
 	protected boolean active;
-	protected IAsymmetricKeyEncryption encryption;
+	protected IEncryption encryption;
 	protected Consumer<String> disconnectHandler;
 	protected Consumer<IPacket> handler;
 
@@ -116,7 +117,7 @@ public class NetworkConnection implements INetworkConnection {
 	}
 
 	@Override
-	public void setEncryption(IAsymmetricKeyEncryption encryption) {
+	public void setEncryption(IEncryption encryption) {
 		this.encryption = encryption;
 	}
 
@@ -142,7 +143,7 @@ public class NetworkConnection implements INetworkConnection {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> void setSingleHandler(Class<T> type, Consumer<T> handler) {
+	public <T extends IPacket> void setSingleHandler(Class<T> type, Consumer<T> handler) {
 		setHandler(p -> {
 			if (type.isInstance(p)) {
 				handler.accept((T) p);

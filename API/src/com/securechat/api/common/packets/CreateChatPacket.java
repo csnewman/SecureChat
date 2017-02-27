@@ -5,6 +5,9 @@ import java.io.IOException;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 
+/**
+ * Sent by a client to create a new chat with the given user.
+ */
 public class CreateChatPacket implements IPacket {
 	private String username;
 	private byte[] testData;

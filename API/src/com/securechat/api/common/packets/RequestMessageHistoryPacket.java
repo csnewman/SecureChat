@@ -5,6 +5,9 @@ import java.io.IOException;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 
+/**
+ * Sent by the client to the server to request missing chat history.
+ */
 public class RequestMessageHistoryPacket implements IPacket {
 	private String cid;
 	private int lastId;

@@ -5,6 +5,10 @@ import java.io.IOException;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 
+/**
+ * Sent by either end informing them that they should close the connection for
+ * the given reason.
+ */
 public class DisconnectPacket implements IPacket {
 	private String reason;
 

@@ -3,9 +3,11 @@ package com.securechat.api.common.database;
 import java.util.Arrays;
 import java.util.Base64;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * Represents a primitive type
+ */
 public enum PrimitiveDataFormat implements IDataFormat {
 	String, JSON, Integer, Long, Boolean, ByteArray;
 
@@ -63,12 +65,7 @@ public enum PrimitiveDataFormat implements IDataFormat {
 		case Boolean:
 			return data;
 		case ByteArray:
-			// byte[] array = (byte[]) data;
-			// JSONArray out = new JSONArray();
-			// for (byte b : array) {
-			// out.put(b);
-			// }
-			// return out;
+			// Stores byte array as a Base64 encoded string
 			return Base64.getEncoder().encodeToString((byte[]) data);
 		default:
 			return null;
@@ -85,12 +82,7 @@ public enum PrimitiveDataFormat implements IDataFormat {
 		case Boolean:
 			return data;
 		case ByteArray:
-			// JSONArray array = (JSONArray) data;
-			// byte[] out = new byte[array.length()];
-			// for (int i = 0; i < array.length(); i++) {
-			// out[i] = (byte) array.getInt(i);
-			// }
-			// return out;
+			// Loads a Base64 encoded string as a byte array
 			return Base64.getDecoder().decode((String) data);
 		default:
 			return null;

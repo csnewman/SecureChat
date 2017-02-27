@@ -5,6 +5,9 @@ import java.io.IOException;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 
+/**
+ * Sent by a client to the server to begin the login process as a given user.
+ */
 public class ConnectPacket implements IPacket {
 	private String username;
 	private int code;

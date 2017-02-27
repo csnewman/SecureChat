@@ -5,6 +5,10 @@ import java.io.IOException;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 
+/**
+ * Sent back in response to a challenge packet with the same temp code for the
+ * server to check.
+ */
 public class ChallengeResponsePacket implements IPacket {
 	private int tempCode;
 

@@ -6,15 +6,32 @@ import java.util.Map.Entry;
 
 import org.json.JSONObject;
 
+/**
+ * An instance of an ObjectDataFormat with values for each field.
+ */
 public class ObjectDataInstance {
 	private ObjectDataFormat format;
 	private Map<String, Object> values;
 
+	/**
+	 * Creates a new instance with the given format.
+	 * 
+	 * @param format
+	 *            the format
+	 */
 	public ObjectDataInstance(ObjectDataFormat format) {
 		this.format = format;
 		values = new HashMap<String, Object>();
 	}
 
+	/**
+	 * Loads the values from the JSON object with the given format.
+	 * 
+	 * @param format
+	 *            the format
+	 * @param obj
+	 *            the JSON object
+	 */
 	public ObjectDataInstance(ObjectDataFormat format, JSONObject obj) {
 		this(format);
 
@@ -23,6 +40,13 @@ public class ObjectDataInstance {
 		}
 	}
 
+	/**
+	 * Checks whether the fields that are set in both have the same values.
+	 * 
+	 * @param data
+	 *            the other instance
+	 * @return whether they match
+	 */
 	public boolean matches(ObjectDataInstance data) {
 		for (Entry<String, Object> val : values.entrySet()) {
 			String name = val.getKey();
@@ -35,6 +59,11 @@ public class ObjectDataInstance {
 		return true;
 	}
 
+	/**
+	 * Stores the values into a JSON object.
+	 * 
+	 * @return the JSON output
+	 */
 	public JSONObject toJSON() {
 		JSONObject obj = new JSONObject();
 
@@ -45,6 +74,14 @@ public class ObjectDataInstance {
 		return obj;
 	}
 
+	/**
+	 * Sets the value of a field
+	 * 
+	 * @param name
+	 *            the field name
+	 * @param value
+	 *            the field value
+	 */
 	public void setField(String name, Object value) {
 		if (!format.fieldExists(name)) {
 			throw new RuntimeException("Field " + name + " does not exist!");
@@ -52,6 +89,13 @@ public class ObjectDataInstance {
 		values.put(name, value);
 	}
 
+	/**
+	 * Gets the value of a field
+	 * 
+	 * @param name
+	 *            the field name
+	 * @return the field value
+	 */
 	public Object getField(String name) {
 		if (!format.fieldExists(name)) {
 			throw new RuntimeException("Field " + name + " does not exist!");
@@ -59,15 +103,36 @@ public class ObjectDataInstance {
 		return values.get(name);
 	}
 
+	/**
+	 * Gets the value of a field and casts it to the given type.
+	 * 
+	 * @param name
+	 *            the field name
+	 * @param clazz
+	 *            the target type
+	 * @return the field value
+	 */
 	@SuppressWarnings("unchecked")
 	public <T> T getField(String name, Class<T> clazz) {
 		return (T) getField(name);
 	}
 
+	/**
+	 * Checks whether the field contains a value for a field.
+	 * 
+	 * @param name
+	 *            the field name
+	 * @return whether a value exists
+	 */
 	public boolean hasField(String name) {
 		return values.containsKey(name);
 	}
 
+	/**
+	 * Validates this instance against its format.
+	 * 
+	 * @return whether it is valid
+	 */
 	public boolean validate() {
 		return format.validate(this);
 	}
@@ -76,6 +141,11 @@ public class ObjectDataInstance {
 		return values;
 	}
 
+	/**
+	 * Gets the primary key value
+	 * 
+	 * @return the primary key value
+	 */
 	public Object getPrimary() {
 		return getField(format.getPrimary());
 	}

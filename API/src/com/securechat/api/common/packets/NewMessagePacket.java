@@ -5,6 +5,9 @@ import java.io.IOException;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 
+/**
+ * Sent by the server to inform the client of a new message.
+ */
 public class NewMessagePacket implements IPacket {
 	private String cid, sender;
 	private int mid;

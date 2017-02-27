@@ -5,6 +5,9 @@ import java.io.IOException;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 
+/**
+ * Sent by the client to create a new account on the server.
+ */
 public class RegisterPacket implements IPacket {
 	private String username;
 	private byte[] publicKey;

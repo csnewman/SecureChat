@@ -1,15 +1,49 @@
 package com.securechat.api.common.implementation;
 
+/**
+ * Represents an available implementation.
+ * 
+ * @param <T>
+ *            the type the implementation provides
+ */
 public interface IImplementationInstance<T extends IImplementation> {
 
-	public void setInject(boolean inject);
+	/**
+	 * Gets the implementation marker for this instance.
+	 * 
+	 * @return the implementation marker
+	 */
+	ImplementationMarker getMarker();
 
-	public boolean shouldInject();
+	/**
+	 * Gets the type that this implementation instance provides.
+	 * 
+	 * @return the type of the implementation
+	 */
+	Class<T> getType();
 
-	public ImplementationMarker getMarker();
+	/**
+	 * Provides a new instance of this implementation.
+	 * 
+	 * @return the new instance
+	 */
+	T provide();
 
-	public Class<T> getType();
+	/**
+	 * Sets whether the new instance should be injected into by the
+	 * implementation factory after creation.
+	 * 
+	 * @param inject
+	 *            whether to inject
+	 */
+	void setInject(boolean inject);
 
-	public T provide();
+	/**
+	 * Returns whether the new instance should be injected into by the
+	 * implementation factory after creation.
+	 * 
+	 * @return whether to inject
+	 */
+	boolean shouldInject();
 
 }

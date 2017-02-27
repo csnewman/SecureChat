@@ -5,6 +5,10 @@ import java.io.IOException;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 
+/**
+ * Sent by the server to inform the client of the users on the server and
+ * whether they are online.
+ */
 public class UserListPacket implements IPacket {
 	private String[] usernames;
 	private boolean[] online;

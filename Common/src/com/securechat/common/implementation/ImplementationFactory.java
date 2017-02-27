@@ -199,7 +199,7 @@ public class ImplementationFactory implements IImplementationFactory {
 				if (doesProviderExist(type, provider)) {
 					log.debug("Found provider " + provider);
 					if (associate)
-						collection.set(property, provider.save());
+						collection.set(property, provider.toJSON());
 					return provider;
 				}
 			}
@@ -218,7 +218,7 @@ public class ImplementationFactory implements IImplementationFactory {
 			}
 			if (provider != null) {
 				if (associate)
-					collection.set(property, provider.save());
+					collection.set(property, provider.toJSON());
 				return provider;
 			}
 		}
@@ -254,17 +254,6 @@ public class ImplementationFactory implements IImplementationFactory {
 	}
 
 	@Override
-	public void flushDefaults() {
-		PropertyCollection collection = baseCollection.getPermissive(new CollectionProperty("defaults"));
-		for (Entry<String, ImplementationMarker> entry : defaults.entrySet()) {
-			CollectionProperty property = new CollectionProperty(entry.getKey());
-			if (!collection.exists(property)) {
-				collection.set(property, entry.getValue().save());
-			}
-		}
-	}
-
-	@Override
 	public <T extends IImplementation> ImplementationMarker getDefault(Class<T> type) {
 		CollectionProperty property = new CollectionProperty(type.getName());
 		if (!defaultsCollection.exists(property)) {
@@ -272,7 +261,7 @@ public class ImplementationFactory implements IImplementationFactory {
 				return null;
 			}
 			log.debug("Setting default for " + type.getName() + " to " + defaults.get(type.getName()));
-			defaultsCollection.set(property, defaults.get(type.getName()).save());
+			defaultsCollection.set(property, defaults.get(type.getName()).toJSON());
 		}
 		return ImplementationMarker.loadMarker(defaultsCollection.get(property));
 	}
