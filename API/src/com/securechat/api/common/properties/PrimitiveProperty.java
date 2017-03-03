@@ -2,23 +2,38 @@ package com.securechat.api.common.properties;
 
 import org.json.JSONObject;
 
+/**
+ * Stores a primitive object as a property.
+ * 
+ * @param <T>
+ *            the primitive object type
+ */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class PrimitiveProperty<T> implements IProperty<T> {
 	private String name;
 	private T defaultVal;
 
+	/**
+	 * Creates a primitive property with no default value
+	 * 
+	 * @param name
+	 *            the property name
+	 */
 	public PrimitiveProperty(String name) {
 		this(name, null);
 	}
-	
+
+	/**
+	 * Creates a primitive property with a default value.
+	 * 
+	 * @param name
+	 *            the property name
+	 * @param defaultVal
+	 *            the default value
+	 */
 	public PrimitiveProperty(String name, T defaultVal) {
 		this.name = name;
 		this.defaultVal = defaultVal;
-	}
-
-	@Override
-	public String getName() {
-		return name;
 	}
 
 	@Override
@@ -36,6 +51,11 @@ public class PrimitiveProperty<T> implements IProperty<T> {
 	@Override
 	public void storeDefault(JSONObject obj) {
 		obj.put(name, defaultVal);
+	}
+
+	@Override
+	public String getName() {
+		return name;
 	}
 
 	@Override

@@ -45,7 +45,7 @@ public class ChatListPacket implements IPacket {
 	}
 
 	@Override
-	public void write(IByteWriter writer) {
+	public void write(IByteWriter writer) throws IOException {
 		writer.writeInt(chatIds.length);
 		for (int i = 0; i < chatIds.length; i++) {
 			writer.writeString(chatIds[i]);

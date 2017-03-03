@@ -6,7 +6,7 @@ import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 
 /**
- * Send by the server to ensure that the client owns the private key associated
+ * Sent by the server to ensure that the client owns the private key associated
  * with the public key on the server.
  */
 public class ChallengePacket implements IPacket {
@@ -25,10 +25,10 @@ public class ChallengePacket implements IPacket {
 	}
 
 	@Override
-	public void write(IByteWriter writer) {
+	public void write(IByteWriter writer) throws IOException {
 		writer.writeInt(tempCode);
 	}
-	
+
 	public int getTempCode() {
 		return tempCode;
 	}

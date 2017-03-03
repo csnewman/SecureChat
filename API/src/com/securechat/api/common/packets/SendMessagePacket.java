@@ -30,7 +30,7 @@ public class SendMessagePacket implements IPacket {
 	}
 
 	@Override
-	public void write(IByteWriter writer) {
+	public void write(IByteWriter writer) throws IOException {
 		writer.writeString(id);
 		writer.writeArray(content);
 		writer.writeLong(time);

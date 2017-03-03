@@ -25,7 +25,7 @@ public class DisconnectPacket implements IPacket {
 	}
 
 	@Override
-	public void write(IByteWriter writer) {
+	public void write(IByteWriter writer) throws IOException {
 		writer.writeString(reason);
 	}
 

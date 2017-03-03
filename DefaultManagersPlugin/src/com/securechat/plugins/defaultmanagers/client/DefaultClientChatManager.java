@@ -9,6 +9,7 @@ import com.securechat.api.client.chat.IChat;
 import com.securechat.api.client.chat.IClientChatManager;
 import com.securechat.api.client.gui.IGuiProvider;
 import com.securechat.api.client.gui.IMainGui;
+import com.securechat.api.common.IContext;
 import com.securechat.api.common.ILogger;
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.implementation.ImplementationMarker;
@@ -28,6 +29,8 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 	public static final byte[] TEST = "TEST".getBytes();
 	@InjectInstance
 	private ILogger log;
+	@InjectInstance
+	private IContext context;
 	@InjectInstance
 	private IGuiProvider guiProvider;
 	@InjectInstance
@@ -96,7 +99,11 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 				if (!chats.containsKey(user)) {
 					Chat chat = new Chat(this, chatIds[i], user, chatProtected[i], testData[i]);
 					factory.inject(chat);
-					chat.load();
+					try {
+						chat.load();
+					} catch (IOException e) {
+						context.handleCrash(e);
+					}
 					chats.put(user, chat);
 					chatIdMap.put(chatIds[i], chat);
 				}

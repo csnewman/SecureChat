@@ -11,6 +11,7 @@ import com.securechat.api.client.gui.IGuiProvider;
 import com.securechat.api.client.network.EnumConnectionSetupStatus;
 import com.securechat.api.client.network.IClientNetworkManager;
 import com.securechat.api.client.network.IConnectionStore;
+import com.securechat.api.common.IContext;
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.network.IConnectionProfile;
@@ -33,6 +34,8 @@ public class ClientNetworkManager implements IClientNetworkManager {
 	public static final ImplementationMarker MARKER = new ImplementationMarker(SocketNetworkingPlugin.NAME,
 			SocketNetworkingPlugin.VERSION, "client_network_manager", "1.0.0");
 	@InjectInstance
+	private IContext context;
+	@InjectInstance
 	private IImplementationFactory factory;
 	@InjectInstance
 	private IConnectionStore connectionStore;
@@ -40,7 +43,7 @@ public class ClientNetworkManager implements IClientNetworkManager {
 	private IGuiProvider guiProvider;
 	@InjectInstance
 	private IClientManager clientManager;
-	
+
 	@Override
 	public INetworkConnection openConnection(IConnectionProfile profile, IAsymmetricKeyEncryption encryption,
 			Consumer<String> disconnectHandler, Consumer<IPacket> packetHandler) {
@@ -107,42 +110,46 @@ public class ClientNetworkManager implements IClientNetworkManager {
 		}
 
 	}
-	
+
 	@Override
 	public void connect(IConnectionProfile profile, BiConsumer<Boolean, String> status) {
 		IAsymmetricKeyEncryption networkPair = factory.provide(IAsymmetricKeyEncryption.class, null, true, true,
 				"network");
-		networkPair.load(profile.getPublicKey(), profile.getPrivateKey());
+		try {
+			networkPair.load(profile.getPublicKey(), profile.getPrivateKey());
+		} catch (IOException e) {
+			context.handleCrash(e);
+		}
 
 		Consumer<String> disconnectHandler = r -> {
 			status.accept(false, r);
 		};
-		
+
 		INetworkConnection connection = openConnection(profile, networkPair, disconnectHandler, null);
-		
+
 		Consumer<IPacket> finalHandler = p -> {
-			if(p instanceof ConnectedPacket){
+			if (p instanceof ConnectedPacket) {
 				status.accept(true, null);
-				
+
 				clientManager.handleConnected(profile, connection);
-			}else if(p instanceof DisconnectPacket){
-				disconnectHandler.accept("Disconnected: "+((DisconnectPacket)p).getReason());
-			}else{
+			} else if (p instanceof DisconnectPacket) {
+				disconnectHandler.accept("Disconnected: " + ((DisconnectPacket) p).getReason());
+			} else {
 				disconnectHandler.accept("Unexpected packet");
 			}
 		};
 
 		Consumer<IPacket> earlyHandler = p -> {
-			if(p instanceof ChallengePacket){
+			if (p instanceof ChallengePacket) {
 				connection.setHandler(finalHandler);
-				connection.sendPacket(new ChallengeResponsePacket(((ChallengePacket)p).getTempCode()));
-			}else if(p instanceof DisconnectPacket){
-				disconnectHandler.accept("Disconnected: "+((DisconnectPacket)p).getReason());
-			}else{
+				connection.sendPacket(new ChallengeResponsePacket(((ChallengePacket) p).getTempCode()));
+			} else if (p instanceof DisconnectPacket) {
+				disconnectHandler.accept("Disconnected: " + ((DisconnectPacket) p).getReason());
+			} else {
 				disconnectHandler.accept("Unexpected packet");
 			}
 		};
-		
+
 		connection.setHandler(earlyHandler);
 		connection.sendPacket(new ConnectPacket(profile.getUsername(), profile.getAuthCode()));
 	}

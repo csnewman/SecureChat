@@ -23,7 +23,8 @@ public interface IPacket {
 	 * Writes the content of the packet.
 	 * 
 	 * @param writer
+	 * @throws IOException
 	 */
-	void write(IByteWriter writer);
+	void write(IByteWriter writer) throws IOException;
 
 }

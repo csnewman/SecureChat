@@ -30,101 +30,73 @@ public class ByteWriter implements IByteWriter {
 	}
 
 	@Override
-	public void writeByte(int i) {
-		try {
-			output.writeByte(i);
-		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
-		}
+	public void writeByte(int i) throws IOException {
+		output.writeByte(i);
 	}
 
 	@Override
-	public void writeEnum(Enum<?> e) {
+	public void writeEnum(Enum<?> e) throws IOException {
 		writeInt(e.ordinal());
 	}
 
 	@Override
-	public void writeInt(int i) {
-		try {
-			output.writeInt(i);
-		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
-		}
-	}
-	
-	@Override
-	public void writeLong(long l) {
-		try {
-			output.writeLong(l);
-		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
-		}
+	public void writeInt(int i) throws IOException {
+		output.writeInt(i);
 	}
 
 	@Override
-	public void writeString(String str) {
-		try {
-			output.writeUTF(str);
-		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
-		}
+	public void writeLong(long l) throws IOException {
+		output.writeLong(l);
 	}
-	
+
 	@Override
-	public void writeStringWithNull(String str) {
-		if(str == null){
+	public void writeString(String str) throws IOException {
+		output.writeUTF(str);
+	}
+
+	@Override
+	public void writeStringWithNull(String str) throws IOException {
+		if (str == null) {
 			writeBoolean(false);
-		}else{
+		} else {
 			writeBoolean(true);
 			writeString(str);
 		}
 	}
 
 	@Override
-	public void writeBoolean(boolean bool) {
-		try {
-			output.writeBoolean(bool);
-		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
-		}
+	public void writeBoolean(boolean bool) throws IOException {
+		output.writeBoolean(bool);
 	}
 
 	@Override
-	public void writeArray(byte[] data) {
-		try {
-			output.writeInt(data.length);
-			output.write(data);
-		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
-		}
+	public void writeArray(byte[] data) throws IOException {
+		output.writeInt(data.length);
+		output.write(data);
 	}
 
 	@Override
-	public void writeArrayWithNull(byte[] data) {
-		if(data == null){
+	public void writeArrayWithNull(byte[] data) throws IOException {
+		if (data == null) {
 			writeBoolean(false);
-		}else{
+		} else {
 			writeBoolean(true);
 			writeArray(data);
 		}
 	}
-	
+
 	@Override
-	public void writeFixedArray(byte[] data) {
-		try {
-			output.write(data);
-		} catch (IOException e) {
-			throw new RuntimeException("Internal error occured", e);
-		}
+	public void writeFixedArray(byte[] data) throws IOException {
+		output.write(data);
 	}
 
 	@Override
-	public void writeWriterContent(IByteWriter writer) {
+	public void writeWriterContent(IByteWriter writer) throws IOException {
 		writeArray(writer.toByteArray());
 	}
 
 	@Override
-	public void writeWriterWithChecksum(IByteWriter writer) {
+	public void writeWriterWithChecksum(IByteWriter writer) throws IOException {
 		byte[] content = writer.toByteArray();
 		writeArray(hasher.hashData(content));
 		writeArray(content);

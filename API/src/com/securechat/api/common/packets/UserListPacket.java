@@ -33,7 +33,7 @@ public class UserListPacket implements IPacket {
 	}
 
 	@Override
-	public void write(IByteWriter writer) {
+	public void write(IByteWriter writer) throws IOException {
 		writer.writeInt(usernames.length);
 		for (int i = 0; i < usernames.length; i++) {
 			writer.writeString(usernames[i]);

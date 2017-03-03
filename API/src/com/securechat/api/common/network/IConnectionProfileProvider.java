@@ -1,5 +1,7 @@
 package com.securechat.api.common.network;
 
+import java.io.IOException;
+
 import com.securechat.api.common.implementation.IImplementation;
 import com.securechat.api.common.security.IEncryption;
 import com.securechat.api.common.storage.IByteReader;
@@ -52,8 +54,9 @@ public interface IConnectionProfileProvider extends IImplementation {
 	 * @param encryption
 	 *            the encryption of the file
 	 * @return the loaded profile
+	 * @throws IOException
 	 */
-	IConnectionProfile loadProfileFromFile(IStorage storage, String path, IEncryption encryption);
+	IConnectionProfile loadProfileFromFile(IStorage storage, String path, IEncryption encryption) throws IOException;
 
 	/**
 	 * Loads a connection profile directly from memory.
@@ -64,7 +67,7 @@ public interface IConnectionProfileProvider extends IImplementation {
 	 *            the encryption of the data
 	 * @return the loaded profile
 	 */
-	IConnectionProfile loadProfileFromMemory(IByteReader reader, IEncryption encryption);
+	IConnectionProfile loadProfileFromMemory(IByteReader reader, IEncryption encryption) throws IOException;
 
 	/**
 	 * Saves a profile to a given path.
@@ -78,7 +81,8 @@ public interface IConnectionProfileProvider extends IImplementation {
 	 * @param encryption
 	 *            the encryption of the file
 	 */
-	void saveProfileToFIle(IConnectionProfile profile, IStorage storage, String path, IEncryption encryption);
+	void saveProfileToFIle(IConnectionProfile profile, IStorage storage, String path, IEncryption encryption)
+			throws IOException;
 
 	/**
 	 * Saves a connection profile directly to memory.
@@ -90,7 +94,7 @@ public interface IConnectionProfileProvider extends IImplementation {
 	 * @param encryption
 	 *            the encryption of the data
 	 */
-	void saveProfileToMemory(IConnectionProfile profile, IByteWriter writer, IEncryption encryption);
+	void saveProfileToMemory(IConnectionProfile profile, IByteWriter writer, IEncryption encryption) throws IOException;
 
 	/**
 	 * Returns the name of the profile format.

@@ -29,7 +29,7 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	public static final ImplementationMarker MARKER = new ImplementationMarker(JavaSecurityPlugin.NAME,
 			JavaSecurityPlugin.VERSION, "rsa_encryption", "1.0.0");
 	private static final int blockSize = 116, keySize = 1024;
-	
+
 	@InjectInstance
 	private IImplementationFactory factory;
 	private PublicKey pubKey;
@@ -63,7 +63,7 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	}
 
 	@Override
-	public void load(byte[] publicKey, byte[] privateKey) {
+	public void load(byte[] publicKey, byte[] privateKey) throws IOException {
 		lock.lock();
 		try {
 			if (publicKey != null)
@@ -77,10 +77,10 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 			if (privateKey != null)
 				priKey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(privateKey));
 		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-			lock.unlock();
 			throw new RuntimeException("Failed to load private key", e);
+		} finally {
+			lock.unlock();
 		}
-		lock.unlock();
 	}
 
 	@Override
@@ -100,7 +100,7 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	}
 
 	@Override
-	public byte[] encrypt(byte[] data) {
+	public byte[] encrypt(byte[] data) throws IOException{
 		try {
 			lock.lock();
 			int count = (int) Math.ceil((double) data.length / (double) blockSize);
@@ -119,12 +119,11 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 				out.writeArray(temp);
 				out.writeInt(size);
 			}
-
-			lock.unlock();
 			return out.toByteArray();
 		} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-			lock.unlock();
 			throw new RuntimeException("Failed to encrypt data", e);
+		} finally {
+			lock.unlock();
 		}
 	}
 

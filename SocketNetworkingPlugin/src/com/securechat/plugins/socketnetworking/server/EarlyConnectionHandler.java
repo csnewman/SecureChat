@@ -1,7 +1,9 @@
 package com.securechat.plugins.socketnetworking.server;
 
+import java.io.IOException;
 import java.util.Random;
 
+import com.securechat.api.common.IContext;
 import com.securechat.api.common.ILogger;
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.packets.ChallengePacket;
@@ -19,6 +21,8 @@ import com.securechat.api.server.users.IUserManager;
 import com.securechat.plugins.socketnetworking.NetworkConnection;
 
 public class EarlyConnectionHandler {
+	@InjectInstance
+	private IContext context;
 	@InjectInstance
 	private ILogger log;
 	@InjectInstance
@@ -42,13 +46,17 @@ public class EarlyConnectionHandler {
 
 	public void updateKey() {
 		key = factory.provide(IAsymmetricKeyEncryption.class, null, true, true, "network");
-		key.load(publicKey, networkManager.getNetworkKey().getPrivatekey());
+		try {
+			key.load(publicKey, networkManager.getNetworkKey().getPrivatekey());
+		} catch (IOException e) {
+			context.handleCrash(e);
+		}
 
 		if (connection != null) {
 			connection.setEncryption(key);
 		}
 	}
-	
+
 	public void handleFirstPacket(IPacket rpacket) {
 		if (rpacket instanceof RegisterPacket) {
 			RegisterPacket packet = (RegisterPacket) rpacket;
@@ -70,12 +78,12 @@ public class EarlyConnectionHandler {
 		} else if (rpacket instanceof ConnectPacket) {
 			ConnectPacket packet = (ConnectPacket) rpacket;
 			String username = packet.getUsername();
-			
-			if(!userManager.doesUserExist(username)){
-				log.info("Client tried to login in as "+username+", no account exists");
+
+			if (!userManager.doesUserExist(username)) {
+				log.info("Client tried to login in as " + username + ", no account exists");
 				disconnect("Unknown username");
 			}
-			
+
 			user = userManager.getUser(username);
 			if (packet.getCode() != user.getClientCode()) {
 				log.warning("[SECURITY] Client sent wrong code!");
@@ -83,19 +91,19 @@ public class EarlyConnectionHandler {
 				disconnect("Wrong code");
 				return;
 			}
-			
+
 			publicKey = user.getPublicKey();
 			updateKey();
-			
+
 			tempCode = new Random().nextInt();
-			
+
 			connection.setSingleHandler(ChallengeResponsePacket.class, this::handleChallengeResponse);
 			connection.sendPacket(new ChallengePacket(tempCode));
 		} else {
 			log.warning("Unknown First Packet: " + rpacket);
 		}
 	}
-	
+
 	private void handleChallengeResponse(ChallengeResponsePacket packet) {
 		if (packet.getTempCode() != tempCode) {
 			log.warning("[SECURITY] Client sent wrong temp code back!");
@@ -106,8 +114,8 @@ public class EarlyConnectionHandler {
 		log.info("Client logged in as " + user.getUsername());
 		user.assignToConnection(connection);
 	}
-	
-	private void disconnect(String msg){
+
+	private void disconnect(String msg) {
 		connection.sendPacket(new DisconnectPacket(msg));
 		connection.setHandler(this::ignorePackets);
 	}

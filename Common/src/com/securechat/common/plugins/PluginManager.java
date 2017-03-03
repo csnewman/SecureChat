@@ -185,7 +185,7 @@ public class PluginManager implements IPluginManager {
 			}
 		}
 		resolved.add(node);
-		unresolved.add(node);
+		unresolved.remove(node);
 	}
 
 	private Class<?> safeLoad(String name) {

@@ -25,7 +25,7 @@ public class ChallengeResponsePacket implements IPacket {
 	}
 
 	@Override
-	public void write(IByteWriter writer) {
+	public void write(IByteWriter writer) throws IOException {
 		writer.writeInt(tempCode);
 	}
 

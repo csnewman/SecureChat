@@ -51,33 +51,37 @@ public class BasicKeystore implements IKeystore {
 
 	private void save() {
 		log.debug("Saving keystore");
-		IByteWriter body = IByteWriter.get(factory, MARKER.getId());
+		try {
+			IByteWriter body = IByteWriter.get(factory, MARKER.getId());
 
-		body.writeInt(asymmetricPublicKeys.size());
-		for (String name : asymmetricPublicKeys.keySet()) {
-			byte[] pub = asymmetricPublicKeys.get(name);
-			byte[] pri = asymmetricPrivateKeys.get(name);
+			body.writeInt(asymmetricPublicKeys.size());
+			for (String name : asymmetricPublicKeys.keySet()) {
+				byte[] pub = asymmetricPublicKeys.get(name);
+				byte[] pri = asymmetricPrivateKeys.get(name);
 
-			body.writeString(name);
+				body.writeString(name);
 
-			if (pub != null) {
-				body.writeBoolean(true);
-				body.writeArray(pub);
-			} else {
-				body.writeBoolean(false);
+				if (pub != null) {
+					body.writeBoolean(true);
+					body.writeArray(pub);
+				} else {
+					body.writeBoolean(false);
+				}
+
+				if (pri != null) {
+					body.writeBoolean(true);
+					body.writeArray(pri);
+				} else {
+					body.writeBoolean(false);
+				}
 			}
 
-			if (pri != null) {
-				body.writeBoolean(true);
-				body.writeArray(pri);
-			} else {
-				body.writeBoolean(false);
-			}
+			IByteWriter finalData = IByteWriter.get(factory, MARKER.getId());
+			finalData.writeWriterWithChecksum(body);
+			storage.writeFile(path, passwordEncryption, finalData);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-
-		IByteWriter finalData = IByteWriter.get(factory, MARKER.getId());
-		finalData.writeWriterWithChecksum(body);
-		storage.writeFile(path, passwordEncryption, finalData);
 	}
 
 	@Override
@@ -146,12 +150,12 @@ public class BasicKeystore implements IKeystore {
 	}
 
 	@Override
-	public void loadAsymmetricKey(String name, IAsymmetricKeyEncryption encryption) {
+	public void loadAsymmetricKey(String name, IAsymmetricKeyEncryption encryption) throws IOException {
 		encryption.load(getAsymmetricPublicKey(name), getAsymmetricPrivateKey(name));
 	}
 
 	@Override
-	public void loadAsymmetricKeyOrGenerate(String name, IAsymmetricKeyEncryption encryption) {
+	public void loadAsymmetricKeyOrGenerate(String name, IAsymmetricKeyEncryption encryption) throws IOException {
 		if (hasAsymmetricKey(name))
 			loadAsymmetricKey(name, encryption);
 		else {

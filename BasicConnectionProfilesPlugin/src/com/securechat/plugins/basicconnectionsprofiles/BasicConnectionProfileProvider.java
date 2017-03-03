@@ -31,34 +31,32 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 	}
 
 	@Override
-	public IConnectionProfile loadProfileFromFile(IStorage storage, String path, IEncryption encryption) {
+	public IConnectionProfile loadProfileFromFile(IStorage storage, String path, IEncryption encryption)
+			throws IOException {
 		return loadProfileFromMemory(storage.readFile(path, encryption), null);
 	}
 
 	@Override
-	public IConnectionProfile loadProfileFromMemory(IByteReader reader, IEncryption encryption) {
-		try {
-			if (encryption != null)
-				reader = IByteReader.get(factory, getMarker().getId(), encryption.decrypt(reader.getRawData()));
+	public IConnectionProfile loadProfileFromMemory(IByteReader reader, IEncryption encryption) throws IOException {
+		if (encryption != null)
+			reader = IByteReader.get(factory, getMarker().getId(), encryption.decrypt(reader.getRawData()));
 
-			return new BasicConnectionProfile(reader.readBoolean(), reader.readStringWithNull(),
-					reader.readStringWithNull(), reader.readStringWithNull(), reader.readInt(), reader.readInt(),
-					reader.readArrayWithNull(), reader.readArrayWithNull());
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
+		return new BasicConnectionProfile(reader.readBoolean(), reader.readStringWithNull(),
+				reader.readStringWithNull(), reader.readStringWithNull(), reader.readInt(), reader.readInt(),
+				reader.readArrayWithNull(), reader.readArrayWithNull());
 	}
 
 	@Override
-	public void saveProfileToFIle(IConnectionProfile profile, IStorage storage, String path, IEncryption encryption) {
+	public void saveProfileToFIle(IConnectionProfile profile, IStorage storage, String path, IEncryption encryption)
+			throws IOException {
 		IByteWriter writer = IByteWriter.get(factory, getMarker().getId());
 		saveProfileToMemory(profile, writer, null);
 		storage.writeFile(path, encryption, writer);
 	}
 
 	@Override
-	public void saveProfileToMemory(IConnectionProfile profile, IByteWriter writer, IEncryption encryption) {
+	public void saveProfileToMemory(IConnectionProfile profile, IByteWriter writer, IEncryption encryption)
+			throws IOException {
 		IByteWriter temp;
 		if (encryption != null) {
 			temp = IByteWriter.get(factory, getMarker().getId());

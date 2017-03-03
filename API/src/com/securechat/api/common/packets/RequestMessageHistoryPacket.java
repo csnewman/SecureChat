@@ -27,7 +27,7 @@ public class RequestMessageHistoryPacket implements IPacket {
 	}
 
 	@Override
-	public void write(IByteWriter writer) {
+	public void write(IByteWriter writer) throws IOException {
 		writer.writeString(cid);
 		writer.writeInt(lastId);
 	}

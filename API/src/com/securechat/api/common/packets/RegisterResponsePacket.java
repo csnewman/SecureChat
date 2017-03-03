@@ -36,7 +36,7 @@ public class RegisterResponsePacket implements IPacket {
 	}
 
 	@Override
-	public void write(IByteWriter writer) {
+	public void write(IByteWriter writer) throws IOException {
 		writer.writeEnum(status);
 		writer.writeInt(code);
 	}

@@ -1,6 +1,7 @@
 package com.securechat.server;
 
 import java.io.Console;
+import java.io.IOException;
 
 import com.securechat.api.common.IContext;
 import com.securechat.api.common.ILogger;
@@ -49,7 +50,7 @@ public class ChatServer implements IContext {
 	private IAsymmetricKeyEncryption networkKey;
 	private IServerNetworkManager networkManager;
 
-	public void init(IStorage storage, boolean showDebug, char[] keystorePassword) {
+	public void init(IStorage storage, boolean showDebug, char[] keystorePassword) throws IOException{
 		this.storage = storage;
 		storage.init();
 

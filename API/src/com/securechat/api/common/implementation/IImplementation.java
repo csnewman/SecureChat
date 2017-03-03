@@ -1,7 +1,7 @@
 package com.securechat.api.common.implementation;
 
 /**
- * Represents an implementation of an API feature.
+ * An implementation of a API feature.
  */
 public interface IImplementation {
 

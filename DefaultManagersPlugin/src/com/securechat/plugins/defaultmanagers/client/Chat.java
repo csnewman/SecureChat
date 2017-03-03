@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.management.OperationsException;
+
 import com.securechat.api.client.IClientManager;
 import com.securechat.api.client.chat.IChat;
 import com.securechat.api.client.chat.IMessage;
@@ -56,7 +58,7 @@ public class Chat implements IChat {
 		messages = new ArrayList<IMessage>();
 	}
 
-	public void load() {
+	public void load() throws IOException {
 		IConnectionProfile profile = clientManager.getConnectionProfile();
 		path = "chatcache/" + profile.getName() + "/" + profile.getUsername() + "/" + id + ".bin";
 
@@ -93,23 +95,27 @@ public class Chat implements IChat {
 
 	private void save() {
 		log.info("saving");
-		IByteWriter body = IByteWriter.get(factory, MARKER.getId());
-		body.writeInt(latestPacketId);
-		body.writeInt(lastReadId);
+		try {
+			IByteWriter body = IByteWriter.get(factory, MARKER.getId());
+			body.writeInt(latestPacketId);
+			body.writeInt(lastReadId);
 
-		body.writeInt(messages.size());
-		for (IMessage message : messages) {
-			body.writeArray(message.getContent());
-			body.writeString(message.getSender());
-			body.writeLong(message.getTime());
+			body.writeInt(messages.size());
+			for (IMessage message : messages) {
+				body.writeArray(message.getContent());
+				body.writeString(message.getSender());
+				body.writeLong(message.getTime());
+			}
+
+			IByteWriter finalData = IByteWriter.get(factory, MARKER.getId());
+			log.info("doing checksum");
+			finalData.writeWriterWithChecksum(body);
+			log.info("writing");
+			storage.writeFile(path, key, finalData);
+			log.info("done");
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-
-		IByteWriter finalData = IByteWriter.get(factory, MARKER.getId());
-		log.info("doing checksum");
-		finalData.writeWriterWithChecksum(body);
-		log.info("writing");
-		storage.writeFile(path, key, finalData);
-		log.info("done");
 	}
 
 	@Override

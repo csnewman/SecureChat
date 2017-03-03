@@ -6,23 +6,29 @@ import java.util.Map.Entry;
 
 import org.json.JSONObject;
 
+/**
+ * Stores a property collection as a property.
+ */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class CollectionProperty implements IProperty<PropertyCollection> {
 	private String name;
 	private IProperty[] defaultProperties;
 
+	/**
+	 * Creates a collection with the given default properties.
+	 * 
+	 * @param name
+	 *            the collection name
+	 * @param defaultProperties
+	 *            the default properties
+	 */
 	public CollectionProperty(String name, IProperty... defaultProperties) {
-		if(name == null){
-			throw new RuntimeException("Invalid collection name! "+name);
+		if (name == null) {
+			throw new RuntimeException("Invalid collection name! " + name);
 		}
-		
+
 		this.name = name;
 		this.defaultProperties = defaultProperties;
-	}
-
-	@Override
-	public String getName() {
-		return name;
 	}
 
 	@Override
@@ -66,6 +72,11 @@ public class CollectionProperty implements IProperty<PropertyCollection> {
 		}
 
 		return new PropertyCollection(obj.getJSONObject(name));
+	}
+
+	@Override
+	public String getName() {
+		return name;
 	}
 
 	@Override

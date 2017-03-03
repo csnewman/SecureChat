@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.securechat.api.client.network.IConnectionStore;
 import com.securechat.api.client.network.IConnectionStoreUpdateListener;
+import com.securechat.api.common.IContext;
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.network.IConnectionProfile;
@@ -20,6 +21,8 @@ public class BasicConnectionStore implements IConnectionStore {
 	public static final ImplementationMarker MARKER = new ImplementationMarker(BasicConnectionProfilesPlugin.NAME,
 			BasicConnectionProfilesPlugin.VERSION, "connection_store", "1.0.0");
 	private static final String path = "connections.bin";
+	@InjectInstance
+	private IContext context;
 	@InjectInstance
 	private IKeystore keystore;
 	@InjectInstance
@@ -37,43 +40,51 @@ public class BasicConnectionStore implements IConnectionStore {
 
 	@Override
 	public void init() {
-		key = factory.provide(IAsymmetricKeyEncryption.class, null, true, true, MARKER.getId());
-		keystore.loadAsymmetricKeyOrGenerate(MARKER.getId(), key);
+		try{
+			key = factory.provide(IAsymmetricKeyEncryption.class, null, true, true, MARKER.getId());
+			keystore.loadAsymmetricKeyOrGenerate(MARKER.getId(), key);
 
-		if (storage.doesFileExist(path)) {
-			IByteReader fileData = storage.readFile(path, key);
-			try {
-				IByteReader content = fileData.readReaderWithChecksum();
-				int size = content.readInt();
-				for (int i = 0; i < size; i++) {
-					profiles.add(new BasicConnectionProfile(content.readBoolean(), content.readStringWithNull(),
-							content.readStringWithNull(), content.readStringWithNull(), content.readInt(),
-							content.readInt(), content.readArrayWithNull(), content.readArrayWithNull()));
+			if (storage.doesFileExist(path)) {
+				IByteReader fileData = storage.readFile(path, key);
+				try {
+					IByteReader content = fileData.readReaderWithChecksum();
+					int size = content.readInt();
+					for (int i = 0; i < size; i++) {
+						profiles.add(new BasicConnectionProfile(content.readBoolean(), content.readStringWithNull(),
+								content.readStringWithNull(), content.readStringWithNull(), content.readInt(),
+								content.readInt(), content.readArrayWithNull(), content.readArrayWithNull()));
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
+		}catch(IOException e){
+			context.handleCrash(e);
 		}
 	}
 
 	public void save() {
-		IByteWriter body = IByteWriter.get(factory, MARKER.getId());
+		try{
+			IByteWriter body = IByteWriter.get(factory, MARKER.getId());
 
-		body.writeInt(profiles.size());
-		for (IConnectionProfile profile : profiles) {
-			body.writeBoolean(profile.isTemplate());
-			body.writeStringWithNull(profile.getName());
-			body.writeStringWithNull(profile.getUsername());
-			body.writeStringWithNull(profile.getIP());
-			body.writeInt(profile.getPort());
-			body.writeInt(profile.getAuthCode());
-			body.writeArrayWithNull(profile.getPublicKey());
-			body.writeArrayWithNull(profile.getPrivateKey());
+			body.writeInt(profiles.size());
+			for (IConnectionProfile profile : profiles) {
+				body.writeBoolean(profile.isTemplate());
+				body.writeStringWithNull(profile.getName());
+				body.writeStringWithNull(profile.getUsername());
+				body.writeStringWithNull(profile.getIP());
+				body.writeInt(profile.getPort());
+				body.writeInt(profile.getAuthCode());
+				body.writeArrayWithNull(profile.getPublicKey());
+				body.writeArrayWithNull(profile.getPrivateKey());
+			}
+
+			IByteWriter finalData = IByteWriter.get(factory, MARKER.getId());
+			finalData.writeWriterWithChecksum(body);
+			storage.writeFile(path, key, finalData);
+		}catch(IOException e){
+			e.printStackTrace();
 		}
-
-		IByteWriter finalData = IByteWriter.get(factory, MARKER.getId());
-		finalData.writeWriterWithChecksum(body);
-		storage.writeFile(path, key, finalData);
 	}
 
 	@Override
