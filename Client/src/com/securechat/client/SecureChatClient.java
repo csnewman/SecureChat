@@ -49,8 +49,8 @@ public class SecureChatClient implements IContext {
 
 		// Loads settings
 		settings = new PropertyCollection(null);
-		if (storage.doesFileExist(settingsFile))
-			settings.loadFile(storage, settingsFile);
+		if (storage.doesFileExist(SETTINGS_FILE))
+			settings.loadFile(storage, SETTINGS_FILE);
 		saveSettings();
 
 		// Configures the implementation factory
@@ -153,7 +153,7 @@ public class SecureChatClient implements IContext {
 
 	@Override
 	public void saveSettings() {
-		settings.saveToFile(storage, settingsFile);
+		settings.saveToFile(storage, SETTINGS_FILE);
 	}
 
 	@Override
@@ -243,12 +243,12 @@ public class SecureChatClient implements IContext {
 
 	public static final ImplementationMarker MARKER;
 	public static final CollectionProperty IMPLEMENTATIONS_PROPERTY;
-	private static final String settingsFile;
+	private static final String SETTINGS_FILE;
 	private static SecureChatClient INSTANCE;
 	static {
 		MARKER = new ImplementationMarker("official", "1.0.0", "client", "1.0.0");
 		IMPLEMENTATIONS_PROPERTY = new CollectionProperty("implementations");
-		settingsFile = "settings.json";
+		SETTINGS_FILE = "settings.json";
 	}
 
 }

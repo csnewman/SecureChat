@@ -7,8 +7,8 @@ import java.util.Map;
  * Handles the management of packet ids.
  */
 public class PacketManager {
-	private static Map<String, Class<? extends IPacket>> idToPacketMap;
-	private static Map<Class<? extends IPacket>, String> packetToIdMap;
+	private static Map<String, Class<? extends IPacket>> ID_PACKET_MAP;
+	private static Map<Class<? extends IPacket>, String> PACKET_ID_MAP;
 
 	/**
 	 * Registers the given packet to the given id.
@@ -19,8 +19,8 @@ public class PacketManager {
 	 *            the packet class
 	 */
 	public static void registerPacket(String id, Class<? extends IPacket> clazz) {
-		idToPacketMap.put(id, clazz);
-		packetToIdMap.put(clazz, id);
+		ID_PACKET_MAP.put(id, clazz);
+		PACKET_ID_MAP.put(clazz, id);
 	}
 
 	/**
@@ -31,7 +31,7 @@ public class PacketManager {
 	 * @return the packets network id
 	 */
 	public static String getPacketId(Class<? extends IPacket> clazz) {
-		return packetToIdMap.get(clazz);
+		return PACKET_ID_MAP.get(clazz);
 	}
 
 	/**
@@ -43,7 +43,7 @@ public class PacketManager {
 	 */
 	public static IPacket createPacket(String id) {
 		try {
-			return idToPacketMap.get(id).newInstance();
+			return ID_PACKET_MAP.get(id).newInstance();
 		} catch (InstantiationException | IllegalAccessException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Unable to create packet " + id);
@@ -51,8 +51,8 @@ public class PacketManager {
 	}
 
 	static {
-		idToPacketMap = new HashMap<String, Class<? extends IPacket>>();
-		packetToIdMap = new HashMap<Class<? extends IPacket>, String>();
+		ID_PACKET_MAP = new HashMap<String, Class<? extends IPacket>>();
+		PACKET_ID_MAP = new HashMap<Class<? extends IPacket>, String>();
 
 		registerPacket("REGISTER", RegisterPacket.class);
 		registerPacket("REGISTER_RESPONSE", RegisterResponsePacket.class);
