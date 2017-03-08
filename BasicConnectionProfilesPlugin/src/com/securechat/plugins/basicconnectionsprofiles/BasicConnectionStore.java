@@ -17,10 +17,10 @@ import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
 
+/**
+ * A reference implementation of a connection store.
+ */
 public class BasicConnectionStore implements IConnectionStore {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(BasicConnectionProfilesPlugin.NAME,
-			BasicConnectionProfilesPlugin.VERSION, "connection_store", "1.0.0");
-	private static final String path = "connections.bin";
 	@InjectInstance
 	private IContext context;
 	@InjectInstance
@@ -40,14 +40,17 @@ public class BasicConnectionStore implements IConnectionStore {
 
 	@Override
 	public void init() {
-		try{
+		try {
+			// Fetches a key from the key store
 			key = factory.provide(IAsymmetricKeyEncryption.class, null, true, true, MARKER.getId());
 			keystore.loadAsymmetricKeyOrGenerate(MARKER.getId(), key);
 
-			if (storage.doesFileExist(path)) {
-				IByteReader fileData = storage.readFile(path, key);
+			if (storage.doesFileExist(PATH)) {
+				IByteReader fileData = storage.readFile(PATH, key);
 				try {
 					IByteReader content = fileData.readReaderWithChecksum();
+
+					// Loads each connection from the file
 					int size = content.readInt();
 					for (int i = 0; i < size; i++) {
 						profiles.add(new BasicConnectionProfile(content.readBoolean(), content.readStringWithNull(),
@@ -58,15 +61,16 @@ public class BasicConnectionStore implements IConnectionStore {
 					e.printStackTrace();
 				}
 			}
-		}catch(IOException e){
+		} catch (IOException e) {
 			context.handleCrash(e);
 		}
 	}
 
 	public void save() {
-		try{
+		try {
 			IByteWriter body = IByteWriter.get(factory, MARKER.getId());
 
+			// Writes each connection to the file
 			body.writeInt(profiles.size());
 			for (IConnectionProfile profile : profiles) {
 				body.writeBoolean(profile.isTemplate());
@@ -79,10 +83,11 @@ public class BasicConnectionStore implements IConnectionStore {
 				body.writeArrayWithNull(profile.getPrivateKey());
 			}
 
+			// Saves the file with the encryption key
 			IByteWriter finalData = IByteWriter.get(factory, MARKER.getId());
 			finalData.writeWriterWithChecksum(body);
-			storage.writeFile(path, key, finalData);
-		}catch(IOException e){
+			storage.writeFile(PATH, key, finalData);
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -114,6 +119,14 @@ public class BasicConnectionStore implements IConnectionStore {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	private static final String PATH;
+	static {
+		MARKER = new ImplementationMarker(BasicConnectionProfilesPlugin.NAME, BasicConnectionProfilesPlugin.VERSION,
+				"connection_store", "1.0.0");
+		PATH = "connections.bin";
 	}
 
 }

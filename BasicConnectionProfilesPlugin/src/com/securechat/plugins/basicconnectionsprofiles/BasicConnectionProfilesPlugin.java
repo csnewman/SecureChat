@@ -9,6 +9,10 @@ import com.securechat.api.common.plugins.Hook;
 import com.securechat.api.common.plugins.Hooks;
 import com.securechat.api.common.plugins.Plugin;
 
+/**
+ * An official plugin providing the reference implementations of the connection
+ * store and profiles.
+ */
 @Plugin(name = BasicConnectionProfilesPlugin.NAME, version = BasicConnectionProfilesPlugin.VERSION)
 public class BasicConnectionProfilesPlugin {
 	public static final String NAME = "official-connection_profiles", VERSION = "1.0.0";

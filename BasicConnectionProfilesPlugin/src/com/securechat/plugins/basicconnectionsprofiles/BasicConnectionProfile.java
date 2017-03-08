@@ -3,9 +3,10 @@ package com.securechat.plugins.basicconnectionsprofiles;
 import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.network.IConnectionProfile;
 
+/**
+ * A reference implementation of a connection profile.
+ */
 public class BasicConnectionProfile implements IConnectionProfile {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(BasicConnectionProfilesPlugin.NAME,
-			BasicConnectionProfilesPlugin.VERSION, "connection_profile", "1.0.0");
 	private boolean isTemplate;
 	private String name, username, ip;
 	private int port, authcode;
@@ -66,6 +67,12 @@ public class BasicConnectionProfile implements IConnectionProfile {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker(BasicConnectionProfilesPlugin.NAME, BasicConnectionProfilesPlugin.VERSION,
+				"connection_profile", "1.0.0");
 	}
 
 }

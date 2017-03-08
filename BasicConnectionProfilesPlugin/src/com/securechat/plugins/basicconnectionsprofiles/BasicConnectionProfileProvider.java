@@ -12,9 +12,10 @@ import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
 
+/**
+ * A reference implementation of a profile provider.
+ */
 public class BasicConnectionProfileProvider implements IConnectionProfileProvider {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(BasicConnectionProfilesPlugin.NAME,
-			BasicConnectionProfilesPlugin.VERSION, "connection_profile_provider", "1.0.0");
 	@InjectInstance
 	private IImplementationFactory factory;
 
@@ -57,25 +58,25 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 	@Override
 	public void saveProfileToMemory(IConnectionProfile profile, IByteWriter writer, IEncryption encryption)
 			throws IOException {
-		IByteWriter temp;
+		IByteWriter out;
 		if (encryption != null) {
-			temp = IByteWriter.get(factory, getMarker().getId());
+			out = IByteWriter.get(factory, getMarker().getId());
 		} else {
-			temp = writer;
+			out = writer;
 		}
 
-		temp.writeBoolean(profile.isTemplate());
-		temp.writeStringWithNull(profile.getName());
-		temp.writeStringWithNull(profile.getUsername());
-		temp.writeStringWithNull(profile.getIP());
-		temp.writeInt(profile.getPort());
-		temp.writeInt(profile.getAuthCode());
-		temp.writeArrayWithNull(profile.getPublicKey());
-		temp.writeArrayWithNull(profile.getPrivateKey());
+		out.writeBoolean(profile.isTemplate());
+		out.writeStringWithNull(profile.getName());
+		out.writeStringWithNull(profile.getUsername());
+		out.writeStringWithNull(profile.getIP());
+		out.writeInt(profile.getPort());
+		out.writeInt(profile.getAuthCode());
+		out.writeArrayWithNull(profile.getPublicKey());
+		out.writeArrayWithNull(profile.getPrivateKey());
 
 		if (encryption != null) {
 			try {
-				writer.writeArray(encryption.encrypt(temp.toByteArray()));
+				writer.writeArray(encryption.encrypt(out.toByteArray()));
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
@@ -91,6 +92,12 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker(BasicConnectionProfilesPlugin.NAME, BasicConnectionProfilesPlugin.VERSION,
+				"connection_profile_provider", "1.0.0");
 	}
 
 }
