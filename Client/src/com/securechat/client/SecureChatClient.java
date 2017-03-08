@@ -19,7 +19,7 @@ import com.securechat.api.common.security.IKeystore;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
-import com.securechat.common.FallbackLogger;
+import com.securechat.common.ConsoleLogger;
 import com.securechat.common.implementation.ImplementationFactory;
 import com.securechat.common.plugins.PluginManager;
 import com.securechat.common.storage.ByteReader;
@@ -42,7 +42,7 @@ public class SecureChatClient implements IContext {
 		storage.init();
 
 		// Configures an early logger
-		logger = new FallbackLogger();
+		logger = new ConsoleLogger();
 		logger.init(this, showDebug);
 
 		logger.info("SecureChatClient (" + MARKER.getId() + ")");
@@ -61,10 +61,10 @@ public class SecureChatClient implements IContext {
 		implementationFactory.set(IImplementationFactory.class, implementationFactory);
 
 		// Registers some default implementations
-		implementationFactory.register(FallbackLogger.MARKER, ILogger.class, FallbackLogger::new);
+		implementationFactory.register(ConsoleLogger.MARKER, ILogger.class, ConsoleLogger::new);
 		implementationFactory.register(ByteReader.MARKER, IByteReader.class, ByteReader::new);
 		implementationFactory.register(ByteWriter.MARKER, IByteWriter.class, ByteWriter::new);
-		implementationFactory.setFallbackDefault(ILogger.class, FallbackLogger.MARKER);
+		implementationFactory.setFallbackDefault(ILogger.class, ConsoleLogger.MARKER);
 		implementationFactory.setFallbackDefault(IByteReader.class, ByteReader.MARKER);
 		implementationFactory.setFallbackDefault(IByteWriter.class, ByteWriter.MARKER);
 

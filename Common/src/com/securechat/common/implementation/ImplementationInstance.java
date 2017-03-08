@@ -6,13 +6,17 @@ import com.securechat.api.common.implementation.IImplementation;
 import com.securechat.api.common.implementation.IImplementationInstance;
 import com.securechat.api.common.implementation.ImplementationMarker;
 
+/**
+ * The inbuilt implementation of the implementation instance.
+ */
 public class ImplementationInstance<T extends IImplementation> implements IImplementationInstance<T> {
 	private ImplementationMarker marker;
 	private Class<T> type;
 	private Supplier<? extends T> supplier;
 	private boolean inject;
 
-	public ImplementationInstance(ImplementationMarker marker, Class<T> type, Supplier<? extends T> supplier, boolean inject) {
+	public ImplementationInstance(ImplementationMarker marker, Class<T> type, Supplier<? extends T> supplier,
+			boolean inject) {
 		this.marker = marker;
 		this.type = type;
 		this.supplier = supplier;

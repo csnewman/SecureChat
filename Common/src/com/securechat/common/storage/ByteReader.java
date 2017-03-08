@@ -11,9 +11,10 @@ import com.securechat.api.common.plugins.Inject;
 import com.securechat.api.common.security.IHasher;
 import com.securechat.api.common.storage.IByteReader;
 
+/**
+ * A reference byte reader implementation.
+ */
 public class ByteReader implements IByteReader {
-	public static final ImplementationMarker MARKER = new ImplementationMarker("inbuilt", "n/a", "byte_reader",
-			"1.0.0");
 	@Inject(associate = true)
 	private IHasher hasher;
 	private byte[] rawData;
@@ -51,7 +52,7 @@ public class ByteReader implements IByteReader {
 	public int readInt() throws IOException {
 		return input.readInt();
 	}
-	
+
 	@Override
 	public long readLong() throws IOException {
 		return input.readLong();
@@ -61,10 +62,10 @@ public class ByteReader implements IByteReader {
 	public String readString() throws IOException {
 		return input.readUTF();
 	}
-	
+
 	@Override
 	public String readStringWithNull() throws IOException {
-		if(readBoolean()){
+		if (readBoolean()) {
 			return readString();
 		}
 		return null;
@@ -82,10 +83,10 @@ public class ByteReader implements IByteReader {
 		input.readFully(buffer, 0, size);
 		return buffer;
 	}
-	
+
 	@Override
 	public byte[] readArrayWithNull() throws IOException {
-		if(readBoolean()){
+		if (readBoolean()) {
 			return readArray();
 		}
 		return null;
@@ -139,6 +140,11 @@ public class ByteReader implements IByteReader {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker("inbuilt", "n/a", "byte_reader", "1.0.0");
 	}
 
 }

@@ -1,21 +1,12 @@
 package com.securechat.common.plugins;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.jar.JarInputStream;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
 
 import com.securechat.api.common.IContext;
 import com.securechat.api.common.ILogger;
@@ -24,6 +15,9 @@ import com.securechat.api.common.plugins.Hooks;
 import com.securechat.api.common.plugins.IPluginManager;
 import com.securechat.api.common.plugins.Plugin;
 
+/**
+ * The inbuilt implementation of the plugin manager.
+ */
 public class PluginManager implements IPluginManager {
 	private IContext context;
 	private ILogger logger;
@@ -41,6 +35,7 @@ public class PluginManager implements IPluginManager {
 
 	@Override
 	public void invokeHook(Hooks hook, Object... objects) {
+		// Calls the hook on all hook instances
 		for (HookInstance inst : hookCache.get(hook)) {
 			inst.invoke(objects);
 		}
@@ -48,15 +43,18 @@ public class PluginManager implements IPluginManager {
 
 	@Override
 	public void loadPlugins() {
+		// Fetches all classes
 		List<String> classes = context.getStorage().loadPlugins();
 		List<String> loadedClasses = new ArrayList<String>();
 
 		for (String clazzName : classes) {
+			// Attempts to load the class
 			Class<?> clazz = safeLoad(clazzName);
 			if (clazz == null) {
 				continue;
 			}
 
+			// Checks if the class is a plugin
 			if (!clazz.isAnnotationPresent(Plugin.class)) {
 				continue;
 			}
@@ -64,29 +62,36 @@ public class PluginManager implements IPluginManager {
 			Plugin pluginAnnotation = clazz.getDeclaredAnnotation(Plugin.class);
 			loadedClasses.add(clazz.getName());
 
+			// Creates a new instance
 			PluginInstance instance = new PluginInstance(pluginAnnotation, clazz);
 			instance.createInstance();
 
 			plugins.put(instance.getName(), instance);
 			logger.info("Found plugin " + instance.getFullString());
 
+			// Checks each method
 			for (Method method : clazz.getDeclaredMethods()) {
+				// Checks if the method is a hook
 				if (!method.isAnnotationPresent(Hook.class)) {
 					continue;
 				}
 				Hook hookAnnotation = method.getDeclaredAnnotation(Hook.class);
+				// Ensures that the plugin isn't static
 				if (Modifier.isStatic(method.getModifiers())) {
 					logger.warning("Hooks can not be on static methods!");
 					continue;
 				}
 
+				// Bypasses private member protection
 				method.setAccessible(true);
 
 				HookInstance hook = new HookInstance(instance, hookAnnotation, method);
 
+				// Ensures the hooks name is unique
 				if (hooks.containsKey(hook.getName())) {
 					throw new RuntimeException("Hook already exists!");
 				}
+
 				hooks.put(hook.getName(), hook);
 				logger.debug("Found hook " + hook.getName());
 			}
@@ -108,22 +113,34 @@ public class PluginManager implements IPluginManager {
 
 	}
 
+	/**
+	 * Resolves the appropriate calling order of hooks ensure dependencies are
+	 * called in the right order.
+	 * 
+	 * @param hook
+	 *            the hook to resolve
+	 * @return the ordered list of hook instances to call
+	 */
 	private List<HookInstance> generateHook(Hooks hook) {
 		Map<String, HookNode> nodeMap = new HashMap<String, HookNode>();
 
 		for (HookInstance inst : hooks.values()) {
+			// Checks that the hook is for this 'side'
 			if (context.getSide().allows(inst.getSide()) && inst.getHook() == hook) {
+				// Generates a hook node
 				nodeMap.put(inst.getName(), new HookNode(inst));
 			}
 		}
 
 		for (HookInstance inst : hooks.values()) {
+			// Checks that the hook is for this 'side'
 			if (!context.getSide().allows(inst.getSide()) || inst.getHook() != hook) {
 				continue;
 			}
 
 			HookNode node = nodeMap.get(inst.getName());
 
+			// Resolves all dependencies.
 			for (String name : inst.getAfter()) {
 				node.addDependency(nodeMap.get(name));
 			}
@@ -145,6 +162,7 @@ public class PluginManager implements IPluginManager {
 			}
 		}
 
+		// Finds all nodes that are not used as dependencies.
 		List<String> notLoaded = new ArrayList<String>();
 		notLoaded.addAll(nodeMap.keySet());
 		for (HookNode node : nodeMap.values()) {
@@ -153,6 +171,7 @@ public class PluginManager implements IPluginManager {
 			}
 		}
 
+		// Make a root node with these base dependencies
 		HookNode root = new HookNode(null);
 		for (String name : notLoaded) {
 			root.addDependency(nodeMap.get(name));
@@ -161,12 +180,15 @@ public class PluginManager implements IPluginManager {
 		List<HookNode> resolved = new LinkedList<HookNode>();
 		List<HookNode> unresolved = new ArrayList<HookNode>();
 
+		// Resolves the dependency tree
 		resolveDependencies(root, resolved, unresolved);
 
+		// Removes the fake root node
 		resolved.remove(root);
 
 		List<HookInstance> result = new LinkedList<HookInstance>();
 
+		// Converts the tree into a ordered list
 		for (HookNode node : resolved) {
 			result.add(node.getInstance());
 		}
@@ -174,30 +196,49 @@ public class PluginManager implements IPluginManager {
 		return result;
 	}
 
+	/**
+	 * Resolves a dependency tree of hook nodes.
+	 * 
+	 * @param node
+	 *            the current node
+	 * @param resolved
+	 *            the resolved nodes
+	 * @param unresolved
+	 *            the unresolved nodes
+	 */
 	private void resolveDependencies(HookNode node, List<HookNode> resolved, List<HookNode> unresolved) {
+		// Marks this node as unresolved
 		unresolved.add(node);
 		for (HookNode dep : node.getDependencies()) {
+			// If this node hasn't been resolved, resolve it
 			if (!resolved.contains(dep)) {
+				// If we are currently trying to resolve it and we encounter it
+				// again, we have a circular dependency loop
 				if (unresolved.contains(dep))
 					throw new RuntimeException(
 							"Circular dependency detected! " + node.getName() + " to " + dep.getName());
+				// Resolve its dependencies
 				resolveDependencies(dep, resolved, unresolved);
 			}
 		}
+		// Marks this node as resolved
 		resolved.add(node);
 		unresolved.remove(node);
 	}
 
+	/**
+	 * Attempts to load a class by its name, safely failing.
+	 * 
+	 * @param name
+	 *            the class to load
+	 * @return the loaded class
+	 */
 	private Class<?> safeLoad(String name) {
 		try {
 			return Class.forName(name);
 		} catch (Exception e) {
-//			System.out.println("Failed to load " + name);
-			// e.printStackTrace();
 			return null;
 		} catch (Error e) {
-//			System.out.println("Failed to load " + name);
-			// e.printStackTrace();
 			return null;
 		}
 	}

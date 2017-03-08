@@ -3,6 +3,9 @@ package com.securechat.common.plugins;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * An instance of a hook with its list of dependecies.
+ */
 public class HookNode {
 	private List<HookNode> dependencies;
 	private HookInstance instance;
@@ -11,17 +14,17 @@ public class HookNode {
 		this.instance = instance;
 		dependencies = new ArrayList<HookNode>();
 	}
-	
+
 	public HookInstance getInstance() {
 		return instance;
 	}
-	
-	public void addDependency(HookNode node){
-		if(!dependencies.contains(node)){
+
+	public void addDependency(HookNode node) {
+		if (!dependencies.contains(node)) {
 			dependencies.add(node);
 		}
 	}
-	
+
 	public List<HookNode> getDependencies() {
 		return dependencies;
 	}
@@ -29,5 +32,5 @@ public class HookNode {
 	public String getName() {
 		return instance != null ? instance.getName() : "root";
 	}
-	
+
 }

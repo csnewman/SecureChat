@@ -6,10 +6,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.function.Supplier;
 
-import com.securechat.api.common.IContext;
 import com.securechat.api.common.ILogger;
 import com.securechat.api.common.implementation.IImplementation;
 import com.securechat.api.common.implementation.IImplementationFactory;
@@ -21,9 +19,11 @@ import com.securechat.api.common.plugins.Plugin;
 import com.securechat.api.common.properties.CollectionProperty;
 import com.securechat.api.common.properties.PropertyCollection;
 
+/**
+ * The inbuilt implementation of the implementation factory.
+ */
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class ImplementationFactory implements IImplementationFactory {
-	public static final CollectionProperty DEFAULTS_PROPERTY = new CollectionProperty("defaults");
 	private ILogger log;
 	private Map<Class, Map> implementations;
 	private Map<Class, Object> instances;
@@ -43,6 +43,7 @@ public class ImplementationFactory implements IImplementationFactory {
 	public void inject(Object obj) {
 		Class<?> clazz = obj.getClass();
 
+		// Tries to find an id for this object
 		String baseId = null;
 		if (clazz.isAnnotationPresent(Plugin.class)) {
 			baseId = clazz.getDeclaredAnnotation(Plugin.class).name();
@@ -54,35 +55,49 @@ public class ImplementationFactory implements IImplementationFactory {
 			log.debug("Injecting into " + obj + " (unknown)");
 		}
 
-		List<Field> fields = getAllFields(clazz, new ArrayList<Field>());
+		// Searches each field in the class
+		List<Field> fields = getAllFields(clazz);
 		for (Field field : fields) {
+			// Checks if the field has an Inject annotation
 			if (field.isAnnotationPresent(Inject.class)) {
 				log.debug("Found field " + field.getName() + " as " + field.getType());
 				Inject annotation = field.getAnnotation(Inject.class);
 				field.setAccessible(true);
 
+				// Ensures that if the field is set to associate that an id has
+				// been found
 				if (annotation.associate() && baseId == null) {
 					log.error("Associating usage to an unknown object");
 				}
 
 				try {
+					// Checks whether there is a value or not for the field
 					if (field.get(obj) == null) {
+						// Generates a new instance
 						Object value = provide((Class) field.getType(),
 								ImplementationMarker.convert(annotation.providers()), annotation.allowDefault(),
 								annotation.associate(), baseId);
+
+						// Sets the fields value
 						log.debug("Setting field to " + value);
 						field.set(obj, value);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+
+				// Checks for an InjectInstance
 			} else if (field.isAnnotationPresent(InjectInstance.class)) {
 				log.debug("Found field " + field.getName() + " as " + field.getType());
 				InjectInstance annotation = field.getAnnotation(InjectInstance.class);
 				field.setAccessible(true);
 				try {
+					// Checks whether there is a value or not for the field
 					if (field.get(obj) == null) {
+						// Gets the instance
 						Object value = get(field.getType(), annotation.provide());
+
+						// Sets the fields value
 						log.debug("Setting field to " + value);
 						field.set(obj, value);
 					}
@@ -93,11 +108,19 @@ public class ImplementationFactory implements IImplementationFactory {
 		}
 	}
 
-	private List<Field> getAllFields(Class<?> clazz, List<Field> fields) {
+	/**
+	 * Recursively looks for all fields in a class and its parents.
+	 * 
+	 * @param clazz
+	 *            the class to search through
+	 * @return the fields found
+	 */
+	private List<Field> getAllFields(Class<?> clazz) {
+		List<Field> fields = new ArrayList<Field>();
 		fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
 
 		if (clazz.getSuperclass() != null) {
-			fields = getAllFields(clazz.getSuperclass(), fields);
+			fields.addAll(getAllFields(clazz.getSuperclass()));
 		}
 
 		return fields;
@@ -105,6 +128,7 @@ public class ImplementationFactory implements IImplementationFactory {
 
 	@Override
 	public <T> T get(Class<T> type, boolean provide) {
+		// Checks if an instance should be generated
 		if (!instances.containsKey(type) && provide) {
 			instances.put(type, provide((Class) type, new ImplementationMarker[0], true, false, null));
 		}
@@ -121,6 +145,7 @@ public class ImplementationFactory implements IImplementationFactory {
 			Class<T> type, T inst) {
 		inject(inst);
 		return register(marker, type, () -> inst, false);
+
 	}
 
 	@Override
@@ -153,17 +178,20 @@ public class ImplementationFactory implements IImplementationFactory {
 			boolean associate, String associateName) {
 		log.debug("Providing " + type.getName());
 
+		// Gets the implementation
 		Map<ImplementationMarker, IImplementationInstance<? extends T>> implementations = getImplementations(type);
 		ImplementationMarker provider = getProvider(type, providers, allowDefault, associate, associateName);
 
 		log.debug("Implementations: " + implementations);
 		log.debug("Provider: " + provider);
 
+		// Ensure it exists
 		if (!implementations.containsKey(provider)) {
 			log.error("Implementation " + provider + " not found for " + type.getName() + "!");
 			return null;
 		}
 
+		// Configures the implementation
 		IImplementationInstance<? extends T> implementation = implementations.get(provider);
 		T value = implementation.provide();
 		if (implementation.shouldInject()) {
@@ -187,6 +215,7 @@ public class ImplementationFactory implements IImplementationFactory {
 			collection = baseCollection.getPermissive(new CollectionProperty(associateName));
 			property = new CollectionProperty(type.getName());
 
+			// Checks for an already associated provider
 			ImplementationMarker marker = ImplementationMarker.loadMarker(collection.get(property));
 			if (marker != null) {
 				log.debug("Found associated provider " + marker);
@@ -196,8 +225,10 @@ public class ImplementationFactory implements IImplementationFactory {
 
 		if (providers != null) {
 			for (ImplementationMarker provider : providers) {
+				// Checks if an association exists
 				if (doesProviderExist(type, provider)) {
 					log.debug("Found provider " + provider);
+					// Stores the association
 					if (associate)
 						collection.set(property, provider.toJSON());
 					return provider;
@@ -206,6 +237,7 @@ public class ImplementationFactory implements IImplementationFactory {
 		}
 
 		if (allowDefault) {
+			// Falls back to default
 			ImplementationMarker provider = getDefault(type);
 			if (provider != null) {
 				log.debug("Using default provider " + provider);
@@ -217,6 +249,7 @@ public class ImplementationFactory implements IImplementationFactory {
 				}
 			}
 			if (provider != null) {
+				// Stores the association
 				if (associate)
 					collection.set(property, provider.toJSON());
 				return provider;
@@ -264,5 +297,10 @@ public class ImplementationFactory implements IImplementationFactory {
 			defaultsCollection.set(property, defaults.get(type.getName()).toJSON());
 		}
 		return ImplementationMarker.loadMarker(defaultsCollection.get(property));
+	}
+
+	public static final CollectionProperty DEFAULTS_PROPERTY;
+	static {
+		DEFAULTS_PROPERTY = new CollectionProperty("defaults");
 	}
 }

@@ -10,9 +10,10 @@ import com.securechat.api.common.plugins.Inject;
 import com.securechat.api.common.security.IHasher;
 import com.securechat.api.common.storage.IByteWriter;
 
+/**
+ * A reference byte writer implementation.
+ */
 public class ByteWriter implements IByteWriter {
-	public static final ImplementationMarker MARKER = new ImplementationMarker("inbuilt", "n/a", "byte_writer",
-			"1.0.0");
 	@Inject(associate = true)
 	private IHasher hasher;
 	private ByteArrayOutputStream arrayStream;
@@ -123,4 +124,8 @@ public class ByteWriter implements IByteWriter {
 		return MARKER;
 	}
 
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker("inbuilt", "n/a", "byte_writer", "1.0.0");
+	}
 }

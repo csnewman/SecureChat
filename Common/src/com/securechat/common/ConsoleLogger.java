@@ -5,9 +5,10 @@ import com.securechat.api.common.ILogger;
 import com.securechat.api.common.Sides;
 import com.securechat.api.common.implementation.ImplementationMarker;
 
-public class FallbackLogger implements ILogger {
-	public static final ImplementationMarker MARKER = new ImplementationMarker("inbuilt", "n/a", "fallback_logger",
-			"1.0.0");
+/**
+ * A reference logger, directly outputting to the console.
+ */
+public class ConsoleLogger implements ILogger {
 	private Sides side;
 	private boolean showDebug;
 
@@ -41,6 +42,11 @@ public class FallbackLogger implements ILogger {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker("inbuilt", "n/a", "fallback_logger", "1.0.0");
 	}
 
 }

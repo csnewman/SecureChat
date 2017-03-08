@@ -3,6 +3,9 @@ package com.securechat.common.plugins;
 import com.securechat.api.common.Sides;
 import com.securechat.api.common.plugins.Plugin;
 
+/**
+ * An instance of a plugin.
+ */
 public class PluginInstance {
 	private Object instance;
 	private String name, version;
@@ -15,8 +18,8 @@ public class PluginInstance {
 		this.side = info.side();
 		this.clazz = clazz;
 	}
-	
-	public boolean createInstance(){
+
+	public boolean createInstance() {
 		try {
 			instance = clazz.newInstance();
 			return true;
@@ -25,7 +28,7 @@ public class PluginInstance {
 		}
 		return false;
 	}
-	
+
 	public Object getInstance() {
 		return instance;
 	}

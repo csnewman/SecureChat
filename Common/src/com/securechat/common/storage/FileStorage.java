@@ -31,11 +31,10 @@ import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
 
+/**
+ * The inbuilt file based storage implementation.
+ */
 public class FileStorage implements IStorage {
-	public static final ImplementationMarker MARKER = new ImplementationMarker("inbuilt", "n/a", "file_storage",
-			"1.0.0");
-	private static final File baseFolder = new File("data");
-	private static final File pluginsFolder = new File("plugins");
 	@InjectInstance
 	private ILogger log;
 	@InjectInstance
@@ -43,29 +42,33 @@ public class FileStorage implements IStorage {
 
 	@Override
 	public void init() {
-		baseFolder.mkdirs();
-		pluginsFolder.mkdirs();
+		BASE_FOLDER.mkdirs();
+		PLUGINS_FOLDER.mkdirs();
 	}
 
 	@Override
 	public List<String> loadPlugins() {
 		List<String> paths = new ArrayList<String>();
 
-		for (File file : pluginsFolder.listFiles()) {
-			log.info("Loading plugin jar " + file.getPath());
-			try {
-				URL url = file.toURI().toURL();
-				URLClassLoader classLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-				Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-				method.setAccessible(true);
-				method.invoke(classLoader, url);
+		try {
+			// Gets the private add url method
+			URLClassLoader classLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+			Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+			method.setAccessible(true);
+
+			for (File file : PLUGINS_FOLDER.listFiles()) {
+				// Loads the jar file
+				log.info("Loading plugin jar " + file.getPath());
+				method.invoke(classLoader, file.toURI().toURL());
 				paths.add(file.getAbsolutePath());
-			} catch (Exception ex) {
-				ex.printStackTrace();
 			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
+
 		List<String> classes = new ArrayList<String>();
 
+		// Adds all class path items
 		String javaClassPath = System.getProperty("java.class.path");
 		if (javaClassPath != null) {
 			paths.addAll(Arrays.asList(javaClassPath.split(File.pathSeparator)));
@@ -75,6 +78,8 @@ public class FileStorage implements IStorage {
 			try {
 				if (path.endsWith(".jar")) {
 					JarInputStream jis = new JarInputStream(new FileInputStream(path));
+
+					// Scans each entry in the jar
 					ZipEntry entry = null;
 					while ((entry = jis.getNextJarEntry()) != null) {
 						if (entry.getName().endsWith(".class")) {
@@ -85,18 +90,23 @@ public class FileStorage implements IStorage {
 							classes.add(name);
 						}
 					}
+
+					// Attempts to load the jars manifest
 					Manifest manifest = jis.getManifest();
 					if (manifest != null) {
 						Attributes attributes = manifest.getMainAttributes();
 						if (attributes != null) {
+							// Checks for a loader class attribute
 							String loaderClass = attributes.getValue("Loader-Class");
 							if (loaderClass != null) {
+								// Runs the loader
 								runLoaderFile(loaderClass);
 							}
 						}
 					}
 					jis.close();
 				} else {
+					// Searches the folder
 					File sDir = new File(path).getAbsoluteFile();
 					String basePath = sDir.getAbsolutePath();
 					List<String> found = Files.walk(Paths.get(sDir.toURI())).filter(Files::isRegularFile)
@@ -117,9 +127,11 @@ public class FileStorage implements IStorage {
 	private void runLoaderFile(String name) {
 		log.info("Loading loader-class " + name);
 		try {
+			// Loads the class
 			Class clazz = Class.forName(name);
 			Object inst = clazz.newInstance();
 			factory.inject(inst);
+			// Calls the load function
 			clazz.getDeclaredMethod("load").invoke(inst);
 		} catch (ClassNotFoundException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
 				| NoSuchMethodException | SecurityException | InstantiationException e) {
@@ -140,14 +152,9 @@ public class FileStorage implements IStorage {
 	@Override
 	public IByteReader readFile(String path, IEncryption encryption) {
 		try {
-			System.out.println("readbytes");
 			byte[] data = Files.readAllBytes(getPath(path).toPath());
-
-			System.out.println("decrypt");
 			if (encryption != null)
 				data = encryption.decrypt(data);
-
-			System.out.println("reader");
 
 			if (factory == null) {
 				ByteReader reader = new ByteReader();
@@ -199,7 +206,7 @@ public class FileStorage implements IStorage {
 	private File getPath(String path) {
 		File file = new File(path);
 		if (!file.isAbsolute()) {
-			return new File(baseFolder, path);
+			return new File(BASE_FOLDER, path);
 		}
 		return file;
 	}
@@ -211,6 +218,14 @@ public class FileStorage implements IStorage {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	private static final File BASE_FOLDER, PLUGINS_FOLDER;
+	static {
+		MARKER = new ImplementationMarker("inbuilt", "n/a", "file_storage", "1.0.0");
+		BASE_FOLDER = new File("data");
+		PLUGINS_FOLDER = new File("plugins");
 	}
 
 }

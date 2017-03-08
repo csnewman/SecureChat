@@ -26,7 +26,7 @@ import com.securechat.api.common.storage.IStorage;
 import com.securechat.api.server.IServerManager;
 import com.securechat.api.server.network.IServerNetworkManager;
 import com.securechat.api.server.users.IUserManager;
-import com.securechat.common.FallbackLogger;
+import com.securechat.common.ConsoleLogger;
 import com.securechat.common.implementation.ImplementationFactory;
 import com.securechat.common.plugins.PluginManager;
 import com.securechat.common.storage.ByteReader;
@@ -56,7 +56,7 @@ public class ChatServer implements IContext {
 		this.storage = storage;
 		storage.init();
 
-		logger = new FallbackLogger();
+		logger = new ConsoleLogger();
 		logger.init(this, showDebug);
 
 		logger.info("SecureChatServer (" + MARKER.getId() + ")");
@@ -73,10 +73,10 @@ public class ChatServer implements IContext {
 		implementationFactory.set(IStorage.class, storage);
 		implementationFactory.set(ILogger.class, logger);
 		implementationFactory.set(IImplementationFactory.class, implementationFactory);
-		implementationFactory.register(FallbackLogger.MARKER, ILogger.class, FallbackLogger::new);
+		implementationFactory.register(ConsoleLogger.MARKER, ILogger.class, ConsoleLogger::new);
 		implementationFactory.register(ByteReader.MARKER, IByteReader.class, ByteReader::new);
 		implementationFactory.register(ByteWriter.MARKER, IByteWriter.class, ByteWriter::new);
-		implementationFactory.setFallbackDefault(ILogger.class, FallbackLogger.MARKER);
+		implementationFactory.setFallbackDefault(ILogger.class, ConsoleLogger.MARKER);
 		implementationFactory.setFallbackDefault(IByteReader.class, ByteReader.MARKER);
 		implementationFactory.setFallbackDefault(IByteWriter.class, ByteWriter.MARKER);
 		implementationFactory.inject(storage);

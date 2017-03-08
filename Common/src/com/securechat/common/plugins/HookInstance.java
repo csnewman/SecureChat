@@ -7,6 +7,9 @@ import com.securechat.api.common.Sides;
 import com.securechat.api.common.plugins.Hook;
 import com.securechat.api.common.plugins.Hooks;
 
+/**
+ * An instance of a hook.
+ */
 public class HookInstance {
 	private PluginInstance plugin;
 	private String name;
