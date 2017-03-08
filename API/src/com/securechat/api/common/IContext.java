@@ -87,19 +87,17 @@ public interface IContext extends IImplementation {
 	String getAppVersion();
 
 	/**
-	 * Gets the OS type we are running on. 'win' on Windows, 'linux' on Linux
-	 * and 'osx' on Mac.
+	 * Gets the OS type we are running on.
 	 * 
 	 * @return the OS type
 	 */
-	String getOsType();
+	OsType getOsType();
 
 	/**
-	 * Gets the architecture of the platform we are running on. Normally either
-	 * '64' or '32'.
+	 * Gets the architecture of the platform we are running on.
 	 * 
 	 * @return the architecture
 	 */
-	String getPlatformArch();
+	PlatformArch getPlatformArch();
 
 }

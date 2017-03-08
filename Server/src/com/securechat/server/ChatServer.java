@@ -5,6 +5,8 @@ import java.io.IOException;
 
 import com.securechat.api.common.IContext;
 import com.securechat.api.common.ILogger;
+import com.securechat.api.common.OsType;
+import com.securechat.api.common.PlatformArch;
 import com.securechat.api.common.Sides;
 import com.securechat.api.common.database.IDatabase;
 import com.securechat.api.common.implementation.IImplementationFactory;
@@ -207,21 +209,23 @@ public class ChatServer implements IContext {
 	}
 
 	@Override
-	public String getOsType() {
+	public OsType getOsType() {
+		// Checks for key words in the os name
 		String osName = System.getProperty("os.name").toLowerCase();
 		if (osName.contains("win")) {
-			return "win";
+			return OsType.Windows;
 		} else if (osName.contains("mac")) {
-			return "osx";
+			return OsType.OSX;
 		} else if (osName.contains("linux") || osName.contains("nix")) {
-			return "linux";
+			return OsType.Linux;
 		}
-		return "unknown";
+		return OsType.Unknown;
 	}
 
 	@Override
-	public String getPlatformArch() {
-		return System.getProperty("os.arch").toLowerCase().contains("64") ? "64" : "32";
+	public PlatformArch getPlatformArch() {
+		// Checks for numbers in the os arch
+		return System.getProperty("os.arch").toLowerCase().contains("64") ? PlatformArch.X86_64 : PlatformArch.X86_32;
 	}
 
 	@Override
