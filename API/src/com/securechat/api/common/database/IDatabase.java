@@ -3,7 +3,7 @@ package com.securechat.api.common.database;
 import com.securechat.api.common.implementation.IImplementation;
 
 /**
- * Provides access to a database connection.
+ * A collection of named tables.
  */
 public interface IDatabase extends IImplementation {
 

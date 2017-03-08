@@ -7,7 +7,7 @@ import com.securechat.api.common.packets.IPacket;
 import com.securechat.api.common.security.IEncryption;
 
 /**
- * Represents an active network connection.
+ * An active network connection.
  */
 public interface INetworkConnection extends IImplementation {
 

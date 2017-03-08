@@ -35,7 +35,7 @@ public class NewMessagePacket implements IPacket {
 	}
 
 	@Override
-	public void write(IByteWriter writer) throws IOException{
+	public void write(IByteWriter writer) throws IOException {
 		writer.writeString(cid);
 		writer.writeString(sender);
 		writer.writeInt(mid);
@@ -46,11 +46,11 @@ public class NewMessagePacket implements IPacket {
 	public String getChatId() {
 		return cid;
 	}
-	
+
 	public int getMessageId() {
 		return mid;
 	}
-	
+
 	public String getSender() {
 		return sender;
 	}

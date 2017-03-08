@@ -3,7 +3,7 @@ package com.securechat.api.client.gui;
 import com.securechat.api.common.implementation.IImplementation;
 
 /**
- * Provides access to the GUI
+ * Manages all GUIs on the client.
  */
 public interface IGuiProvider extends IImplementation {
 

@@ -7,12 +7,12 @@ import com.securechat.api.common.packets.IPacket;
 import com.securechat.api.common.packets.IPacketHandler;
 
 /**
- * Handles the basic client management once connected to a server.
+ * Manages the client once connected to a server.
  */
 public interface IClientManager extends IImplementation {
 
 	/**
-	 * Called at client startup before the gui is loaded.
+	 * Configures the manager.
 	 */
 	void init();
 

@@ -3,7 +3,7 @@ package com.securechat.api.common.database;
 import org.json.JSONObject;
 
 /**
- * Represents the format of a type
+ * Stores the format of a type
  */
 public interface IDataFormat {
 

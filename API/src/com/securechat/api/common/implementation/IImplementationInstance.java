@@ -1,7 +1,7 @@
 package com.securechat.api.common.implementation;
 
 /**
- * Represents an available implementation.
+ * An available implementation.
  * 
  * @param <T>
  *            the type the implementation provides

@@ -3,12 +3,12 @@ package com.securechat.api.client.chat;
 import com.securechat.api.common.implementation.IImplementation;
 
 /**
- * Handles the management of all client side chats.
+ * Stores and manages all open chats on the client.
  */
 public interface IClientChatManager extends IImplementation {
 
 	/**
-	 * Called by the client manager once connected to a server.
+	 * Configures the chat manager.
 	 */
 	void init();
 

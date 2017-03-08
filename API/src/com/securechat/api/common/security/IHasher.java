@@ -14,7 +14,7 @@ public interface IHasher extends IImplementation {
 	 *            the data to hash
 	 * @return the hash
 	 */
-	public byte[] hashData(byte[] input);
+	byte[] hashData(byte[] input);
 
 	/**
 	 * Hashes the char data
@@ -23,6 +23,6 @@ public interface IHasher extends IImplementation {
 	 *            the chars to hash
 	 * @return the hash
 	 */
-	public char[] hashChars(char[] chars);
+	char[] hashChars(char[] chars);
 
 }

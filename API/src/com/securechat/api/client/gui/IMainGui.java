@@ -3,7 +3,7 @@ package com.securechat.api.client.gui;
 import com.securechat.api.client.chat.IChat;
 
 /**
- * A main GUI instance
+ * The main GUI for chatting.
  */
 public interface IMainGui extends IGui {
 

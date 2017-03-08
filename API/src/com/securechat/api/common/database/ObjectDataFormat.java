@@ -9,7 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Represents a collection of values as an object.
+ * A collection of values.
  */
 public class ObjectDataFormat implements IDataFormat {
 	private List<String> names;

@@ -6,7 +6,7 @@ import java.util.Base64;
 import org.json.JSONObject;
 
 /**
- * Represents a primitive type
+ * A primitive type.
  */
 public enum PrimitiveDataFormat implements IDataFormat {
 	String, JSON, Integer, Long, Boolean, ByteArray;

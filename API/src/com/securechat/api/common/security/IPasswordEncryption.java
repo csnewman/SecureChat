@@ -11,6 +11,6 @@ public interface IPasswordEncryption extends IEncryption {
 	 * @param password
 	 *            the password to use
 	 */
-	public void init(char[] password);
+	void init(char[] password);
 
 }

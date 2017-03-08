@@ -1,7 +1,7 @@
 package com.securechat.api.common;
 
 /**
- * Represents the different types of contexts.
+ * Represents the different types of host programs.
  */
 public enum Sides {
 	Client, Server, Both;

@@ -27,7 +27,7 @@ public class RegisterPacket implements IPacket {
 	}
 
 	@Override
-	public void write(IByteWriter writer) throws IOException  {
+	public void write(IByteWriter writer) throws IOException {
 		writer.writeString(username);
 		writer.writeArray(publicKey);
 	}

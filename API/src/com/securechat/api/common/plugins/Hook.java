@@ -39,7 +39,8 @@ public @interface Hook {
 
 	/**
 	 * A list of hard dependents. This hook will always be called before these
-	 * other hooks. Hooks are addressed in the format "{plugin name}/{hook name}"
+	 * other hooks. Hooks are addressed in the format "{plugin name}/{hook
+	 * name}"
 	 * 
 	 * @return the hooks to call after this
 	 */
@@ -47,7 +48,8 @@ public @interface Hook {
 
 	/**
 	 * A list of optional dependents. This hook will be called before these
-	 * other hooks if they exist. Hooks are addressed in the format "{plugin name}/{hook name}"
+	 * other hooks if they exist. Hooks are addressed in the format "{plugin
+	 * name}/{hook name}"
 	 * 
 	 * @return the hooks to call after this
 	 */
@@ -55,7 +57,8 @@ public @interface Hook {
 
 	/**
 	 * A list of hard dependencies This hook will always be called after these
-	 * other hooks. Hooks are addressed in the format "{plugin name}/{hook name}"
+	 * other hooks. Hooks are addressed in the format "{plugin name}/{hook
+	 * name}"
 	 * 
 	 * @return the hooks to call first
 	 */
@@ -63,7 +66,8 @@ public @interface Hook {
 
 	/**
 	 * A list of optional dependencies. This hook will be called after these
-	 * other hooks if they exist. Hooks are addressed in the format "{plugin name}/{hook name}"
+	 * other hooks if they exist. Hooks are addressed in the format "{plugin
+	 * name}/{hook name}"
 	 * 
 	 * @return the hooks to call first
 	 */

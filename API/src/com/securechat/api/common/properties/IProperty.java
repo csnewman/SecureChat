@@ -5,7 +5,8 @@ import org.json.JSONObject;
 /**
  * A property that can be contained in a collection.
  * 
- * @param <T> the type stored by this property
+ * @param <T>
+ *            the type stored by this property
  */
 public interface IProperty<T> {
 

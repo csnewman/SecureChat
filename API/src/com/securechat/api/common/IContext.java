@@ -7,8 +7,8 @@ import com.securechat.api.common.properties.PropertyCollection;
 import com.securechat.api.common.storage.IStorage;
 
 /**
- * Represents the context that the plugins are running under, either the server
- * or client.
+ * The context that the program is running under. Provides access to core
+ * features of the host program.
  */
 public interface IContext extends IImplementation {
 

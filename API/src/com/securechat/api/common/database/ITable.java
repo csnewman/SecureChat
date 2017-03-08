@@ -1,7 +1,7 @@
 package com.securechat.api.common.database;
 
 /**
- * Provides access to a table.
+ * A collection of rows, all of the same format.
  */
 public interface ITable {
 

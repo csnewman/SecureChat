@@ -4,7 +4,7 @@ import com.securechat.api.common.properties.PrimitiveProperty;
 import com.securechat.api.common.properties.PropertyCollection;
 
 /**
- * Represents an implementation.
+ * The ID of an implementation.
  */
 public class ImplementationMarker {
 	private static final PrimitiveProperty<String> PLUGIN_NAME_PROPERTY, PLUGIN_VERSION_PROPERTY, NAME_PROPERTY,

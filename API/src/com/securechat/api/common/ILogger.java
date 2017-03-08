@@ -3,7 +3,7 @@ package com.securechat.api.common;
 import com.securechat.api.common.implementation.IImplementation;
 
 /**
- * Handles the output of debug information
+ * Outputs debug information
  */
 public interface ILogger extends IImplementation {
 

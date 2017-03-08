@@ -11,7 +11,7 @@ import com.securechat.api.common.packets.IPacket;
 import com.securechat.api.common.security.IAsymmetricKeyEncryption;
 
 /**
- * Handles the basic network communication.
+ * Manages the basic network communication.
  */
 public interface IClientNetworkManager extends IImplementation {
 
