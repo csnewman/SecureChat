@@ -3,6 +3,9 @@ package com.securechat.plugins.defaultmanagers.client;
 import com.securechat.api.client.chat.IMessage;
 import com.securechat.api.common.security.IEncryption;
 
+/**
+ * A reference implementation of a message.
+ */
 public class Message implements IMessage {
 	private boolean isProtected;
 	private byte[] content;
@@ -16,15 +19,16 @@ public class Message implements IMessage {
 		this.sender = sender;
 		this.time = time;
 	}
-	
+
 	@Override
 	public void unlock(IEncryption encryption) {
-		if(!isProtected)
+		if (!isProtected)
 			return;
 		try {
 			text = new String(encryption.decrypt(content));
 		} catch (Exception e) {
 			e.printStackTrace();
+			// If something went wrong, output atleast a message
 			text = "(Message is corrupted)";
 		}
 	}

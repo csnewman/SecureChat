@@ -17,6 +17,9 @@ import com.securechat.plugins.defaultmanagers.server.DefaultServerChatManager;
 import com.securechat.plugins.defaultmanagers.server.DefaultServerManager;
 import com.securechat.plugins.defaultmanagers.server.DefaultUserManager;
 
+/**
+ * An official plugin providing the reference implementations of the managers.
+ */
 @Plugin(name = DefaultManagersPlugin.NAME, version = DefaultManagersPlugin.VERSION)
 public class DefaultManagersPlugin {
 	public static final String NAME = "official-default_managers", VERSION = "1.0.0";

@@ -5,11 +5,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.management.OperationsException;
-
 import com.securechat.api.client.IClientManager;
 import com.securechat.api.client.chat.IChat;
 import com.securechat.api.client.chat.IMessage;
+import com.securechat.api.client.gui.IMainGui;
 import com.securechat.api.common.ILogger;
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.implementation.ImplementationMarker;
@@ -25,9 +24,10 @@ import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
 import com.securechat.plugins.defaultmanagers.DefaultManagersPlugin;
 
+/**
+ * A reference implementation of a chat.
+ */
 public class Chat implements IChat {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME,
-			DefaultManagersPlugin.VERSION, "chat", "1.0.0");
 	@InjectInstance
 	private ILogger log;
 	@InjectInstance
@@ -38,7 +38,7 @@ public class Chat implements IChat {
 	private IStorage storage;
 	@InjectInstance
 	private IKeystore keystore;
-	private DefaultClientChatManager chatManager;
+	private IMainGui mainGui;
 	private String id, otherUser, path;
 	private int latestPacketId, lastReadId;
 	private boolean isProtected, unlocked;
@@ -50,7 +50,7 @@ public class Chat implements IChat {
 
 	public Chat(DefaultClientChatManager chatManager, String id, String otherUser, boolean isProtected,
 			byte[] testData) {
-		this.chatManager = chatManager;
+		mainGui = chatManager.getMainGui();
 		this.id = id;
 		this.otherUser = otherUser;
 		this.isProtected = isProtected;
@@ -60,46 +60,45 @@ public class Chat implements IChat {
 
 	public void load() throws IOException {
 		IConnectionProfile profile = clientManager.getConnectionProfile();
-		path = "chatcache/" + profile.getName() + "/" + profile.getUsername() + "/" + id + ".bin";
-
-		log.info("loading key");
+		// Fetches a key from the key store
 		key = factory.provide(IAsymmetricKeyEncryption.class, null, true, true, MARKER.getId());
 		keystore.loadAsymmetricKeyOrGenerate("chat_" + id, key);
 
+		// Checks if a chat cache exists
+		path = "chatcache/" + profile.getName() + "/" + profile.getUsername() + "/" + id + ".bin";
 		if (storage.doesFileExist(path)) {
-			log.info("loading file");
+			log.debug("Loading chat cache from " + path);
 			IByteReader fileData = storage.readFile(path, key);
 			try {
-				log.info("doing checksum");
 				IByteReader content = fileData.readReaderWithChecksum();
-				log.info("parsing");
+				// Reads last packet ids
 				latestPacketId = content.readInt();
 				lastReadId = content.readInt();
 
+				// Reads each message
 				int size = content.readInt();
-				log.info("msg " + size);
 				for (int i = 0; i < size; i++) {
 					messages.add(
 							new Message(content.readArray(), isProtected(), content.readString(), content.readLong()));
 				}
 
-				log.info("updating gui");
-				chatManager.getMainGui().updateChatUnread(this);
+				// Updates GUI with unread count
+				mainGui.updateChatUnread(this);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-		log.info("done");
-
 	}
 
 	private void save() {
-		log.info("saving");
+		log.debug("Writing chat cache to " + path);
 		try {
 			IByteWriter body = IByteWriter.get(factory, MARKER.getId());
+			// Writes last packet ids
 			body.writeInt(latestPacketId);
 			body.writeInt(lastReadId);
 
+			// Writes each message
 			body.writeInt(messages.size());
 			for (IMessage message : messages) {
 				body.writeArray(message.getContent());
@@ -108,11 +107,8 @@ public class Chat implements IChat {
 			}
 
 			IByteWriter finalData = IByteWriter.get(factory, MARKER.getId());
-			log.info("doing checksum");
 			finalData.writeWriterWithChecksum(body);
-			log.info("writing");
 			storage.writeFile(path, key, finalData);
-			log.info("done");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -120,13 +116,17 @@ public class Chat implements IChat {
 
 	@Override
 	public boolean unlock(String password) {
+		log.debug("Unlocking chat " + id);
 		try {
 			encryption = factory.provide(IPasswordEncryption.class, null, true, true, "chat");
 			encryption.init(password.toCharArray());
+
+			// Checks whether the encryption password is correct
 			byte[] test = encryption.encrypt(DefaultClientChatManager.TEST);
 			if (Arrays.equals(test, testData)) {
 				unlocked = true;
 
+				// Unlocks each message
 				for (IMessage message : messages) {
 					message.unlock(encryption);
 				}
@@ -134,14 +134,15 @@ public class Chat implements IChat {
 				if (messages.size() > 0)
 					loaded = true;
 
-				chatManager.getMainGui().updateMessages(otherUser);
-				chatManager.getMainGui().updateChatUnread(this);
+				// Updates the GUI
+				mainGui.updateMessages(otherUser);
+				mainGui.updateChatUnread(this);
 
-				log.info("Unlocked chat");
+				log.debug("Unlocked chat");
 				return true;
 			}
 		} catch (Exception e) {
-			log.error("Failed to unlock chat");
+			log.warning("Failed to unlock chat");
 			e.printStackTrace();
 		}
 		return false;
@@ -149,12 +150,17 @@ public class Chat implements IChat {
 
 	@Override
 	public void sendMessage(String text) {
+		// Ensures a message exists
 		text = text.trim();
 		if (text.length() == 0)
 			return;
+
+		// Ensures the chat is unlocked
 		if (!isUnlocked())
 			throw new RuntimeException("Chat is locked!");
+
 		try {
+			// Sends the message
 			byte[] data = isProtected ? encryption.encrypt(text.getBytes()) : text.getBytes();
 			clientManager.sendPacket(new SendMessagePacket(id, data, System.currentTimeMillis()));
 		} catch (IOException e) {
@@ -162,50 +168,68 @@ public class Chat implements IChat {
 		}
 	}
 
+	/**
+	 * Ensures that the last packet received is at least after the given id.
+	 * 
+	 * @param lastId
+	 *            the id to ensure exists
+	 */
 	public void checkLast(int lastId) {
 		if (latestPacketId >= lastId) {
-			log.debug("Chat up to date");
+			log.debug("Chat is up to date with the server");
 			if (!loaded) {
 				loaded = true;
-				chatManager.getMainGui().updateMessages(otherUser);
+				mainGui.updateMessages(otherUser);
 			}
 			return;
 		}
-		log.info("Missing chat messages, requesting");
+		log.debug("Chat history is outdated, requesting");
 		clientManager.sendPacket(new RequestMessageHistoryPacket(id, latestPacketId));
 	}
 
 	public void importMessages(IMessage[] newMessages, int lastId) {
+		log.debug("Importing " + newMessages.length + " message/s (unlocked: " + isUnlocked() + ", protected: "
+				+ isProtected + ")");
+
+		// Updates last message id
 		if (lastId > latestPacketId) {
 			latestPacketId = lastId;
 		}
-		log.debug("Importing " + newMessages.length + " message/s (unlocked: " + isUnlocked() + ", protected: "
-				+ isProtected + ")");
+
+		// Adds each message, decrypts if needed
 		for (IMessage m : newMessages) {
 			if (isUnlocked() && isProtected)
 				m.unlock(encryption);
 			messages.add(m);
 		}
+
 		if (isUnlocked())
 			loaded = true;
 
+		// Updates the last read message id
 		if (reading) {
 			lastReadId = latestPacketId;
 		}
 
+		// Flushes messages to cache
 		save();
-		chatManager.getMainGui().updateChatUnread(this);
-		chatManager.getMainGui().updateMessages(otherUser);
+
+		// Updates GUI
+		mainGui.updateChatUnread(this);
+		mainGui.updateMessages(otherUser);
 	}
 
 	@Override
 	public void markReading(boolean vis) {
 		reading = vis;
 		if (reading) {
+			// Updates last read message id
 			lastReadId = latestPacketId;
+			// Flushes last read messasge id
 			save();
 		}
-		chatManager.getMainGui().updateChatUnread(this);
+		// Updates GUI
+		mainGui.updateChatUnread(this);
 	}
 
 	@Override
@@ -251,6 +275,11 @@ public class Chat implements IChat {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME, DefaultManagersPlugin.VERSION, "chat", "1.0.0");
 	}
 
 }

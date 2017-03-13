@@ -19,9 +19,10 @@ import com.securechat.api.common.packets.UserListPacket;
 import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.plugins.defaultmanagers.DefaultManagersPlugin;
 
+/**
+ * A reference implementation of the chat manager.
+ */
 public class DefaultClientManager implements IClientManager {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME,
-			DefaultManagersPlugin.VERSION, "client_manager", "1.0.0");
 	@InjectInstance
 	private ILogger log;
 	@InjectInstance
@@ -44,11 +45,16 @@ public class DefaultClientManager implements IClientManager {
 		this.connection = connection;
 		this.profile = profile;
 		log.info("Connected");
+
+		// Configures chat manager
 		chatManager = factory.get(IClientChatManager.class, true);
 		chatManager.init();
+
+		// Takes over network control
 		connection.setHandler(this::handlePacket);
 		connection.setDisconnectHandler(this::handleError);
 
+		// Opens main GUI
 		mainGui = guiProvider.getMainGui();
 		mainGui.init();
 		mainGui.open();
@@ -97,7 +103,7 @@ public class DefaultClientManager implements IClientManager {
 	}
 
 	private void handleError(String msg) {
-		log.info("Internal Error: "+msg);
+		log.info("Internal Error: " + msg);
 		mainGui.disconnected(msg);
 	}
 
@@ -118,6 +124,12 @@ public class DefaultClientManager implements IClientManager {
 
 	public IMainGui getMainGui() {
 		return mainGui;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME, DefaultManagersPlugin.VERSION, "client_manager",
+				"1.0.0");
 	}
 
 }

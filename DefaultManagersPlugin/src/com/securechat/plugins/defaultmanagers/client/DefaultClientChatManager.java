@@ -23,10 +23,10 @@ import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.security.IPasswordEncryption;
 import com.securechat.plugins.defaultmanagers.DefaultManagersPlugin;
 
+/**
+ * A reference implementation of the chat manager.
+ */
 public class DefaultClientChatManager implements IClientChatManager, IPacketHandler {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME,
-			DefaultManagersPlugin.VERSION, "client_chat_manager", "1.0.0");
-	public static final byte[] TEST = "TEST".getBytes();
 	@InjectInstance
 	private ILogger log;
 	@InjectInstance
@@ -44,12 +44,13 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 
 	@Override
 	public void init() {
-		clientManager.addPacketHandler(this);
-		mainGui = guiProvider.getMainGui();
-
 		chats = new HashMap<String, Chat>();
 		chatIdMap = new HashMap<String, Chat>();
 		tempChatCache = new HashMap<String, String>();
+		mainGui = guiProvider.getMainGui();
+
+		// Registers the packet handler
+		clientManager.addPacketHandler(this);
 	}
 
 	@Override
@@ -64,10 +65,12 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 
 	@Override
 	public void startChat(String username, boolean protect, String password) {
+		// Ensures the chat does not exist
 		if (chats.containsKey(username)) {
 			mainGui.openChat(username);
 			return;
 		}
+		// Ensures we are not in the process of creating the chat
 		if (tempChatCache.containsKey(username)) {
 			return;
 		}
@@ -76,6 +79,8 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 			encryption.init(password.toCharArray());
 			byte[] test = encryption.encrypt(TEST);
 
+			// Adds the chat to the local cache while waiting for the server to
+			// confirm
 			tempChatCache.put(username, password);
 
 			clientManager.sendPacket(new CreateChatPacket(username, test, protect));
@@ -96,6 +101,7 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 
 			for (int i = 0; i < chatIds.length; i++) {
 				String user = chatUsers[i];
+				// Creates the chat if it does not exist
 				if (!chats.containsKey(user)) {
 					Chat chat = new Chat(this, chatIds[i], user, chatProtected[i], testData[i]);
 					factory.inject(chat);
@@ -107,7 +113,10 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 					chats.put(user, chat);
 					chatIdMap.put(chatIds[i], chat);
 				}
+
 				Chat chat = chats.get(user);
+
+				// Checks if we just created the chat and unlocks it
 				if (tempChatCache.containsKey(user)) {
 					if (!chat.unlock(tempChatCache.get(user))) {
 						throw new RuntimeException("Unlock failed!");
@@ -117,11 +126,14 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 				}
 				chat.checkLast(lastIds[i]);
 			}
+
+			// Updates the GUI
 			mainGui.updateChatList(chats.values().toArray(new Chat[0]));
 			return true;
 		} else if (packet instanceof MessageHistoryPacket) {
 			MessageHistoryPacket mhp = (MessageHistoryPacket) packet;
-
+			
+			// 
 			if (!chatIdMap.containsKey(mhp.getChatId())) {
 				log.error("Chat id unknown");
 				return true;
@@ -164,6 +176,14 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	public static final byte[] TEST;
+	static {
+		MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME, DefaultManagersPlugin.VERSION,
+				"client_chat_manager", "1.0.0");
+		TEST = "TEST".getBytes();
 	}
 
 }
