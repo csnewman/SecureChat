@@ -132,8 +132,8 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 			return true;
 		} else if (packet instanceof MessageHistoryPacket) {
 			MessageHistoryPacket mhp = (MessageHistoryPacket) packet;
-			
-			// 
+
+			// Checks that the chat exists
 			if (!chatIdMap.containsKey(mhp.getChatId())) {
 				log.error("Chat id unknown");
 				return true;
@@ -141,6 +141,7 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 
 			Chat chat = chatIdMap.get(mhp.getChatId());
 
+			// Imports the messages
 			Message[] messages = new Message[mhp.getSenders().length];
 			for (int i = 0; i < messages.length; i++) {
 				messages[i] = new Message(mhp.getContents()[i], chat.isProtected(), mhp.getSenders()[i],
@@ -151,11 +152,13 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 		} else if (packet instanceof NewMessagePacket) {
 			NewMessagePacket nmp = (NewMessagePacket) packet;
 
+			// Checks that the chat exists
 			if (!chatIdMap.containsKey(nmp.getChatId())) {
 				log.error("Chat id unknown");
 				return true;
 			}
 
+			// Imports the new message
 			Chat chat = chatIdMap.get(nmp.getChatId());
 			chat.importMessages(
 					new Message[] { new Message(nmp.getContent(), chat.isProtected(), nmp.getSender(), nmp.getTime()) },

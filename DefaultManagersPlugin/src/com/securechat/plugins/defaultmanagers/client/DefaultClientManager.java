@@ -20,7 +20,7 @@ import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.plugins.defaultmanagers.DefaultManagersPlugin;
 
 /**
- * A reference implementation of the chat manager.
+ * A reference implementation of the client manager.
  */
 public class DefaultClientManager implements IClientManager {
 	@InjectInstance
@@ -71,7 +71,7 @@ public class DefaultClientManager implements IClientManager {
 	}
 
 	private void handlePacket(IPacket packet) {
-		log.debug("HANDLE PACKET " + packet);
+		log.debug("Received Packet " + packet);
 		if (packet instanceof DisconnectPacket) {
 			log.info("Disconnected: " + ((DisconnectPacket) packet).getReason());
 			mainGui.disconnected(((DisconnectPacket) packet).getReason());
@@ -82,6 +82,7 @@ public class DefaultClientManager implements IClientManager {
 
 			mainGui.updateUserList(names, online);
 
+			// Counts the number of online users
 			int count = 0;
 			for (boolean b : online) {
 				if (b)

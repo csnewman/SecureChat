@@ -16,9 +16,10 @@ import com.securechat.api.server.IServerManager;
 import com.securechat.api.server.users.IUser;
 import com.securechat.plugins.defaultmanagers.DefaultManagersPlugin;
 
+/**
+ * A reference implementation of the user.
+ */
 public class User implements IUser {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME,
-			DefaultManagersPlugin.VERSION, "user", "1.0.0");
 	@InjectInstance
 	private ILogger log;
 	private String username;
@@ -49,9 +50,9 @@ public class User implements IUser {
 	}
 
 	private void handlePacket(IPacket packet) {
-		log.debug("handle packet " + packet);
+		log.debug("Received Packet " + packet);
 		if (packet instanceof DisconnectPacket) {
-			log.info("Disconnected!! " + ((DisconnectPacket) packet).getReason());
+			log.info("Disconnected: " + ((DisconnectPacket) packet).getReason());
 		} else {
 			for (IPacketHandler handler : packetHandlers) {
 				if (handler.handlePacket(packet)) {
@@ -124,6 +125,11 @@ public class User implements IUser {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME, DefaultManagersPlugin.VERSION, "user", "1.0.0");
 	}
 
 }

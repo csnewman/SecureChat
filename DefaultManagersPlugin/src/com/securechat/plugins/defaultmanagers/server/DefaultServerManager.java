@@ -16,9 +16,10 @@ import com.securechat.api.server.users.IUser;
 import com.securechat.api.server.users.IUserManager;
 import com.securechat.plugins.defaultmanagers.DefaultManagersPlugin;
 
+/**
+ * A reference implementation of the server manager.
+ */
 public class DefaultServerManager implements IServerManager {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME,
-			DefaultManagersPlugin.VERSION, "server_manager", "1.0.0");
 	@InjectInstance
 	private ILogger log;
 	@InjectInstance
@@ -89,6 +90,12 @@ public class DefaultServerManager implements IServerManager {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME, DefaultManagersPlugin.VERSION, "server_manager",
+				"1.0.0");
 	}
 
 }

@@ -3,8 +3,6 @@ package com.securechat.plugins.defaultmanagers.server;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.json.JSONObject;
-
 import com.securechat.api.common.database.FieldType;
 import com.securechat.api.common.database.IDatabase;
 import com.securechat.api.common.database.ITable;
@@ -18,9 +16,10 @@ import com.securechat.api.server.users.IUser;
 import com.securechat.api.server.users.IUserManager;
 import com.securechat.plugins.defaultmanagers.DefaultManagersPlugin;
 
+/**
+ * A reference implementation of the user manager.
+ */
 public class DefaultUserManager implements IUserManager {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME,
-			DefaultManagersPlugin.VERSION, "user_manager", "1.0.0");
 	@InjectInstance
 	private IDatabase database;
 	@InjectInstance
@@ -48,7 +47,6 @@ public class DefaultUserManager implements IUserManager {
 		data.setField("username", username);
 		data.setField("pubkey", publicKey);
 		data.setField("code", clientCode);
-		data.setField("plugindata", new JSONObject());
 		usersTable.insertRow(data);
 		User user = new User(data);
 		factory.inject(user);
@@ -85,13 +83,16 @@ public class DefaultUserManager implements IUserManager {
 		return MARKER;
 	}
 
+	public static final ImplementationMarker MARKER;
 	public static final ObjectDataFormat USERS_FORMAT;
 	static {
+		MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME, DefaultManagersPlugin.VERSION, "user_manager",
+				"1.0.0");
+
 		USERS_FORMAT = new ObjectDataFormat();
 		USERS_FORMAT.addField("username", PrimitiveDataFormat.String, FieldType.Primary);
 		USERS_FORMAT.addField("pubkey", PrimitiveDataFormat.ByteArray, FieldType.Required);
 		USERS_FORMAT.addField("code", PrimitiveDataFormat.Integer, FieldType.Required);
-		USERS_FORMAT.addField("plugindata", PrimitiveDataFormat.JSON, FieldType.Required);
 	}
 
 }
