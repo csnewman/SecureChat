@@ -10,6 +10,10 @@ import com.securechat.api.common.security.IHasher;
 import com.securechat.api.common.security.IKeystore;
 import com.securechat.api.common.security.IPasswordEncryption;
 
+/**
+ * An official plugin providing the reference implementations of the security
+ * features based off the java security features.
+ */
 @Plugin(name = JavaSecurityPlugin.NAME, version = JavaSecurityPlugin.VERSION)
 public class JavaSecurityPlugin {
 	public static final String NAME = "official-java_security", VERSION = "1.0.0";

@@ -16,10 +16,10 @@ import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 import com.securechat.api.common.storage.IStorage;
 
+/**
+ * A reference implementation of the keystore.
+ */
 public class BasicKeystore implements IKeystore {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(JavaSecurityPlugin.NAME,
-			JavaSecurityPlugin.VERSION, "basic_keystore", "1.0.0");
-	private static String path = "keystore.bin";
 	@InjectInstance
 	private ILogger log;
 	@Inject(associate = true)
@@ -54,6 +54,7 @@ public class BasicKeystore implements IKeystore {
 		try {
 			IByteWriter body = IByteWriter.get(factory, MARKER.getId());
 
+			// Writes all of the keys
 			body.writeInt(asymmetricPublicKeys.size());
 			for (String name : asymmetricPublicKeys.keySet()) {
 				byte[] pub = asymmetricPublicKeys.get(name);
@@ -78,7 +79,7 @@ public class BasicKeystore implements IKeystore {
 
 			IByteWriter finalData = IByteWriter.get(factory, MARKER.getId());
 			finalData.writeWriterWithChecksum(body);
-			storage.writeFile(path, passwordEncryption, finalData);
+			storage.writeFile(PATH, passwordEncryption, finalData);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -96,13 +97,14 @@ public class BasicKeystore implements IKeystore {
 			asymmetricPrivateKeys = new HashMap<String, byte[]>();
 			asymmetricPublicKeys = new HashMap<String, byte[]>();
 
-			IByteReader fileData = storage.readFile(path, passwordEncryption);
+			IByteReader fileData = storage.readFile(PATH, passwordEncryption);
 			if (fileData == null) {
 				return false;
 			}
 
 			IByteReader content = fileData.readReaderWithChecksum();
 
+			// Loads each key
 			int size = content.readInt();
 			for (int i = 0; i < size; i++) {
 				String name = content.readString();
@@ -181,7 +183,7 @@ public class BasicKeystore implements IKeystore {
 
 	@Override
 	public boolean exists() {
-		return storage.doesFileExist(path);
+		return storage.doesFileExist(PATH);
 	}
 
 	@Override
@@ -192,6 +194,14 @@ public class BasicKeystore implements IKeystore {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	private static String PATH;
+	static {
+		MARKER = new ImplementationMarker(JavaSecurityPlugin.NAME, JavaSecurityPlugin.VERSION, "basic_keystore",
+				"1.0.0");
+		PATH = "keystore.bin";
 	}
 
 }

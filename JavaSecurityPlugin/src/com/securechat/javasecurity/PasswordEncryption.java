@@ -18,11 +18,10 @@ import javax.crypto.spec.PBEParameterSpec;
 import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.security.IPasswordEncryption;
 
+/**
+ * A reference implementation of the password encryption.
+ */
 public class PasswordEncryption implements IPasswordEncryption {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(JavaSecurityPlugin.NAME,
-			JavaSecurityPlugin.VERSION, "password_encryption", "1.0.0");
-	private static final byte[] salt = { (byte) 0x12, (byte) 0x67, (byte) 0x43, (byte) 0x32, (byte) 0x68, (byte) 0x94,
-			(byte) 0x17, (byte) 0x95 };
 	private SecretKey key;
 	private PBEParameterSpec pbeParamSpec;
 	private Cipher cipher;
@@ -36,10 +35,11 @@ public class PasswordEncryption implements IPasswordEncryption {
 	public void init(char[] password) {
 		try {
 			lock.lock();
+			// Configures the encryption with the password
 			PBEKeySpec keySpec = new PBEKeySpec(password);
 			SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
 			key = keyFactory.generateSecret(keySpec);
-			pbeParamSpec = new PBEParameterSpec(salt, 4096);
+			pbeParamSpec = new PBEParameterSpec(SALT, 4096);
 			cipher = Cipher.getInstance("PBEWithMD5AndDES");
 			lock.unlock();
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeySpecException e) {
@@ -52,6 +52,8 @@ public class PasswordEncryption implements IPasswordEncryption {
 	public byte[] encrypt(byte[] data) {
 		try {
 			lock.lock();
+
+			// Pads data to the correct size
 			int extraPadding = 8 - (data.length % 8);
 
 			byte[] tempData = new byte[data.length + extraPadding];
@@ -61,6 +63,7 @@ public class PasswordEncryption implements IPasswordEncryption {
 				tempData[i] = (byte) extraPadding;
 			}
 
+			// Encrypts the data
 			cipher.init(Cipher.ENCRYPT_MODE, key, pbeParamSpec);
 			byte[] result = cipher.doFinal(tempData);
 			lock.unlock();
@@ -76,12 +79,16 @@ public class PasswordEncryption implements IPasswordEncryption {
 	public byte[] decrypt(byte[] data) {
 		try {
 			lock.lock();
+			// Decrypts the data
 			cipher.init(Cipher.DECRYPT_MODE, key, pbeParamSpec);
 			byte[] tempData = cipher.doFinal(data);
+
+			// Unpads the data
 			int extraPadding = tempData[tempData.length - 1];
 			byte[] finalData = new byte[tempData.length - extraPadding];
 			System.arraycopy(tempData, 0, finalData, 0, finalData.length);
 			lock.unlock();
+
 			return finalData;
 		} catch (InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException
 				| BadPaddingException e) {
@@ -93,6 +100,15 @@ public class PasswordEncryption implements IPasswordEncryption {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	private static final byte[] SALT;
+	static {
+		MARKER = new ImplementationMarker(JavaSecurityPlugin.NAME, JavaSecurityPlugin.VERSION, "password_encryption",
+				"1.0.0");
+		SALT = new byte[] { (byte) 0x12, (byte) 0x67, (byte) 0x43, (byte) 0x32, (byte) 0x68, (byte) 0x94, (byte) 0x17,
+				(byte) 0x95 };
 	}
 
 }

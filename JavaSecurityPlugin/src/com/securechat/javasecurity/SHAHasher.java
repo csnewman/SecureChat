@@ -6,9 +6,10 @@ import java.security.NoSuchAlgorithmException;
 import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.security.IHasher;
 
+/**
+ * A reference implementation of the SHA hasher.
+ */
 public class SHAHasher implements IHasher {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(JavaSecurityPlugin.NAME,
-			JavaSecurityPlugin.VERSION, "sha_hasher", "1.0.0");
 
 	@Override
 	public byte[] hashData(byte[] input) {
@@ -23,15 +24,22 @@ public class SHAHasher implements IHasher {
 
 	@Override
 	public char[] hashChars(char[] chars) {
+		// Converts the chars to bytes
 		byte[] bytes = new byte[chars.length];
 		for (int i = 0; i < chars.length; i++) {
 			bytes[i] = (byte) chars[i];
 		}
+
+		// Hashes the bytes
 		byte[] hash = hashData(bytes);
+
+		// Converts the hash to a string
 		StringBuffer buff = new StringBuffer();
 		for (int i = 0; i < hash.length; i++) {
 			buff.append(Integer.toHexString(0xff & hash[i]));
 		}
+
+		// Converts the string back to a char array
 		char[] out = new char[buff.length()];
 		buff.getChars(0, buff.length(), out, 0);
 		return out;
@@ -40,6 +48,11 @@ public class SHAHasher implements IHasher {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker(JavaSecurityPlugin.NAME, JavaSecurityPlugin.VERSION, "sha_hasher", "1.0.0");
 	}
 
 }

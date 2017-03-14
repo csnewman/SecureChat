@@ -25,11 +25,10 @@ import com.securechat.api.common.security.IAsymmetricKeyEncryption;
 import com.securechat.api.common.storage.IByteReader;
 import com.securechat.api.common.storage.IByteWriter;
 
+/**
+ * A reference implementation of the RSA encryption.
+ */
 public class RSAEncryption implements IAsymmetricKeyEncryption {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(JavaSecurityPlugin.NAME,
-			JavaSecurityPlugin.VERSION, "rsa_encryption", "1.0.0");
-	private static final int blockSize = 116, keySize = 1024;
-
 	@InjectInstance
 	private IImplementationFactory factory;
 	private PublicKey pubKey;
@@ -51,7 +50,7 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 		try {
 			lock.lock();
 			KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-			generator.initialize(keySize);
+			generator.initialize(KEY_SIZE);
 			KeyPair pair = generator.generateKeyPair();
 			pubKey = pair.getPublic();
 			priKey = pair.getPrivate();
@@ -100,20 +99,22 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	}
 
 	@Override
-	public byte[] encrypt(byte[] data) throws IOException{
+	public byte[] encrypt(byte[] data) throws IOException {
 		try {
 			lock.lock();
-			int count = (int) Math.ceil((double) data.length / (double) blockSize);
+			int count = (int) Math.ceil((double) data.length / (double) BLOCK_SIZE);
 			IByteWriter out = IByteWriter.get(factory, MARKER.getId());
 			out.writeInt(data.length);
 
+			// Breaks the data into chunks
 			for (int i = 0; i < count; i++) {
-				int start = i * blockSize;
-				int size = data.length - start < blockSize ? data.length - start : blockSize;
+				int start = i * BLOCK_SIZE;
+				int size = data.length - start < BLOCK_SIZE ? data.length - start : BLOCK_SIZE;
 
-				byte[] temp = new byte[blockSize];
+				byte[] temp = new byte[BLOCK_SIZE];
 				System.arraycopy(data, start, temp, 0, size);
 
+				// Encrypts the chunk
 				cipher.init(Cipher.ENCRYPT_MODE, pubKey);
 				temp = cipher.doFinal(temp);
 				out.writeArray(temp);
@@ -133,17 +134,20 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 			lock.lock();
 			IByteReader in = IByteReader.get(factory, MARKER.getId(), data);
 			int length = in.readInt();
-			int count = (int) Math.ceil((double) length / (double) blockSize);
+			int count = (int) Math.ceil((double) length / (double) BLOCK_SIZE);
 
 			byte[] result = new byte[length];
 
+			// Breaks the data back into chunks
 			for (int i = 0; i < count; i++) {
-				int start = i * blockSize;
+				int start = i * BLOCK_SIZE;
 
+				// Decrypts the chunk
 				byte[] temp = in.readArray();
 				cipher.init(Cipher.DECRYPT_MODE, priKey);
 				temp = cipher.doFinal(temp);
 
+				// Combines the chunks together
 				System.arraycopy(temp, 0, result, start, in.readInt());
 			}
 
@@ -158,6 +162,15 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	private static final int BLOCK_SIZE, KEY_SIZE;
+	static {
+		MARKER = new ImplementationMarker(JavaSecurityPlugin.NAME, JavaSecurityPlugin.VERSION, "rsa_encryption",
+				"1.0.0");
+		BLOCK_SIZE = 116;
+		KEY_SIZE = 1024;
 	}
 
 }
