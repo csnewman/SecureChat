@@ -14,9 +14,10 @@ import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.storage.IStorage;
 
+/**
+ * A reference implementation of the JSON database.
+ */
 public class JsonDatabase implements IDatabase {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(JsonDatabasePlugin.NAME,
-			JsonDatabasePlugin.VERSION, "json_database", "1.0.0");
 	@InjectInstance
 	private IImplementationFactory factory;
 	@InjectInstance
@@ -33,6 +34,7 @@ public class JsonDatabase implements IDatabase {
 		JSONObject obj = storage.readJsonFile("database/tables.json");
 		JSONArray array = obj.getJSONArray("tables");
 
+		// Loads the tables
 		for (int i = 0; i < array.length(); i++) {
 			String name = array.getString(i);
 			JsonTable table = new JsonTable(name);
@@ -47,6 +49,7 @@ public class JsonDatabase implements IDatabase {
 	private void save() {
 		JSONObject tablesFile = new JSONObject();
 		JSONArray tablesArray = new JSONArray();
+		//Saves the names of the tables
 		for (String name : tables.keySet()) {
 			tablesArray.put(name);
 		}
@@ -60,7 +63,7 @@ public class JsonDatabase implements IDatabase {
 			createTable(name, format);
 		} else {
 			if (!getTable(name).getFormat().equals(format)) {
-				throw new RuntimeException("Invalid format on file for "+name+"!");
+				throw new RuntimeException("Invalid format on file for " + name + "!");
 			}
 		}
 	}
@@ -87,6 +90,12 @@ public class JsonDatabase implements IDatabase {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker(JsonDatabasePlugin.NAME, JsonDatabasePlugin.VERSION, "json_database",
+				"1.0.0");
 	}
 
 }

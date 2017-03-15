@@ -8,6 +8,10 @@ import com.securechat.api.common.plugins.Hook;
 import com.securechat.api.common.plugins.Hooks;
 import com.securechat.api.common.plugins.Plugin;
 
+/**
+ * An official plugin providing the reference implementations of the databases
+ * with a JSON backing.
+ */
 @Plugin(name = JsonDatabasePlugin.NAME, version = JsonDatabasePlugin.VERSION)
 public class JsonDatabasePlugin {
 	public static final String NAME = "official-json_database", VERSION = "1.0.0";

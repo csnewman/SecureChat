@@ -15,6 +15,9 @@ import com.securechat.api.common.database.ObjectDataInstance;
 import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.storage.IStorage;
 
+/**
+ * A reference implementation of a JSON table.
+ */
 public class JsonTable implements ITable {
 	private String name;
 	@InjectInstance
@@ -39,6 +42,7 @@ public class JsonTable implements ITable {
 		JSONObject obj = storage.readJsonFile("database/" + name + ".json");
 		format = new ObjectDataFormat(obj.getJSONObject("format"));
 
+		// Loads the rows
 		JSONArray array = obj.getJSONArray("rows");
 		rows = new ObjectDataInstance[array.length()];
 		for (int i = 0; i < array.length(); i++) {
@@ -53,6 +57,7 @@ public class JsonTable implements ITable {
 		JSONObject obj = new JSONObject();
 		obj.put("format", format.toJSON());
 
+		// Saves the rows
 		JSONArray array = new JSONArray();
 		for (ObjectDataInstance row : rows) {
 			array.put(row.toJSON());
@@ -68,16 +73,17 @@ public class JsonTable implements ITable {
 			throw new RuntimeException("Invalid row data");
 		}
 
+		// Checks the primary key is unique
 		Object primary = data.getPrimary();
 		if (primaryCache.containsKey(primary)) {
 			throw new RuntimeException("Primary key already in use!");
 		}
 
+		// Inserts the row
 		ObjectDataInstance[] temp = new ObjectDataInstance[rows.length + 1];
 		System.arraycopy(rows, 0, temp, 0, rows.length);
 		temp[temp.length - 1] = data;
 		primaryCache.put(primary, temp.length - 1);
-
 		rows = temp;
 
 		save();
@@ -93,11 +99,11 @@ public class JsonTable implements ITable {
 		Integer id = primaryCache.get(primaryValue);
 		return id != null ? rows[id] : null;
 	}
-	
+
 	@Override
 	public void updateRow(Object primaryKey, ObjectDataInstance data) {
 		ObjectDataInstance row = getRow(primaryKey);
-		for(Entry<String, Object> entry : data.getValues().entrySet()){
+		for (Entry<String, Object> entry : data.getValues().entrySet()) {
 			row.setField(entry.getKey(), entry.getValue());
 		}
 		save();
@@ -107,7 +113,7 @@ public class JsonTable implements ITable {
 	public ObjectDataInstance[] getRows(ObjectDataInstance data) {
 		List<ObjectDataInstance> found = new ArrayList<ObjectDataInstance>();
 		for (ObjectDataInstance row : rows) {
-			if(row.matches(data)){
+			if (row.matches(data)) {
 				found.add(row);
 			}
 		}
