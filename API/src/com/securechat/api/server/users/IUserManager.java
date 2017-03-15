@@ -20,6 +20,13 @@ public interface IUserManager extends IImplementation {
 	 * @return whether that users exists.
 	 */
 	public boolean doesUserExist(String username);
+	
+	/**
+	 * Checks whether the given username is valid.
+	 * @param username the username to check
+	 * @return whether the username is valid.
+	 */
+	public boolean isUsernameValid(String username);
 
 	/**
 	 * Registers a user.

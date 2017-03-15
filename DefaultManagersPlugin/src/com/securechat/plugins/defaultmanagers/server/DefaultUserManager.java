@@ -2,7 +2,9 @@ package com.securechat.plugins.defaultmanagers.server;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
+import com.securechat.api.common.IContext;
 import com.securechat.api.common.database.FieldType;
 import com.securechat.api.common.database.IDatabase;
 import com.securechat.api.common.database.ITable;
@@ -12,6 +14,9 @@ import com.securechat.api.common.database.PrimitiveDataFormat;
 import com.securechat.api.common.implementation.IImplementationFactory;
 import com.securechat.api.common.implementation.ImplementationMarker;
 import com.securechat.api.common.plugins.InjectInstance;
+import com.securechat.api.common.properties.CollectionProperty;
+import com.securechat.api.common.properties.PrimitiveProperty;
+import com.securechat.api.common.properties.PropertyCollection;
 import com.securechat.api.server.users.IUser;
 import com.securechat.api.server.users.IUserManager;
 import com.securechat.plugins.defaultmanagers.DefaultManagersPlugin;
@@ -21,17 +26,25 @@ import com.securechat.plugins.defaultmanagers.DefaultManagersPlugin;
  */
 public class DefaultUserManager implements IUserManager {
 	@InjectInstance
+	private IContext context;
+	@InjectInstance
 	private IDatabase database;
 	@InjectInstance
 	private IImplementationFactory factory;
 	private ITable usersTable;
 	private Map<String, User> users;
+	private Pattern usernamePattern;
 
 	@Override
 	public void init() {
 		users = new HashMap<String, User>();
 		database.ensureTable("users", USERS_FORMAT);
 		usersTable = database.getTable("users");
+
+		// Loads the username format
+		PropertyCollection collection = context.getSettings().getPermissive(USERS_PROPERTY);
+		String nameFormat = collection.getPermissive(NAME_FORMAT_PROPERY);
+		usernamePattern = Pattern.compile(nameFormat, Pattern.CASE_INSENSITIVE);
 	}
 
 	@Override
@@ -40,14 +53,22 @@ public class DefaultUserManager implements IUserManager {
 	}
 
 	@Override
+	public boolean isUsernameValid(String username) {
+		// Checks the username against the regex
+		return usernamePattern.matcher(username).matches();
+	}
+
+	@Override
 	public void registerUser(String username, byte[] publicKey, int clientCode) {
 		if (doesUserExist(username))
 			throw new RuntimeException("Username already in use");
+		// Inserts the user
 		ObjectDataInstance data = new ObjectDataInstance(USERS_FORMAT);
 		data.setField("username", username);
 		data.setField("pubkey", publicKey);
 		data.setField("code", clientCode);
 		usersTable.insertRow(data);
+
 		User user = new User(data);
 		factory.inject(user);
 		users.put(username, user);
@@ -68,6 +89,7 @@ public class DefaultUserManager implements IUserManager {
 
 	@Override
 	public String[] getAllUsernames() {
+		// Goes through all rows and collects all usernames
 		ObjectDataInstance[] rows = usersTable.getAllRows();
 		String[] usernames = new String[rows.length];
 
@@ -84,7 +106,9 @@ public class DefaultUserManager implements IUserManager {
 	}
 
 	public static final ImplementationMarker MARKER;
-	public static final ObjectDataFormat USERS_FORMAT;
+	private static final ObjectDataFormat USERS_FORMAT;
+	private static final PrimitiveProperty<String> NAME_FORMAT_PROPERY;
+	private static final CollectionProperty USERS_PROPERTY;
 	static {
 		MARKER = new ImplementationMarker(DefaultManagersPlugin.NAME, DefaultManagersPlugin.VERSION, "user_manager",
 				"1.0.0");
@@ -93,6 +117,10 @@ public class DefaultUserManager implements IUserManager {
 		USERS_FORMAT.addField("username", PrimitiveDataFormat.String, FieldType.Primary);
 		USERS_FORMAT.addField("pubkey", PrimitiveDataFormat.ByteArray, FieldType.Required);
 		USERS_FORMAT.addField("code", PrimitiveDataFormat.Integer, FieldType.Required);
+
+		// Default regex name format
+		NAME_FORMAT_PROPERY = new PrimitiveProperty<String>("name_format", "^[a-zA-Z]\\w*$");
+		USERS_PROPERTY = new CollectionProperty("users", NAME_FORMAT_PROPERY);
 	}
 
 }

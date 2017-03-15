@@ -66,8 +66,10 @@ public class EarlyConnectionHandler {
 			updateKey();
 
 			String username = packet.getUsername();
-
-			if (userManager.doesUserExist(username)) {
+			
+			if(!userManager.isUsernameValid(username)){
+				connection.sendPacket(new RegisterResponsePacket(RegisterStatus.UsernameInvalid));
+			}else if (userManager.doesUserExist(username)) {
 				connection.sendPacket(new RegisterResponsePacket(RegisterStatus.UsernameTaken));
 			} else {
 				int code = new Random().nextInt();

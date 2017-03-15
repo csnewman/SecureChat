@@ -6,7 +6,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import com.securechat.api.client.IClientManager;
-import com.securechat.api.client.gui.IGui;
 import com.securechat.api.client.gui.IGuiProvider;
 import com.securechat.api.client.network.EnumConnectionSetupStatus;
 import com.securechat.api.client.network.IClientNetworkManager;
@@ -30,9 +29,10 @@ import com.securechat.api.common.security.IAsymmetricKeyEncryption;
 import com.securechat.plugins.socketnetworking.NetworkConnection;
 import com.securechat.plugins.socketnetworking.SocketNetworkingPlugin;
 
+/**
+ * A reference implementation of the client network manager.
+ */
 public class ClientNetworkManager implements IClientNetworkManager {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(SocketNetworkingPlugin.NAME,
-			SocketNetworkingPlugin.VERSION, "client_network_manager", "1.0.0");
 	@InjectInstance
 	private IContext context;
 	@InjectInstance
@@ -64,26 +64,30 @@ public class ClientNetworkManager implements IClientNetworkManager {
 	public void setupConnection(IConnectionProfileProvider profileProvider, IConnectionProfile profile, String username,
 			BiConsumer<EnumConnectionSetupStatus, String> statusConsumer) {
 		try {
+			//Generates a new pair
 			statusConsumer.accept(EnumConnectionSetupStatus.GeneratingKeyPair, null);
 			IAsymmetricKeyEncryption pair = factory.provide(IAsymmetricKeyEncryption.class, null, true, true,
 					"network");
 			pair.generate();
-
+			
+			//Loads the keypair
 			IAsymmetricKeyEncryption networkPair = factory.provide(IAsymmetricKeyEncryption.class, null, true, true,
 					"network");
 			networkPair.load(profile.getPublicKey(), pair.getPrivatekey());
-
+			
 			statusConsumer.accept(EnumConnectionSetupStatus.Connecting, null);
 			Consumer<String> disconnectHandler = r -> {
 				statusConsumer.accept(EnumConnectionSetupStatus.Disconnected, r);
 			};
+			
+			//Opens the connection
 			INetworkConnection connection = openConnection(profile, networkPair, disconnectHandler, null);
 
 			if (connection == null) {
 				disconnectHandler.accept("Connection failed");
 				return;
 			}
-
+			
 			connection.setSingleHandler(RegisterResponsePacket.class, r -> {
 				switch (r.getStatus()) {
 				case Success:
@@ -94,6 +98,8 @@ public class ClientNetworkManager implements IClientNetworkManager {
 							profileProvider.createProfile(profile, username, r.getCode(), pair.getPrivatekey()));
 					statusConsumer.accept(EnumConnectionSetupStatus.Success, null);
 					break;
+				case UsernameInvalid:
+					statusConsumer.accept(EnumConnectionSetupStatus.UsernameInvalid, null);
 				case UsernameTaken:
 					statusConsumer.accept(EnumConnectionSetupStatus.UsernameTaken, null);
 					break;
@@ -101,7 +107,8 @@ public class ClientNetworkManager implements IClientNetworkManager {
 					break;
 				}
 			});
-
+			
+			//Sends register request
 			statusConsumer.accept(EnumConnectionSetupStatus.RegisteringUsername, null);
 			connection.sendPacket(new RegisterPacket(username, pair.getPublickey()));
 		} catch (Exception e) {
@@ -157,6 +164,12 @@ public class ClientNetworkManager implements IClientNetworkManager {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker(SocketNetworkingPlugin.NAME, SocketNetworkingPlugin.VERSION,
+				"client_network_manager", "1.0.0");
 	}
 
 }

@@ -22,6 +22,10 @@ public enum EnumConnectionSetupStatus {
 	 */
 	RegisteringUsername,
 	/**
+	 * The server has responded with the fact that the username is invalid.
+	 */
+	UsernameInvalid,
+	/**
 	 * The server has responded with the fact that the username has been taken.
 	 */
 	UsernameTaken,

@@ -50,7 +50,7 @@ public class RegisterResponsePacket implements IPacket {
 	}
 
 	public static enum RegisterStatus {
-		Success, UsernameTaken
+		Success, UsernameInvalid, UsernameTaken
 	}
 
 }

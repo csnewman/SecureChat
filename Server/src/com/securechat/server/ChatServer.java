@@ -51,10 +51,12 @@ public class ChatServer implements IContext {
 	private IStorage storage;
 	private IAsymmetricKeyEncryption networkKey;
 	private IServerNetworkManager networkManager;
+	private boolean showDebug;
 
-	public void init(IStorage storage, boolean showDebug, char[] keystorePassword) throws IOException{
+	public void init(IStorage storage, boolean showDebug, char[] keystorePassword) throws IOException {
 		this.storage = storage;
 		storage.init();
+		this.showDebug = showDebug;
 
 		logger = new ConsoleLogger();
 		logger.init(this, showDebug);
@@ -169,8 +171,27 @@ public class ChatServer implements IContext {
 
 	@Override
 	public void handleCrash(Throwable reason) {
-		logger.error("Crashed! Trace:");
-		reason.printStackTrace();
+		logger.error("A crash has occured!");
+		logger.error("Type: " + reason.getClass());
+		logger.error("Message: " + reason.getMessage());
+
+		logger.error("Crash handle trace");
+		StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
+		for (StackTraceElement e : stacktrace) {
+			logger.error("\t" + e.getClassName() + "." + e.getMethodName() + " (" + e.getFileName() + ":"
+					+ e.getLineNumber() + ")");
+		}
+
+		logger.error("Error Trace: ");
+		stacktrace = reason.getStackTrace();
+		for (StackTraceElement e : stacktrace) {
+			logger.error("\t" + e.getClassName() + "." + e.getMethodName() + " (" + e.getFileName() + ":"
+					+ e.getLineNumber() + ")");
+		}
+		if (showDebug) {
+			logger.error("Internal message:");
+			reason.printStackTrace(System.out);
+		}
 		exit();
 	}
 
@@ -178,7 +199,8 @@ public class ChatServer implements IContext {
 	public void exit() {
 		StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
 		StackTraceElement e = stacktrace[2];
-		logger.info("Exit requested by " + e.getMethodName() + " in " + e.getClassName());
+		logger.error("Exit requested  by " + e.getClassName() + "." + e.getMethodName() + " (" + e.getFileName() + ":"
+				+ e.getLineNumber() + ")");
 		saveSettings();
 		System.exit(0);
 	}

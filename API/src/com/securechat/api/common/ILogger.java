@@ -48,4 +48,5 @@ public interface ILogger extends IImplementation {
 	 *            the message to be shown
 	 */
 	void error(String message);
+
 }

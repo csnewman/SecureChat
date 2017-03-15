@@ -137,6 +137,9 @@ public class InitialConnectionShell extends Shell {
 		case Disconnected:
 			setStatus(true, "Disconnected: " + msg);
 			break;
+		case UsernameInvalid:
+			setStatus(true, "Username invalid! Please check your username again.");
+			break;
 		case UsernameTaken:
 			setStatus(true, "Username has already been taken! Please try a different one.");
 			break;

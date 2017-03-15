@@ -11,6 +11,10 @@ import com.securechat.api.server.network.IServerNetworkManager;
 import com.securechat.plugins.socketnetworking.client.ClientNetworkManager;
 import com.securechat.plugins.socketnetworking.server.ServerNetworkManager;
 
+/**
+ * An official plugin providing the reference implementations of socket based
+ * networking.
+ */
 @Plugin(name = SocketNetworkingPlugin.NAME, version = SocketNetworkingPlugin.VERSION)
 public class SocketNetworkingPlugin {
 	public static final String NAME = "official-socket_networking", VERSION = "1.0.0";
