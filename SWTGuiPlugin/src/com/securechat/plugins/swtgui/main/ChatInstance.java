@@ -84,18 +84,18 @@ public class ChatInstance {
 
 		Button btnSend = new Button(lowerComposite, SWT.NONE);
 		btnSend.addSelectionListener(new SelectionListener() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent paramSelectionEvent) {
 				chat.sendMessage(textMessage.getText());
 				textMessage.setText("");
 			}
-			
+
 			@Override
 			public void widgetDefaultSelected(SelectionEvent paramSelectionEvent) {
 			}
 		});
-		
+
 		btnSend.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		formToolkit.adapt(btnSend, true, true);
 		btnSend.setText("Send");
@@ -109,11 +109,11 @@ public class ChatInstance {
 	}
 
 	public void updateMessages() {
-		if(!chat.hasLoaded()){
+		if (!chat.hasLoaded()) {
 			messagesBrowser.setText(loading);
 			return;
 		}
-		
+
 		List<IMessage> messages = chat.getMessages();
 		Collections.sort(messages, (o1, o2) -> Long.compare(o1.getTime(), o2.getTime()));
 
@@ -123,9 +123,39 @@ public class ChatInstance {
 			text += "<li ";
 			if (message.getSender().equals(localUser))
 				text += "class=\"right\"";
-			text += ">" + message.getText() + "</li>";
+			text += ">" + escapeMessage(message.getText()) + "</li>";
 		}
 		messagesBrowser.setText(template.replace("@MESSAGES@", text));
+	}
+
+	private String escapeMessage(String source) {
+		String checked = "";
+		for (char c : source.toCharArray()) {
+			switch (c) {
+			case '<':
+				checked += "&lt;";
+				break;
+			case '>':
+				checked += "&gt;";
+				break;
+			case '\'':
+				checked += "&#x27;";
+				break;
+			case '/':
+				checked += "&#x2F;";
+				break;
+			case '&':
+				checked += "&amp;";
+				break;
+			case '"':
+				checked += "&quot;";
+				break;
+			default:
+				checked += c;
+				break;
+			}
+		}
+		return checked;
 	}
 
 	public CTabItem getTbtmChat() {

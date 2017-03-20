@@ -100,6 +100,7 @@ public class ClientNetworkManager implements IClientNetworkManager {
 					break;
 				case UsernameInvalid:
 					statusConsumer.accept(EnumConnectionSetupStatus.UsernameInvalid, null);
+					break;
 				case UsernameTaken:
 					statusConsumer.accept(EnumConnectionSetupStatus.UsernameTaken, null);
 					break;

@@ -116,7 +116,6 @@ public class MainShell extends Shell {
 		tbtmUsers.setText("Users");
 
 		usersTable = new Table(leftTabFolder, SWT.BORDER | SWT.FULL_SELECTION);
-		usersTable.setLinesVisible(true);
 		usersTable.setHeaderVisible(true);
 		tbtmUsers.setControl(usersTable);
 		formToolkit.paintBordersFor(usersTable);
