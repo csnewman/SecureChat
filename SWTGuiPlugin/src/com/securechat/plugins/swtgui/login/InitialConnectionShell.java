@@ -22,6 +22,9 @@ import com.securechat.api.common.network.IConnectionProfile;
 import com.securechat.api.common.network.IConnectionProfileProvider;
 import com.securechat.api.common.plugins.InjectInstance;
 
+/**
+ * The SWT shell for the inital connection gui.
+ */
 public class InitialConnectionShell extends Shell {
 	private LoginGui loginGui;
 	@InjectInstance
@@ -105,6 +108,8 @@ public class InitialConnectionShell extends Shell {
 	private void create() {
 		String usernameValue = username.getText();
 
+		// Starts setting up in the connection in a different thread to prevent
+		// GUI lockup
 		new Thread(() -> {
 			try {
 				networkManager.setupConnection(provider, profile, usernameValue, this::handleUpdate);
@@ -115,6 +120,7 @@ public class InitialConnectionShell extends Shell {
 	}
 
 	private void handleUpdate(EnumConnectionSetupStatus status, String msg) {
+		// Displays the correct status message
 		switch (status) {
 		case GeneratingKeyPair:
 			setStatus(false, "Generating keypair");

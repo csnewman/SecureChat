@@ -29,11 +29,12 @@ import com.securechat.plugins.swtgui.keystore.KeystoreGui;
 import com.securechat.plugins.swtgui.login.LoginGui;
 import com.securechat.plugins.swtgui.main.MainGui;
 
+/**
+ * An official plugin providing the SWT based GUI.
+ */
 @Plugin(name = SWTGuiPlugin.NAME, version = SWTGuiPlugin.VERSION, side = Sides.Client)
 public class SWTGuiPlugin implements IGuiProvider {
 	public static final String NAME = "official-swt_gui", VERSION = "1.0.0";
-	public static final ImplementationMarker PROVIDER_MARKER = new ImplementationMarker(NAME, VERSION, "swt_gui",
-			"1.0.0");
 	@InjectInstance
 	private IContext context;
 	@InjectInstance
@@ -92,6 +93,7 @@ public class SWTGuiPlugin implements IGuiProvider {
 	@Override
 	public void handleCrash(Throwable reason) {
 		display.syncExec(() -> {
+			// Converts stack trace to a list of lines
 			StringWriter traceWriter = new StringWriter();
 			PrintWriter pw = new PrintWriter(traceWriter);
 			reason.printStackTrace(pw);
@@ -102,6 +104,7 @@ public class SWTGuiPlugin implements IGuiProvider {
 				childStatuses.add(new Status(IStatus.ERROR, "client", line));
 			}
 
+			// Displays the error dialog
 			MultiStatus ms = new MultiStatus("client", IStatus.ERROR, childStatuses.toArray(new Status[] {}),
 					reason.getLocalizedMessage(), reason);
 			ErrorDialog.openError(null, "Secure Chat - Crash",
@@ -110,6 +113,12 @@ public class SWTGuiPlugin implements IGuiProvider {
 		context.exit();
 	}
 
+	/**
+	 * Executes the method on the GUI thread.
+	 * 
+	 * @param run
+	 *            the method to run
+	 */
 	public void async(Runnable run) {
 		display.asyncExec(() -> {
 			try {
@@ -120,6 +129,12 @@ public class SWTGuiPlugin implements IGuiProvider {
 		});
 	}
 
+	/**
+	 * Executes the method on the GUI thread.
+	 * 
+	 * @param run
+	 *            the method to run
+	 */
 	public void sync(Runnable run) {
 		display.syncExec(() -> {
 			try {
@@ -141,6 +156,11 @@ public class SWTGuiPlugin implements IGuiProvider {
 	@Override
 	public ImplementationMarker getMarker() {
 		return PROVIDER_MARKER;
+	}
+
+	public static final ImplementationMarker PROVIDER_MARKER;
+	static {
+		PROVIDER_MARKER = new ImplementationMarker(NAME, VERSION, "swt_gui", "1.0.0");
 	}
 
 }

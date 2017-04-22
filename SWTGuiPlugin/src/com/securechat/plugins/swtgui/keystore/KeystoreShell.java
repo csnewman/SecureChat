@@ -14,11 +14,14 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+/**
+ * The actual SWT shell for the keystore gui.
+ */
 public class KeystoreShell extends Shell {
 	private Label lblInfo, lblMessage;
 	private Text passwordInput;
 	private Button btnMain, btnExit;
-	
+
 	public KeystoreShell(Display display) {
 		super(display, SWT.CLOSE | SWT.TITLE);
 		setText("Secure Chat - Keystore");
@@ -47,9 +50,9 @@ public class KeystoreShell extends Shell {
 		new Label(form, SWT.NONE);
 		lblMessage = new Label(form, SWT.NONE);
 		lblMessage.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
+
 		btnExit = new Button(this, SWT.NONE);
-		
+
 		FormData fd_btnExit = new FormData();
 		fd_btnExit.bottom = new FormAttachment(100, -10);
 		fd_btnExit.right = new FormAttachment(lblInfo, 0, SWT.RIGHT);
@@ -62,8 +65,8 @@ public class KeystoreShell extends Shell {
 		fd_btnMain.bottom = new FormAttachment(btnExit, 0, SWT.BOTTOM);
 		fd_btnMain.right = new FormAttachment(btnExit, -6);
 		btnMain.setLayoutData(fd_btnMain);
-		
-		//Temp size calcs
+
+		// Temp size calcs
 		updateInfo(true);
 		updateSize();
 	}
@@ -80,8 +83,8 @@ public class KeystoreShell extends Shell {
 		}
 		updateSize();
 	}
-	
-	private void updateSize(){
+
+	private void updateSize() {
 		Point size = computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		size.y += btnMain.computeSize(SWT.DEFAULT, SWT.DEFAULT).y + 10;
 		setSize(size);
@@ -92,20 +95,16 @@ public class KeystoreShell extends Shell {
 	public Button getBtnMain() {
 		return btnMain;
 	}
-	
+
 	public Button getBtnExit() {
 		return btnExit;
 	}
-	
-	public void setMessage(String msg){
+
+	public void setMessage(String msg) {
 		lblMessage.setText(msg);
 		updateSize();
 	}
-	
-//	public Label getLblMessage() {
-//		return lblMessage;
-//	}
-	
+
 	public char[] getPassword() {
 		return passwordInput.getTextChars();
 	}

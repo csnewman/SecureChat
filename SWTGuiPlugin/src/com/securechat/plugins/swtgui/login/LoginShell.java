@@ -17,8 +17,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.wb.swt.SWTResourceManager;
 
+/**
+ * The actual SWT shell for the login gui.
+ */
 public class LoginShell extends Shell {
 	private Label lblServerHostValue;
 	private Label lblServerNameValue;
@@ -53,7 +55,7 @@ public class LoginShell extends Shell {
 
 		Label lblTitle = new Label(this, SWT.NONE);
 		lblTitle.setAlignment(SWT.CENTER);
-		lblTitle.setFont(SWTResourceManager.getFont("Ubuntu", 20, SWT.NORMAL));
+		lblTitle.setFont(gui.getPlugin().getFont(20, SWT.NORMAL));
 		FormData fd_lblTitle = new FormData();
 		fd_lblTitle.right = new FormAttachment(100, -10);
 		fd_lblTitle.top = new FormAttachment(0, 10);

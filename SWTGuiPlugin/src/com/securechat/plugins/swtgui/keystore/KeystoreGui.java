@@ -10,9 +10,10 @@ import com.securechat.api.common.security.IKeystore;
 import com.securechat.plugins.swtgui.GuiBase;
 import com.securechat.plugins.swtgui.SWTGuiPlugin;
 
+/**
+ * A SWT based keystore loading/creation gui.
+ */
 public class KeystoreGui extends GuiBase implements IKeystoreGui {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(SWTGuiPlugin.NAME, SWTGuiPlugin.VERSION,
-			"keystore_gui", "1.0.0");
 	private boolean exists;
 	private IKeystore keystore;
 	private KeystoreShell shell;
@@ -53,6 +54,7 @@ public class KeystoreGui extends GuiBase implements IKeystoreGui {
 	}
 
 	private void onMain() {
+		// Attempts to load/create the keystore
 		if (exists) {
 			if (keystore.load(shell.getPassword())) {
 				completed = true;
@@ -86,6 +88,11 @@ public class KeystoreGui extends GuiBase implements IKeystoreGui {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker(SWTGuiPlugin.NAME, SWTGuiPlugin.VERSION, "keystore_gui", "1.0.0");
 	}
 
 }

@@ -14,9 +14,10 @@ import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.plugins.swtgui.GuiBase;
 import com.securechat.plugins.swtgui.SWTGuiPlugin;
 
+/**
+ * A SWT based login GUI.
+ */
 public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(SWTGuiPlugin.NAME, SWTGuiPlugin.VERSION,
-			"login_gui", "1.0.0");
 	@InjectInstance
 	private IConnectionStore connectionStore;
 	@InjectInstance
@@ -45,6 +46,9 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 		plugin.sync(this::updateOptions);
 	}
 
+	/**
+	 * Updates the dropdown list of connections
+	 */
 	private void updateOptions() {
 		profiles = connectionStore.getProfiles().toArray(new IConnectionProfile[0]);
 		String[] names = new String[profiles.length];
@@ -60,6 +64,9 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 		updateSelection();
 	}
 
+	/**
+	 * Updates the servers name and host information
+	 */
 	public void updateSelection() {
 		int index = shell.getConnectionsCombo().getSelectionIndex();
 		if (profiles.length == 0 || index < 0 || index >= profiles.length) {
@@ -74,6 +81,9 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 		shell.getBtnConnect().setEnabled(true);
 	}
 
+	/**
+	 * Starts the connection to the server.
+	 */
 	public void connect() {
 		int index = shell.getConnectionsCombo().getSelectionIndex();
 		if (profiles.length == 0 || index < 0 || index >= profiles.length) {
@@ -100,7 +110,7 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 	@Override
 	protected void onClose() {
 		connectionStore.removeUpdateListener(this);
-		if(!completed){
+		if (!completed) {
 			context.exit();
 		}
 	}
@@ -113,6 +123,11 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker(SWTGuiPlugin.NAME, SWTGuiPlugin.VERSION, "login_gui", "1.0.0");
 	}
 
 }

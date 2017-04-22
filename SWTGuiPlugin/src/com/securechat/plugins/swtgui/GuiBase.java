@@ -11,6 +11,9 @@ import com.securechat.api.client.gui.IGui;
 import com.securechat.api.common.IContext;
 import com.securechat.api.common.plugins.InjectInstance;
 
+/**
+ * Provides the basic logic shared by all guis using SWT.
+ */
 public abstract class GuiBase implements IGui {
 	@InjectInstance
 	protected IContext context;
@@ -85,7 +88,7 @@ public abstract class GuiBase implements IGui {
 	public void close() {
 		plugin.sync(getShell()::close);
 	}
-	
+
 	public SWTGuiPlugin getPlugin() {
 		return plugin;
 	}

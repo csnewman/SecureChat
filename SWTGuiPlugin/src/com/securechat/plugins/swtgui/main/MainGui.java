@@ -23,9 +23,10 @@ import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.plugins.swtgui.GuiBase;
 import com.securechat.plugins.swtgui.SWTGuiPlugin;
 
+/**
+ * A SWT based main GUI.
+ */
 public class MainGui extends GuiBase implements IMainGui {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(SWTGuiPlugin.NAME, SWTGuiPlugin.VERSION,
-			"main_gui", "1.0.0");
 	private MainShell shell;
 	@InjectInstance
 	private IClientChatManager chatManager;
@@ -276,6 +277,11 @@ public class MainGui extends GuiBase implements IMainGui {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	static {
+		MARKER = new ImplementationMarker(SWTGuiPlugin.NAME, SWTGuiPlugin.VERSION, "main_gui", "1.0.0");
 	}
 
 }

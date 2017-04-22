@@ -11,6 +11,10 @@ import com.securechat.api.common.ILogger;
 import com.securechat.api.common.Sides;
 import com.securechat.api.common.plugins.InjectInstance;
 
+/**
+ * The loader called by the plugin manager to load the required natives.
+ *
+ */
 public class SWTLoader {
 	private static final String SWT_VERSION = "4.6.2";
 	@InjectInstance

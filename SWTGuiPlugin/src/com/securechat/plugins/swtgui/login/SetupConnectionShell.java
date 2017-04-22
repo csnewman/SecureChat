@@ -27,6 +27,9 @@ import com.securechat.api.common.plugins.InjectInstance;
 import com.securechat.api.common.security.IPasswordEncryption;
 import com.securechat.api.common.storage.IStorage;
 
+/**
+ * The SWT shell for the setup connection gui.
+ */
 public class SetupConnectionShell extends Shell {
 	private LoginGui loginGui;
 	private Text profilePath;
@@ -80,6 +83,7 @@ public class SetupConnectionShell extends Shell {
 		btnPathDialog.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				// Opens file selection dialog with the sccp filter
 				FileDialog dialog = new FileDialog(SetupConnectionShell.this, SWT.OPEN);
 				dialog.setFilterExtensions(new String[] { "*.sccp" });
 				dialog.setFilterNames(new String[] { "Secure Chat Connection Profile (*.sccp)" });
@@ -110,6 +114,7 @@ public class SetupConnectionShell extends Shell {
 		providersCombo = new Combo(composite, SWT.NONE);
 		providersCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
+		// Adds the list of providers
 		IImplementationFactory factory = loginGui.getContext().getImplementationFactory();
 		Collection<IImplementationInstance<? extends IConnectionProfileProvider>> implementations = factory
 				.getImplementations(IConnectionProfileProvider.class).values();
@@ -144,7 +149,7 @@ public class SetupConnectionShell extends Shell {
 		btnImport.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(profile != null){
+				if (profile != null) {
 					doImport();
 				}
 			}
@@ -179,22 +184,26 @@ public class SetupConnectionShell extends Shell {
 		setSize(size);
 	}
 
-	private void doImport(){
+	private void doImport() {
 		close();
-		InitialConnectionShell connectionShell = new InitialConnectionShell(loginShell, profileProvider, profile, loginGui);
+		// Begins the inital connection
+		InitialConnectionShell connectionShell = new InitialConnectionShell(loginShell, profileProvider, profile,
+				loginGui);
 		factory.inject(connectionShell);
 		connectionShell.layout();
 		connectionShell.open();
 	}
-	
+
 	private void decrypt() {
-		if(providersCombo.getSelectionIndex() < 0){
+		// Check a provider was selected
+		if (providersCombo.getSelectionIndex() < 0) {
 			setStatus(false, "No provider selected");
 			profile = null;
 			return;
 		}
 		profileProvider = providers[providersCombo.getSelectionIndex()];
-		
+
+		// Attempts to load and decrypt the file
 		String path = profilePath.getText();
 		if (storage.doesFileExist(path)) {
 			try {
@@ -214,6 +223,7 @@ public class SetupConnectionShell extends Shell {
 					return;
 				}
 
+				// Updates info
 				setStatus(true, "Decrypted");
 				lblNameValue.setText(profile.getName());
 				lblHostValue.setText(profile.getIP() + ":" + profile.getPort());

@@ -64,30 +64,30 @@ public class ClientNetworkManager implements IClientNetworkManager {
 	public void setupConnection(IConnectionProfileProvider profileProvider, IConnectionProfile profile, String username,
 			BiConsumer<EnumConnectionSetupStatus, String> statusConsumer) {
 		try {
-			//Generates a new pair
+			// Generates a new pair
 			statusConsumer.accept(EnumConnectionSetupStatus.GeneratingKeyPair, null);
 			IAsymmetricKeyEncryption pair = factory.provide(IAsymmetricKeyEncryption.class, null, true, true,
 					"network");
 			pair.generate();
-			
-			//Loads the keypair
+
+			// Loads the keypair
 			IAsymmetricKeyEncryption networkPair = factory.provide(IAsymmetricKeyEncryption.class, null, true, true,
 					"network");
 			networkPair.load(profile.getPublicKey(), pair.getPrivatekey());
-			
+
 			statusConsumer.accept(EnumConnectionSetupStatus.Connecting, null);
 			Consumer<String> disconnectHandler = r -> {
 				statusConsumer.accept(EnumConnectionSetupStatus.Disconnected, r);
 			};
-			
-			//Opens the connection
+
+			// Opens the connection
 			INetworkConnection connection = openConnection(profile, networkPair, disconnectHandler, null);
 
 			if (connection == null) {
 				disconnectHandler.accept("Connection failed");
 				return;
 			}
-			
+
 			connection.setSingleHandler(RegisterResponsePacket.class, r -> {
 				switch (r.getStatus()) {
 				case Success:
@@ -108,8 +108,8 @@ public class ClientNetworkManager implements IClientNetworkManager {
 					break;
 				}
 			});
-			
-			//Sends register request
+
+			// Sends register request
 			statusConsumer.accept(EnumConnectionSetupStatus.RegisteringUsername, null);
 			connection.sendPacket(new RegisterPacket(username, pair.getPublickey()));
 		} catch (Exception e) {
@@ -134,6 +134,10 @@ public class ClientNetworkManager implements IClientNetworkManager {
 		};
 
 		INetworkConnection connection = openConnection(profile, networkPair, disconnectHandler, null);
+
+		// An error has occured
+		if (connection == null)
+			return;
 
 		Consumer<IPacket> finalHandler = p -> {
 			if (p instanceof ConnectedPacket) {

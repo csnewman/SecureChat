@@ -25,6 +25,9 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import com.securechat.api.client.chat.IChat;
 import com.securechat.api.client.chat.IMessage;
 
+/**
+ * The GUI components of an active chat.
+ */
 public class ChatInstance {
 	private String localUser;
 	private IChat chat;
@@ -70,7 +73,6 @@ public class ChatInstance {
 		Text textMessage = new Text(lowerComposite, SWT.BORDER);
 		textMessage.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		textMessage.setBounds(0, 0, 81, 40);
-		// formToolkit.adapt(textMessage, true, true);
 
 		textMessage.addListener(SWT.Traverse, new Listener() {
 			@Override
@@ -115,6 +117,7 @@ public class ChatInstance {
 		}
 
 		List<IMessage> messages = chat.getMessages();
+		// Ensures the messages are in time order
 		Collections.sort(messages, (o1, o2) -> Long.compare(o1.getTime(), o2.getTime()));
 
 		String text = "";
@@ -128,6 +131,13 @@ public class ChatInstance {
 		messagesBrowser.setText(template.replace("@MESSAGES@", text));
 	}
 
+	/**
+	 * Removes any special HTML characters
+	 * 
+	 * @param source
+	 *            the untrusted text
+	 * @return the corrected text
+	 */
 	private String escapeMessage(String source) {
 		String checked = "";
 		for (char c : source.toCharArray()) {
@@ -162,11 +172,15 @@ public class ChatInstance {
 		return tbtmChat;
 	}
 
-	private static final String template = new BufferedReader(new InputStreamReader(
-			ChatInstance.class.getResourceAsStream("/com/securechat/plugins/swtgui/main/template.html"))).lines()
-					.collect(Collectors.joining("\n"));
-	private static final String loading = new BufferedReader(new InputStreamReader(
-			ChatInstance.class.getResourceAsStream("/com/securechat/plugins/swtgui/main/loading.html"))).lines()
-					.collect(Collectors.joining("\n"));
+	private static final String template, loading;
+	static {
+		// Loads the HTML templates
+		template = new BufferedReader(new InputStreamReader(
+				ChatInstance.class.getResourceAsStream("/com/securechat/plugins/swtgui/main/template.html"))).lines()
+						.collect(Collectors.joining("\n"));
+		loading = new BufferedReader(new InputStreamReader(
+				ChatInstance.class.getResourceAsStream("/com/securechat/plugins/swtgui/main/loading.html"))).lines()
+						.collect(Collectors.joining("\n"));
+	}
 
 }

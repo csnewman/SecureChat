@@ -29,13 +29,14 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 import swing2swt.layout.BorderLayout;
 
+/**
+ * The actual SWT shell for the main gui.
+ */
 public class MainShell extends Shell {
 	private final FormToolkit formToolkit = new FormToolkit(Display.getDefault());
 	private Table chatsTable;
-	// private Table invitesTable;
 	private Table usersTable;
 	private CTabFolder chatsTabFolder;
-
 	private Label lblServerName, lblServerInfo;
 
 	public MainShell(Display display, MainGui gui) {
@@ -96,21 +97,6 @@ public class MainShell extends Shell {
 		TableColumn tblclmnChatNames = new TableColumn(chatsTable, SWT.NONE);
 		tblclmnChatNames.setWidth(100);
 		tblclmnChatNames.setText("Name");
-
-		// TabItem tbtmInvites = new TabItem(leftTabFolder, SWT.NONE);
-		// tbtmInvites.setText("Invites");
-		//
-		// invitesTable = new Table(leftTabFolder, SWT.BORDER |
-		// SWT.FULL_SELECTION);
-		// invitesTable.setLinesVisible(true);
-		// invitesTable.setHeaderVisible(true);
-		// tbtmInvites.setControl(invitesTable);
-		// formToolkit.paintBordersFor(invitesTable);
-
-		// TableColumn tblclmnInviteNames = new TableColumn(invitesTable,
-		// SWT.NONE);
-		// tblclmnInviteNames.setWidth(100);
-		// tblclmnInviteNames.setText("Name");
 
 		TabItem tbtmUsers = new TabItem(leftTabFolder, SWT.NONE);
 		tbtmUsers.setText("Users");
