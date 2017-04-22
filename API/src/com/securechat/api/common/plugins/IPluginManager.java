@@ -8,12 +8,12 @@ public interface IPluginManager {
 	/**
 	 * Searches all classes for the plugin annotation and attempts to load them.
 	 */
-	public void loadPlugins();
+	void loadPlugins();
 
 	/**
 	 * Regenerates the hook invocation order cache.
 	 */
-	public void regeneateCache();
+	void regeneateCache();
 
 	/**
 	 * Calls the hook with the given arguments.
@@ -23,6 +23,6 @@ public interface IPluginManager {
 	 * @param params
 	 *            the arguments
 	 */
-	public void invokeHook(Hooks hook, Object... params);
+	void invokeHook(Hooks hook, Object... params);
 
 }

@@ -11,7 +11,7 @@ public interface IAsymmetricKeyEncryption extends IEncryption {
 	/**
 	 * Generates a new key
 	 */
-	public void generate();
+	void generate();
 
 	/**
 	 * Loads the key from the given data
@@ -19,20 +19,20 @@ public interface IAsymmetricKeyEncryption extends IEncryption {
 	 * @param publicKey
 	 * @param privateKey
 	 */
-	public void load(byte[] publicKey, byte[] privateKey) throws IOException;
+	void load(byte[] publicKey, byte[] privateKey) throws IOException;
 
 	/**
 	 * Returns the public key data
 	 * 
 	 * @return the public key
 	 */
-	public byte[] getPublickey();
+	byte[] getPublickey();
 
 	/**
 	 * Returns the private key data
 	 * 
 	 * @return the private key
 	 */
-	public byte[] getPrivatekey();
+	byte[] getPrivatekey();
 
 }

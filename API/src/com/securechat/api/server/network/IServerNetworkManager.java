@@ -16,7 +16,7 @@ public interface IServerNetworkManager extends IImplementation {
 	 * @param networkKey
 	 *            the key to encrypt communications with
 	 */
-	public void init(IAsymmetricKeyEncryption networkKey);
+	void init(IAsymmetricKeyEncryption networkKey);
 
 	/**
 	 * Generates a new template profile with the connection information of the
@@ -26,16 +26,16 @@ public interface IServerNetworkManager extends IImplementation {
 	 *            the profile provider to use
 	 * @return the new profile template
 	 */
-	public IConnectionProfile generateProfile(IConnectionProfileProvider provider);
+	IConnectionProfile generateProfile(IConnectionProfileProvider provider);
 
 	/**
 	 * Starts the network manager and starts listening for clients.
 	 */
-	public void start();
+	void start();
 
 	/**
 	 * Stops the network manager and stops listening for clients.
 	 */
-	public void stop();
+	void stop();
 
 }

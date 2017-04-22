@@ -10,14 +10,14 @@ import org.json.JSONObject;
  */
 public interface IProperty<T> {
 
-	public String getName();
+	String getName();
 
-	public void store(JSONObject obj, T value);
+	void store(JSONObject obj, T value);
 
-	public void storeDefault(JSONObject obj);
+	void storeDefault(JSONObject obj);
 
-	public T load(JSONObject obj);
+	T load(JSONObject obj);
 
-	public T getDefault();
+	T getDefault();
 
 }

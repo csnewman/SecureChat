@@ -11,7 +11,7 @@ public interface IServerManager extends IImplementation {
 	/**
 	 * Configures the server manager
 	 */
-	public void init();
+	void init();
 
 	/**
 	 * Tracks the connected user and configures the user for general use.
@@ -19,7 +19,7 @@ public interface IServerManager extends IImplementation {
 	 * @param user
 	 *            the connected user
 	 */
-	public void handleUserLogin(IUser user);
+	void handleUserLogin(IUser user);
 
 	/**
 	 * Tracks when the user is disconnected and informs other users.
@@ -27,7 +27,7 @@ public interface IServerManager extends IImplementation {
 	 * @param user
 	 *            the disconnected user
 	 */
-	public void handleUserLost(IUser user);
+	void handleUserLost(IUser user);
 
 	/**
 	 * Checks whether a user with the given username is currently online.
@@ -36,7 +36,7 @@ public interface IServerManager extends IImplementation {
 	 *            the user to check for
 	 * @return whether the user is online
 	 */
-	public boolean isUserOnline(String username);
+	boolean isUserOnline(String username);
 
 	/**
 	 * Gets the instance of the online user with the given username.
@@ -45,6 +45,6 @@ public interface IServerManager extends IImplementation {
 	 *            the username to lookup
 	 * @return the instance of that user
 	 */
-	public IUser getOnlineUser(String username);
+	IUser getOnlineUser(String username);
 
 }

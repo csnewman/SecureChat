@@ -10,7 +10,7 @@ public interface IUserManager extends IImplementation {
 	/**
 	 * Configures the user manager
 	 */
-	public void init();
+	void init();
 
 	/**
 	 * Checks whether a user exists with the given username.
@@ -19,14 +19,16 @@ public interface IUserManager extends IImplementation {
 	 *            the username to check for
 	 * @return whether that users exists.
 	 */
-	public boolean doesUserExist(String username);
-	
+	boolean doesUserExist(String username);
+
 	/**
 	 * Checks whether the given username is valid.
-	 * @param username the username to check
+	 * 
+	 * @param username
+	 *            the username to check
 	 * @return whether the username is valid.
 	 */
-	public boolean isUsernameValid(String username);
+	boolean isUsernameValid(String username);
 
 	/**
 	 * Registers a user.
@@ -38,7 +40,7 @@ public interface IUserManager extends IImplementation {
 	 * @param clientCode
 	 *            the client code for future validation
 	 */
-	public void registerUser(String username, byte[] publicKey, int clientCode);
+	void registerUser(String username, byte[] publicKey, int clientCode);
 
 	/**
 	 * Returns the user associated with the given username.
@@ -47,13 +49,13 @@ public interface IUserManager extends IImplementation {
 	 *            the username to lookup
 	 * @return the associated user
 	 */
-	public IUser getUser(String username);
+	IUser getUser(String username);
 
 	/**
 	 * Returns all usernames known to the manager
 	 * 
 	 * @return all usernames
 	 */
-	public String[] getAllUsernames();
+	String[] getAllUsernames();
 
 }

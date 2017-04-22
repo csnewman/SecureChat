@@ -20,7 +20,7 @@ public @interface Inject {
 	 * 
 	 * @return a list of implementations to look for first
 	 */
-	public String[] providers() default {};
+	String[] providers() default {};
 
 	/**
 	 * Whether to use the default if no implementation is found from the
@@ -28,7 +28,7 @@ public @interface Inject {
 	 * 
 	 * @return whether to use the default
 	 */
-	public boolean allowDefault() default true;
+	boolean allowDefault() default true;
 
 	/**
 	 * Whether to associate the used implementation with this class/instance for
@@ -36,6 +36,6 @@ public @interface Inject {
 	 * 
 	 * @return whether to associate the implementation
 	 */
-	public boolean associate() default false;
+	boolean associate() default false;
 
 }

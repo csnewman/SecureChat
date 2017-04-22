@@ -20,6 +20,6 @@ public @interface InjectInstance {
 	 * 
 	 * @return whether to create a new instance if needed.
 	 */
-	public boolean provide() default false;
+	boolean provide() default false;
 
 }

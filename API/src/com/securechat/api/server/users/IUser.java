@@ -15,7 +15,7 @@ public interface IUser extends IImplementation {
 	 * 
 	 * @return the username of the user
 	 */
-	public String getUsername();
+	String getUsername();
 
 	/**
 	 * Returns the public key given by the client on initial registration for
@@ -23,14 +23,14 @@ public interface IUser extends IImplementation {
 	 * 
 	 * @return the users public key
 	 */
-	public byte[] getPublicKey();
+	byte[] getPublicKey();
 
 	/**
 	 * Returns the client code given during initial registration.
 	 * 
 	 * @return the client code
 	 */
-	public int getClientCode();
+	int getClientCode();
 
 	/**
 	 * Assigns the network connection to this user and completes the login
@@ -39,7 +39,7 @@ public interface IUser extends IImplementation {
 	 * @param connection
 	 *            the network connection
 	 */
-	public void assignToConnection(INetworkConnection connection);
+	void assignToConnection(INetworkConnection connection);
 
 	/**
 	 * Adds a packet handler to the packet handling pipeline.
@@ -47,7 +47,7 @@ public interface IUser extends IImplementation {
 	 * @param handler
 	 *            the packet handler
 	 */
-	public void addPacketHandler(IPacketHandler handler);
+	void addPacketHandler(IPacketHandler handler);
 
 	/**
 	 * Removes a packet handler from the packet handling pipeline.
@@ -55,7 +55,7 @@ public interface IUser extends IImplementation {
 	 * @param handler
 	 *            the packet handler
 	 */
-	public void removePacketHandler(IPacketHandler handler);
+	void removePacketHandler(IPacketHandler handler);
 
 	/**
 	 * Sends a packet to user if they are online.
@@ -63,7 +63,7 @@ public interface IUser extends IImplementation {
 	 * @param packet
 	 *            the packet to send
 	 */
-	public void sendPacket(IPacket packet);
+	void sendPacket(IPacket packet);
 
 	/**
 	 * Disconnects the client for the given reason.
@@ -71,6 +71,6 @@ public interface IUser extends IImplementation {
 	 * @param reason
 	 *            the reason
 	 */
-	public void disconnect(String reason);
+	void disconnect(String reason);
 
 }

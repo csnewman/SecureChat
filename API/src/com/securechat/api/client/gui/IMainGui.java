@@ -10,7 +10,7 @@ public interface IMainGui extends IGui {
 	/**
 	 * Configures the GUI ready to be shown.
 	 */
-	public void init();
+	void init();
 
 	/**
 	 * Updates the user list.
@@ -20,7 +20,7 @@ public interface IMainGui extends IGui {
 	 * @param online
 	 *            whether those users are online
 	 */
-	public void updateUserList(String[] username, boolean[] online);
+	void updateUserList(String[] username, boolean[] online);
 
 	/**
 	 * Updates the chat list.
@@ -28,7 +28,7 @@ public interface IMainGui extends IGui {
 	 * @param chats
 	 *            the chats to be shown
 	 */
-	public void updateChatList(IChat[] chats);
+	void updateChatList(IChat[] chats);
 
 	/**
 	 * Updates the online user count.
@@ -38,7 +38,7 @@ public interface IMainGui extends IGui {
 	 * @param outOf
 	 *            the total number of users on the server
 	 */
-	public void updateOnlineCount(int count, int outOf);
+	void updateOnlineCount(int count, int outOf);
 
 	/**
 	 * Opens the chat window for the given user/
@@ -46,14 +46,14 @@ public interface IMainGui extends IGui {
 	 * @param username
 	 *            the other persons username
 	 */
-	public void openChat(String username);
+	void openChat(String username);
 
 	/**
 	 * Updates the displayed messages for a given user.
 	 * 
 	 * @param username
 	 */
-	public void updateMessages(String username);
+	void updateMessages(String username);
 
 	/**
 	 * Updates the unread message count for the chat.
@@ -61,7 +61,7 @@ public interface IMainGui extends IGui {
 	 * @param chat
 	 *            the target chat
 	 */
-	public void updateChatUnread(IChat chat);
+	void updateChatUnread(IChat chat);
 
 	/**
 	 * Displays the disconnected message and then exits.
@@ -69,6 +69,6 @@ public interface IMainGui extends IGui {
 	 * @param msg
 	 *            the reason for disconnection
 	 */
-	public void disconnected(String msg);
+	void disconnected(String msg);
 
 }
