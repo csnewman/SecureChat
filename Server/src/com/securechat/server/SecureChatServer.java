@@ -33,17 +33,7 @@ import com.securechat.common.storage.ByteReader;
 import com.securechat.common.storage.ByteWriter;
 import com.securechat.common.storage.FileStorage;
 
-public class ChatServer implements IContext {
-	public static final ImplementationMarker MARKER = new ImplementationMarker("official", "1.0.0", "server", "1.0.0");
-	private static final PrimitiveProperty<Boolean> GENERATE_PROPERY = new PrimitiveProperty<Boolean>("generate", true);
-	private static final PrimitiveProperty<String> PASSWORD_PROPERY = new PrimitiveProperty<String>("password",
-			"unset");
-	private static final CollectionProperty PROFILE_PROPERTY = new CollectionProperty("profile", GENERATE_PROPERY,
-			PASSWORD_PROPERY);
-	private static final CollectionProperty SERVER_PROPERTY = new CollectionProperty("server", PROFILE_PROPERTY);
-	private static final CollectionProperty IMPLEMENTATIONS_PROPERTY = new CollectionProperty("implementations");
-	private static final String settingsFile = "settings.json";
-	private static ChatServer INSTANCE;
+public class SecureChatServer implements IContext {
 	private PropertyCollection settingsCollection;
 	private PluginManager pluginManager;
 	private ImplementationFactory implementationFactory;
@@ -58,60 +48,80 @@ public class ChatServer implements IContext {
 		storage.init();
 		this.showDebug = showDebug;
 
+		// Configures an early logger
 		logger = new ConsoleLogger();
 		logger.init(this, showDebug);
 
 		logger.info("SecureChatServer (" + MARKER.getId() + ")");
 
+		// Loads settings
 		settingsCollection = new PropertyCollection(null);
-		if (storage.doesFileExist(settingsFile))
-			settingsCollection.loadFile(storage, settingsFile);
+		if (storage.doesFileExist(SETTINGS_FILE))
+			settingsCollection.loadFile(storage, SETTINGS_FILE);
 		PropertyCollection serverCollection = settingsCollection.getPermissive(SERVER_PROPERTY);
 		saveSettings();
 
+		// Configures the implementation factory
 		implementationFactory = new ImplementationFactory(logger,
 				settingsCollection.getPermissive(IMPLEMENTATIONS_PROPERTY));
 		implementationFactory.set(IContext.class, this);
 		implementationFactory.set(IStorage.class, storage);
 		implementationFactory.set(ILogger.class, logger);
 		implementationFactory.set(IImplementationFactory.class, implementationFactory);
+
+		// Registers some default implementations
 		implementationFactory.register(ConsoleLogger.MARKER, ILogger.class, ConsoleLogger::new);
 		implementationFactory.register(ByteReader.MARKER, IByteReader.class, ByteReader::new);
 		implementationFactory.register(ByteWriter.MARKER, IByteWriter.class, ByteWriter::new);
 		implementationFactory.setFallbackDefault(ILogger.class, ConsoleLogger.MARKER);
 		implementationFactory.setFallbackDefault(IByteReader.class, ByteReader.MARKER);
 		implementationFactory.setFallbackDefault(IByteWriter.class, ByteWriter.MARKER);
+
+		// Injects into the storage
 		implementationFactory.inject(storage);
 
+		// Configures the plugin manager
 		pluginManager = new PluginManager(this);
+
+		// Loads the plugins
 		pluginManager.loadPlugins();
 		pluginManager.regeneateCache();
 
+		// Runs the early init pass
 		pluginManager.invokeHook(Hooks.EarlyInit, this);
+		// Reinjects into storage
 		implementationFactory.inject(storage);
 
+		// Reconfigures the logger with a new implementation
 		logger = implementationFactory.provide(ILogger.class);
 		implementationFactory.set(ILogger.class, logger);
 		logger.init(this, showDebug);
 		logger.debug("Logger provider: " + logger);
 
+		// Runs the init
 		pluginManager.invokeHook(Hooks.Init, this);
 
+		// Configures the database
 		IDatabase database = implementationFactory.get(IDatabase.class, true);
 		database.init();
 		logger.debug("Database: " + database);
 
+		// Configures the user manager
 		IUserManager userManager = implementationFactory.get(IUserManager.class, true);
 		userManager.init();
 		logger.debug("User Manager: " + userManager);
 
+		// Runs the late init
 		pluginManager.invokeHook(Hooks.LateInit, this);
 
+		// Configures the keystore
 		IKeystore keystore = implementationFactory.get(IKeystore.class, true);
 		logger.info("Keystore: " + keystore);
 
+		// Flushes the settings to file
 		saveSettings();
 
+		// Loads the keystore
 		if (keystore.exists()) {
 			if (!keystore.load(keystorePassword)) {
 				throw new RuntimeException("Invalid keystore password");
@@ -122,14 +132,17 @@ public class ChatServer implements IContext {
 			}
 		}
 
+		// Loads the network key
 		logger.info("Loading network key");
 		networkKey = implementationFactory.provide(IAsymmetricKeyEncryption.class, null, true, true, "network");
 		keystore.loadAsymmetricKeyOrGenerate("network", networkKey);
 
+		// Configures the network manager
 		logger.info("Loading network manager");
 		networkManager = implementationFactory.get(IServerNetworkManager.class, true);
 		networkManager.init(networkKey);
 
+		// Generates the connection profile
 		PropertyCollection profileCollection = serverCollection.getPermissive(PROFILE_PROPERTY);
 		if (profileCollection.get(GENERATE_PROPERY)) {
 			logger.info("Generating connection profile");
@@ -141,10 +154,13 @@ public class ChatServer implements IContext {
 			provider.saveProfileToFIle(profile, storage, "profile.sccp", passwordEncryption);
 		}
 
+		// Flushes the settings to file
 		saveSettings();
 
+		// Starts the network
 		networkManager.start();
 
+		// Configures the server manager
 		IServerManager manager = implementationFactory.get(IServerManager.class, true);
 		manager.init();
 	}
@@ -166,7 +182,7 @@ public class ChatServer implements IContext {
 
 	@Override
 	public void saveSettings() {
-		settingsCollection.saveToFile(storage, settingsFile);
+		settingsCollection.saveToFile(storage, SETTINGS_FILE);
 	}
 
 	@Override
@@ -197,10 +213,13 @@ public class ChatServer implements IContext {
 
 	@Override
 	public void exit() {
+		// Finds the name of the method that called the exit function
 		StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
-		StackTraceElement e = stacktrace[2];
-		logger.error("Exit requested  by " + e.getClassName() + "." + e.getMethodName() + " (" + e.getFileName() + ":"
-				+ e.getLineNumber() + ")");
+		StackTraceElement element = stacktrace[2];
+		// Logs the exit caller
+		logger.info("Exit requested by " + element.getMethodName() + " in " + element.getClassName());
+
+		// Saves the settigns and quits
 		saveSettings();
 		System.exit(0);
 	}
@@ -265,12 +284,28 @@ public class ChatServer implements IContext {
 			password = console.readPassword("Master Keystore Password: ");
 		}
 
-		INSTANCE = new ChatServer();
+		INSTANCE = new SecureChatServer();
 		try {
 			INSTANCE.init(new FileStorage(), args.length > 0 && args[0].equalsIgnoreCase("-debug"), password);
 		} catch (Exception e) {
 			INSTANCE.handleCrash(e);
 		}
+	}
+
+	public static final ImplementationMarker MARKER;
+	private static final PrimitiveProperty<Boolean> GENERATE_PROPERY;
+	private static final PrimitiveProperty<String> PASSWORD_PROPERY;
+	private static final CollectionProperty PROFILE_PROPERTY, SERVER_PROPERTY, IMPLEMENTATIONS_PROPERTY;
+	private static final String SETTINGS_FILE;
+	private static SecureChatServer INSTANCE;
+	static {
+		MARKER = new ImplementationMarker("official", "1.0.0", "server", "1.0.0");
+		GENERATE_PROPERY = new PrimitiveProperty<Boolean>("generate", true);
+		PASSWORD_PROPERY = new PrimitiveProperty<String>("password", "unset");
+		PROFILE_PROPERTY = new CollectionProperty("profile", GENERATE_PROPERY, PASSWORD_PROPERY);
+		SERVER_PROPERTY = new CollectionProperty("server", PROFILE_PROPERTY);
+		IMPLEMENTATIONS_PROPERTY = new CollectionProperty("implementations");
+		SETTINGS_FILE = "settings.json";
 	}
 
 }
