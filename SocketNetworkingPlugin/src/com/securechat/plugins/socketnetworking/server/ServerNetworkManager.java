@@ -18,19 +18,10 @@ import com.securechat.api.server.network.IServerNetworkManager;
 import com.securechat.plugins.socketnetworking.NetworkConnection;
 import com.securechat.plugins.socketnetworking.SocketNetworkingPlugin;
 
+/**
+ * A reference implementation of the server network manager.
+ */
 public class ServerNetworkManager implements IServerNetworkManager {
-	public static final ImplementationMarker MARKER = new ImplementationMarker(SocketNetworkingPlugin.NAME,
-			SocketNetworkingPlugin.VERSION, "client_network_manager", "1.0.0");
-	private static final PrimitiveProperty<String> NAME_PROPERY = new PrimitiveProperty<String>("name",
-			"Unnamed Server");
-	private static final PrimitiveProperty<String> PIP_PROPERY = new PrimitiveProperty<String>("public_ip",
-			"localhost");
-	private static final PrimitiveProperty<Integer> PPORT_PROPERY = new PrimitiveProperty<Integer>("public_port", 1234);
-	private static final PrimitiveProperty<Integer> BPORT_PROPERY = new PrimitiveProperty<Integer>("bind_port", 1234);
-	private static final CollectionProperty NETWORK_PROPERTY = new CollectionProperty("network", PIP_PROPERY,
-			PPORT_PROPERY, BPORT_PROPERY);
-	private static final CollectionProperty SERVER_PROPERTY = new CollectionProperty("server", NAME_PROPERY,
-			NETWORK_PROPERTY);
 	@InjectInstance
 	private ILogger log;
 	@InjectInstance
@@ -41,8 +32,6 @@ public class ServerNetworkManager implements IServerNetworkManager {
 	private int publicPort, bindPort;
 	private ServerSocket serverSocket;
 	private Thread listenThread;
-	// private ReentrantReadWriteLock clientLock;
-	// private List<NetworkClient> clients;
 
 	@Override
 	public void init(IAsymmetricKeyEncryption networkKey) {
@@ -66,8 +55,6 @@ public class ServerNetworkManager implements IServerNetworkManager {
 	public void start() {
 		try {
 			active = true;
-			// clientLock = new ReentrantReadWriteLock();
-			// clients = new ArrayList<NetworkClient>();
 			serverSocket = new ServerSocket(bindPort);
 			listenThread = new Thread(this::handleConnections, "Listen Thread");
 			listenThread.setDaemon(false);
@@ -85,22 +72,19 @@ public class ServerNetworkManager implements IServerNetworkManager {
 				Socket socket = serverSocket.accept();
 				if (socket != null) {
 					log.info("Client connected from " + socket.getRemoteSocketAddress() + "!");
+					// Creates a connection handler
 					EarlyConnectionHandler handler = new EarlyConnectionHandler(this);
 					context.getImplementationFactory().inject(handler);
 					handler.updateKey();
 
+					// Creates a connection
 					NetworkConnection connection = new NetworkConnection(handler::handleDisconnect,
 							handler::handleFirstPacket);
 					context.getImplementationFactory().inject(connection);
-					
+
+					// Configures network connection
 					handler.setConnection(connection);
 					connection.init(socket, handler.getKey());
-
-					// NetworkClient client = new NetworkClient(server, socket);
-					// clientLock.writeLock().lock();
-					// clients.add(client);
-					// clientLock.writeLock().unlock();
-					// client.start();
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -127,6 +111,22 @@ public class ServerNetworkManager implements IServerNetworkManager {
 	@Override
 	public ImplementationMarker getMarker() {
 		return MARKER;
+	}
+
+	public static final ImplementationMarker MARKER;
+	private static final PrimitiveProperty<String> NAME_PROPERY, PIP_PROPERY;
+	private static final PrimitiveProperty<Integer> PPORT_PROPERY;
+	private static final PrimitiveProperty<Integer> BPORT_PROPERY;
+	private static final CollectionProperty NETWORK_PROPERTY, SERVER_PROPERTY;
+	static {
+		MARKER = new ImplementationMarker(SocketNetworkingPlugin.NAME, SocketNetworkingPlugin.VERSION,
+				"client_network_manager", "1.0.0");
+		NAME_PROPERY = new PrimitiveProperty<String>("name", "Unnamed Server");
+		PIP_PROPERY = new PrimitiveProperty<String>("public_ip", "localhost");
+		PPORT_PROPERY = new PrimitiveProperty<Integer>("public_port", 1234);
+		BPORT_PROPERY = new PrimitiveProperty<Integer>("bind_port", 1234);
+		NETWORK_PROPERTY = new CollectionProperty("network", PIP_PROPERY, PPORT_PROPERY, BPORT_PROPERY);
+		SERVER_PROPERTY = new CollectionProperty("server", NAME_PROPERY, NETWORK_PROPERTY);
 	}
 
 }

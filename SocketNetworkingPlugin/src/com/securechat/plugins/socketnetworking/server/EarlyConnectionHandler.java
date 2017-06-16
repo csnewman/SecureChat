@@ -20,6 +20,9 @@ import com.securechat.api.server.users.IUser;
 import com.securechat.api.server.users.IUserManager;
 import com.securechat.plugins.socketnetworking.NetworkConnection;
 
+/**
+ * Handles the initial configuration of a network connection.
+ */
 public class EarlyConnectionHandler {
 	@InjectInstance
 	private IContext context;
@@ -66,12 +69,14 @@ public class EarlyConnectionHandler {
 			updateKey();
 
 			String username = packet.getUsername();
-			
-			if(!userManager.isUsernameValid(username)){
+
+			// Ensures the username is valid
+			if (!userManager.isUsernameValid(username)) {
 				connection.sendPacket(new RegisterResponsePacket(RegisterStatus.UsernameInvalid));
-			}else if (userManager.doesUserExist(username)) {
+			} else if (userManager.doesUserExist(username)) {
 				connection.sendPacket(new RegisterResponsePacket(RegisterStatus.UsernameTaken));
 			} else {
+				// Creates a unique validation code
 				int code = new Random().nextInt();
 				userManager.registerUser(username, publicKey, code);
 				connection.sendPacket(new RegisterResponsePacket(code));
@@ -81,11 +86,13 @@ public class EarlyConnectionHandler {
 			ConnectPacket packet = (ConnectPacket) rpacket;
 			String username = packet.getUsername();
 
+			// Ensure user exists
 			if (!userManager.doesUserExist(username)) {
 				log.info("Client tried to login in as " + username + ", no account exists");
 				disconnect("Unknown username");
 			}
 
+			// Ensure correct validation code was sent
 			user = userManager.getUser(username);
 			if (packet.getCode() != user.getClientCode()) {
 				log.warning("[SECURITY] Client sent wrong code!");
@@ -94,11 +101,12 @@ public class EarlyConnectionHandler {
 				return;
 			}
 
+			// Loads clients public key
 			publicKey = user.getPublicKey();
 			updateKey();
 
+			// Sends a challenge for the client to complete
 			tempCode = new Random().nextInt();
-
 			connection.setSingleHandler(ChallengeResponsePacket.class, this::handleChallengeResponse);
 			connection.sendPacket(new ChallengePacket(tempCode));
 		} else {
