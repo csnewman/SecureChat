@@ -54,11 +54,13 @@ public class User implements IUser {
 		if (packet instanceof DisconnectPacket) {
 			log.info("Disconnected: " + ((DisconnectPacket) packet).getReason());
 		} else {
+			// Try each packet handler in turn
 			for (IPacketHandler handler : packetHandlers) {
 				if (handler.handlePacket(packet)) {
 					return;
 				}
 			}
+			throw new RuntimeException("Unhandled packet! " + packet);
 		}
 	}
 

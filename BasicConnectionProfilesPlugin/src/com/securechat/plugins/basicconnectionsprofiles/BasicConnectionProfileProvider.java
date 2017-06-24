@@ -39,6 +39,7 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 
 	@Override
 	public IConnectionProfile loadProfileFromMemory(IByteReader reader, IEncryption encryption) throws IOException {
+		//Decrypts the data if needed
 		if (encryption != null)
 			reader = IByteReader.get(factory, encryption.decrypt(reader.getRawData()));
 

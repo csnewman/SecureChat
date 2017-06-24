@@ -57,6 +57,7 @@ public class PluginsShell extends Shell {
 		pluginManager = context.getPluginManager();
 		storage = context.getStorage();
 
+		// Adds a row for each plugin
 		for (IPluginInstance instance : pluginManager.getPlugins()) {
 			TableItem tableItem = new TableItem(table, SWT.NONE);
 			tableItem.setText(new String[] { instance.getName(), instance.getVersion() });
@@ -65,7 +66,7 @@ public class PluginsShell extends Shell {
 		btnInstallNewPlugin.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				// Opens file selection dialog with the sccp filter
+				// Opens file selection dialog with the scplugin filter
 				FileDialog dialog = new FileDialog(PluginsShell.this, SWT.OPEN);
 				dialog.setFilterExtensions(new String[] { "*.scplugin" });
 				dialog.setFilterNames(new String[] { "Secure Chat Plugin (*.scplugin)" });
@@ -87,7 +88,7 @@ public class PluginsShell extends Shell {
 				"Your plugin has been installed, however your plugin will not be loaded until the next restart of the program.\nPlugin Path: "
 						+ path,
 				MessageDialog.INFORMATION, new String[] { "Exit Later", "Exit Now" }, 1);
-		if(dialog.open() == 1 ){
+		if (dialog.open() == 1) {
 			context.exit();
 		}
 	}

@@ -85,6 +85,7 @@ public class FileStorage implements IStorage {
 					while ((entry = jis.getNextJarEntry()) != null) {
 						if (entry.getName().endsWith(".class")) {
 							String name = entry.getName();
+							// Cleans the file names
 							name = name.replaceAll("/", ".");
 							name = name.replaceAll("\\\\", ".");
 							name = name.replace(".class", "");
@@ -111,7 +112,9 @@ public class FileStorage implements IStorage {
 					File sDir = new File(path).getAbsoluteFile();
 					String basePath = sDir.getAbsolutePath();
 					List<String> found = Files.walk(Paths.get(sDir.toURI())).filter(Files::isRegularFile)
+							// Filter only classes
 							.filter(p -> p.toString().endsWith(".class")).map(p -> p.toFile().getAbsolutePath())
+							// CLeans the file name
 							.map(s -> s.substring(basePath.length() + 1))
 							.map(s -> s.replaceAll("/", ".").replaceAll("\\\\", ".").replace(".class", ""))
 							.collect(Collectors.toList());

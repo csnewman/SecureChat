@@ -90,11 +90,13 @@ public class DefaultClientManager implements IClientManager {
 			}
 			mainGui.updateOnlineCount(count, names.length);
 		} else {
+			// Try each packet handler in turn
 			for (IPacketHandler handler : packetHandlers) {
 				if (handler.handlePacket(packet)) {
 					return;
 				}
 			}
+			throw new RuntimeException("Unhandled packet! " + packet);
 		}
 	}
 

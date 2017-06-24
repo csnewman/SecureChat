@@ -30,15 +30,24 @@ public class SWTLoader {
 			log.info("Attempting to load SWT");
 			String file = "swt-" + context.getOsType() + context.getPlatformArch() + "-" + SWT_VERSION + ".jar";
 			log.info("SWT jar: " + file);
+
+			// Gets the current class loader
 			URLClassLoader cl = (URLClassLoader) SWTLoader.class.getClassLoader();
+
+			// Using reflection, gets the addURL method
 			URL.setURLStreamHandlerFactory(new RsrcURLStreamHandlerFactory(cl));
 			Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
 			addUrlMethod.setAccessible(true);
+
+			// Loads the jar
 			addUrlMethod.invoke(cl, new URL("rsrc:" + file));
+
+			// Sets the current class loader
 			Thread.currentThread().setContextClassLoader(cl);
+
 			log.info("Loaded SWT");
-		} catch (Exception exx) {
-			new RuntimeException(exx);
+		} catch (Exception e) {
+			new RuntimeException(e);
 		}
 	}
 

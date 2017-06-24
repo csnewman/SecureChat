@@ -247,6 +247,4 @@ public class PluginManager implements IPluginManager {
 		return plugins;
 	}
 
-	
-
 }

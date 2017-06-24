@@ -98,8 +98,10 @@ public class ImplementationFactory implements IImplementationFactory {
 	 */
 	private List<Field> getAllFields(Class<?> clazz) {
 		List<Field> fields = new ArrayList<Field>();
+		// Adds all fields in this class
 		fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
 
+		// Adds all fields in parent classes
 		if (clazz.getSuperclass() != null) {
 			fields.addAll(getAllFields(clazz.getSuperclass()));
 		}
@@ -224,9 +226,9 @@ public class ImplementationFactory implements IImplementationFactory {
 		}
 		return (Map) implementations.get(type);
 	}
-	
+
 	@Override
-	public Map<Class, Map<String, IImplementationInstance>> getAllImplementations(){
+	public Map<Class, Map<String, IImplementationInstance>> getAllImplementations() {
 		return implementations;
 	}
 

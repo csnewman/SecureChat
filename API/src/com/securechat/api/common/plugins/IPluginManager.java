@@ -11,7 +11,12 @@ public interface IPluginManager {
 	 * Searches all classes for the plugin annotation and attempts to load them.
 	 */
 	void loadPlugins();
-	
+
+	/**
+	 * Returns all loaded plugins
+	 * 
+	 * @return all loaded plugins
+	 */
 	List<IPluginInstance> getPlugins();
 
 	/**

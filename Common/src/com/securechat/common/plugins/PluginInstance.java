@@ -4,9 +4,6 @@ import com.securechat.api.common.Sides;
 import com.securechat.api.common.plugins.IPluginInstance;
 import com.securechat.api.common.plugins.Plugin;
 
-/**
- * An instance of a plugin.
- */
 public class PluginInstance implements IPluginInstance {
 	private Object instance;
 	private String name, version;

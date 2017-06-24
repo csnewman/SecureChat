@@ -41,10 +41,13 @@ public class DefaultServerManager implements IServerManager {
 	@Override
 	public void handleUserLogin(IUser user) {
 		log.info("User logged in");
+		
+		// Acquires the lock and updates the user list
 		lock.lock();
 		onlineUsers.put(user.getUsername(), user);
 		updateUserList();
 		lock.unlock();
+		
 		chatManager.onUserConnected(user);
 		chatManager.sendChatList(user);
 	}
@@ -52,6 +55,8 @@ public class DefaultServerManager implements IServerManager {
 	@Override
 	public void handleUserLost(IUser user) {
 		log.info("User lost");
+		
+		// Acquires the lock and updates the user list
 		lock.lock();
 		onlineUsers.remove(user.getUsername());
 		updateUserList();

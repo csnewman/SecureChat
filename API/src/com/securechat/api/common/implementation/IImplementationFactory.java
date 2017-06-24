@@ -142,7 +142,12 @@ public interface IImplementationFactory {
 	 */
 	<T extends IImplementation> Map<ImplementationMarker, IImplementationInstance<? extends T>> getImplementations(
 			Class<T> type);
-
+	
+	/**
+	 * Returns all know implementation types and their implementations.
+	 * 
+	 * @return a map of all implementations
+	 */
 	@SuppressWarnings("rawtypes")
 	Map<Class, Map<String, IImplementationInstance>> getAllImplementations();
 

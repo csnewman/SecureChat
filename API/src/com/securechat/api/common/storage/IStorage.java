@@ -25,8 +25,15 @@ public interface IStorage extends IImplementation {
 	 */
 	List<String> loadPlugins();
 
+	/**
+	 * Attempts to install the plugin at that path, the path must be in a format
+	 * understood by the storage implementation.
+	 * 
+	 * @param path
+	 *            the path of the plugin to install
+	 */
 	void installPlugin(String path);
-	
+
 	/**
 	 * Checks whether a file exists at the given path.
 	 * 
@@ -78,6 +85,15 @@ public interface IStorage extends IImplementation {
 	 *            the JSON object to write
 	 */
 	void writeJsonFile(String path, JSONObject obj);
-	
+
+	/**
+	 * Copies the file at the source path to the destination path, overwriting
+	 * if needed.
+	 * 
+	 * @param src
+	 *            the file to copy
+	 * @param dst
+	 *            the location to copy to
+	 */
 	void copyFile(String src, String dst);
 }

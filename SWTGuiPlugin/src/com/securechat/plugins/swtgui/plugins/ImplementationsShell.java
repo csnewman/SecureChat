@@ -52,12 +52,15 @@ public class ImplementationsShell extends Shell {
 
 		for (Entry<Class, Map<String, IImplementationInstance>> e : imps.entrySet()) {
 
+			// Adds a row for this implementation
 			TableItem tableItem = new TableItem(table, SWT.NONE);
 			tableItem.setText(new String[] { e.getKey().getSimpleName(), "" });
 
+			// Creates a dropdown
 			TableEditor editor = new TableEditor(table);
 			CCombo combo = new CCombo(table, SWT.NONE);
 
+			// Fills in the different implementations loaded
 			ImplementationMarker defaultImp = factory.getDefault(e.getKey());
 			combo.setText(defaultImp.getName() + " - " + defaultImp.getVersion() + " - " + defaultImp.getPluginName()
 					+ " - " + defaultImp.getPluginVersion());
@@ -70,6 +73,7 @@ public class ImplementationsShell extends Shell {
 						+ marker.getPluginVersion());
 			}
 
+			// Sets the update listener
 			combo.addSelectionListener(new SelectionListener() {
 
 				@Override

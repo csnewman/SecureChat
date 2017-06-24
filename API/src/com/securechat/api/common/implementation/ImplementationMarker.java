@@ -7,8 +7,6 @@ import com.securechat.api.common.properties.PropertyCollection;
  * The ID of an implementation.
  */
 public class ImplementationMarker {
-	private static final PrimitiveProperty<String> PLUGIN_NAME_PROPERTY, PLUGIN_VERSION_PROPERTY, NAME_PROPERTY,
-			VERSION_PROPERTY;
 	private String pluginName, pluginVersion, name, version;
 
 	/**
@@ -200,6 +198,8 @@ public class ImplementationMarker {
 		return true;
 	}
 
+	private static final PrimitiveProperty<String> PLUGIN_NAME_PROPERTY, PLUGIN_VERSION_PROPERTY, NAME_PROPERTY,
+			VERSION_PROPERTY;
 	static {
 		PLUGIN_NAME_PROPERTY = new PrimitiveProperty<String>("plugin-name");
 		PLUGIN_VERSION_PROPERTY = new PrimitiveProperty<String>("plugin-version");
