@@ -101,6 +101,7 @@ public class DefaultServerChatManager implements IServerChatManager {
 			if (serverManager.isUserOnline(other)) {
 				sendChatList(serverManager.getOnlineUser(other));
 			}
+			return true;
 		} else if (packet instanceof SendMessagePacket) {
 			SendMessagePacket smp = (SendMessagePacket) packet;
 
