@@ -30,12 +30,4 @@ public @interface Inject {
 	 */
 	boolean allowDefault() default true;
 
-	/**
-	 * Whether to associate the used implementation with this class/instance for
-	 * future use.
-	 * 
-	 * @return whether to associate the implementation
-	 */
-	boolean associate() default false;
-
 }

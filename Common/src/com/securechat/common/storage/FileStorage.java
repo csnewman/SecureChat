@@ -10,6 +10,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -76,7 +77,7 @@ public class FileStorage implements IStorage {
 
 		for (String path : paths) {
 			try {
-				if (path.endsWith(".jar")) {
+				if (path.endsWith(".jar") || path.endsWith(".scplugin")) {
 					JarInputStream jis = new JarInputStream(new FileInputStream(path));
 
 					// Scans each entry in the jar
@@ -123,6 +124,26 @@ public class FileStorage implements IStorage {
 		return classes;
 	}
 
+	@Override
+	public void installPlugin(String path) {
+		try {
+			File file = getPath(path);
+			Files.copy(file.toPath(), new File(PLUGINS_FOLDER, file.getName()).toPath(),
+					StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void copyFile(String src, String dst) {
+		try {
+			Files.copy(getPath(src).toPath(), getPath(dst).toPath(), StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void runLoaderFile(String name) {
 		log.info("Loading loader-class " + name);
@@ -162,7 +183,7 @@ public class FileStorage implements IStorage {
 				return reader;
 			}
 
-			return IByteReader.get(factory, MARKER.getId(), data);
+			return IByteReader.get(factory, data);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

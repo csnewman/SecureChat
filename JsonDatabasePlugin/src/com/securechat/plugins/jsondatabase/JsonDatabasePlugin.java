@@ -25,6 +25,5 @@ public class JsonDatabasePlugin {
 	@Hook(name = "init-server", hook = Hooks.Init, after = NAME + "/init", side = Sides.Server)
 	public void initServer(IContext context) {
 		factory.register(JsonDatabase.MARKER, IDatabase.class, JsonDatabase::new);
-		factory.setFallbackDefaultIfNone(IDatabase.class, JsonDatabase.MARKER);
 	}
 }

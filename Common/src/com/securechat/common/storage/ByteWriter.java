@@ -14,7 +14,7 @@ import com.securechat.api.common.storage.IByteWriter;
  * A reference byte writer implementation.
  */
 public class ByteWriter implements IByteWriter {
-	@Inject(associate = true)
+	@Inject
 	private IHasher hasher;
 	private ByteArrayOutputStream arrayStream;
 	private DataOutputStream output;

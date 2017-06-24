@@ -114,14 +114,9 @@ public interface IImplementationFactory {
 	 *            markers to look for first
 	 * @param allowDefault
 	 *            whether to fall back to the default
-	 * @param associate
-	 *            whether to associate the provider for future use
-	 * @param associateName
-	 *            the name to associate with
 	 * @return the implementation instance
 	 */
-	<T extends IImplementation> T provide(Class<T> type, ImplementationMarker[] providers, boolean allowDefault,
-			boolean associate, String associateName);
+	<T extends IImplementation> T provide(Class<T> type, ImplementationMarker[] providers, boolean allowDefault);
 
 	/**
 	 * Returns the marker of the implementation to use.
@@ -132,14 +127,11 @@ public interface IImplementationFactory {
 	 *            markers to look for first
 	 * @param allowDefault
 	 *            whether to fall back to the default
-	 * @param associate
-	 *            whether to associate the provider for future use
-	 * @param associateName
-	 *            the name to associate with
 	 * @return the implementation marker
+	 * 
 	 */
 	<T extends IImplementation> ImplementationMarker getProvider(Class<T> type, ImplementationMarker[] providers,
-			boolean allowDefault, boolean associate, String associateName);
+			boolean allowDefault);
 
 	/**
 	 * Returns all implementations of a given type.
@@ -150,6 +142,9 @@ public interface IImplementationFactory {
 	 */
 	<T extends IImplementation> Map<ImplementationMarker, IImplementationInstance<? extends T>> getImplementations(
 			Class<T> type);
+
+	@SuppressWarnings("rawtypes")
+	Map<Class, Map<String, IImplementationInstance>> getAllImplementations();
 
 	/**
 	 * Checks whether a provider exists with the given marker for the given
@@ -164,24 +159,14 @@ public interface IImplementationFactory {
 	<T extends IImplementation> boolean doesProviderExist(Class<T> type, ImplementationMarker marker);
 
 	/**
-	 * Sets the default provider to fallback on if no default has been set.
+	 * Sets the default provider to use.
 	 * 
 	 * @param type
 	 *            the target type
 	 * @param defaultMarker
 	 *            the implementation marker
 	 */
-	<T extends IImplementation> void setFallbackDefaultIfNone(Class<T> type, ImplementationMarker defaultMarker);
-
-	/**
-	 * Sets the default provider to fallback on.
-	 * 
-	 * @param type
-	 *            the target type
-	 * @param defaultMarker
-	 *            the implementation marker
-	 */
-	<T extends IImplementation> void setFallbackDefault(Class<T> type, ImplementationMarker defaultMarker);
+	<T extends IImplementation> void setDefault(Class<T> type, ImplementationMarker defaultMarker);
 
 	/**
 	 * Gets the default implementation marker for the given type.

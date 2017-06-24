@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 
 import org.json.JSONObject;
 
+import com.securechat.api.common.IContext;
 import com.securechat.api.common.storage.IStorage;
 
 /**
@@ -15,6 +16,7 @@ import com.securechat.api.common.storage.IStorage;
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class PropertyCollection {
+	private IContext context;
 	private Map<IProperty, Object> properties;
 	private JSONObject source;
 	private List<IProperty> defaultProperties;
@@ -136,6 +138,14 @@ public class PropertyCollection {
 	 */
 	public <T> void set(IProperty<T> property, T value) {
 		properties.put(property, value);
+
+		// Sets the context on collections and saves the property to file
+		if (context != null) {
+			if (value instanceof PropertyCollection)
+				((PropertyCollection) value).setContext(context);
+			context.saveSettings();
+		}
+
 	}
 
 	/**
@@ -159,6 +169,10 @@ public class PropertyCollection {
 
 	public JSONObject getSource() {
 		return source;
+	}
+
+	public void setContext(IContext context) {
+		this.context = context;
 	}
 
 }

@@ -75,7 +75,7 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 			return;
 		}
 		try {
-			IPasswordEncryption encryption = factory.provide(IPasswordEncryption.class, null, true, true, "chat");
+			IPasswordEncryption encryption = factory.provide(IPasswordEncryption.class);
 			encryption.init(password.toCharArray());
 			byte[] test = encryption.encrypt(TEST);
 

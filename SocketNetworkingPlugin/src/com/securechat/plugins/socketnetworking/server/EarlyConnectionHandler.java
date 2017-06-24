@@ -48,7 +48,7 @@ public class EarlyConnectionHandler {
 	}
 
 	public void updateKey() {
-		key = factory.provide(IAsymmetricKeyEncryption.class, null, true, true, "network");
+		key = factory.provide(IAsymmetricKeyEncryption.class);
 		try {
 			key.load(publicKey, networkManager.getNetworkKey().getPrivatekey());
 		} catch (IOException e) {

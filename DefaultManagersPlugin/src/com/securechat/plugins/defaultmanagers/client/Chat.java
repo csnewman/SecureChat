@@ -61,7 +61,7 @@ public class Chat implements IChat {
 	public void load() throws IOException {
 		IConnectionProfile profile = clientManager.getConnectionProfile();
 		// Fetches a key from the key store
-		key = factory.provide(IAsymmetricKeyEncryption.class, null, true, true, MARKER.getId());
+		key = factory.provide(IAsymmetricKeyEncryption.class, null, true);
 		keystore.loadAsymmetricKeyOrGenerate("chat_" + id, key);
 
 		// Checks if a chat cache exists
@@ -93,7 +93,7 @@ public class Chat implements IChat {
 	private void save() {
 		log.debug("Writing chat cache to " + path);
 		try {
-			IByteWriter body = IByteWriter.get(factory, MARKER.getId());
+			IByteWriter body = IByteWriter.get(factory);
 			// Writes last packet ids
 			body.writeInt(latestPacketId);
 			body.writeInt(lastReadId);
@@ -106,7 +106,7 @@ public class Chat implements IChat {
 				body.writeLong(message.getTime());
 			}
 
-			IByteWriter finalData = IByteWriter.get(factory, MARKER.getId());
+			IByteWriter finalData = IByteWriter.get(factory);
 			finalData.writeWriterWithChecksum(body);
 			storage.writeFile(path, key, finalData);
 		} catch (IOException e) {
@@ -118,7 +118,7 @@ public class Chat implements IChat {
 	public boolean unlock(String password) {
 		log.debug("Unlocking chat " + id);
 		try {
-			encryption = factory.provide(IPasswordEncryption.class, null, true, true, "chat");
+			encryption = factory.provide(IPasswordEncryption.class);
 			encryption.init(password.toCharArray());
 
 			// Checks whether the encryption password is correct

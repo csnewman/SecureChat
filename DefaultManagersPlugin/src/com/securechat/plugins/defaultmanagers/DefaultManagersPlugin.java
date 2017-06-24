@@ -34,8 +34,6 @@ public class DefaultManagersPlugin {
 	public void initClient(IContext context) {
 		factory.register(DefaultClientManager.MARKER, IClientManager.class, DefaultClientManager::new);
 		factory.register(DefaultClientChatManager.MARKER, IClientChatManager.class, DefaultClientChatManager::new);
-		factory.setFallbackDefaultIfNone(IClientManager.class, DefaultClientManager.MARKER);
-		factory.setFallbackDefaultIfNone(IClientChatManager.class, DefaultClientChatManager.MARKER);
 	}
 
 	@Hook(name = "init-server", hook = Hooks.Init, after = NAME + "/init", side = Sides.Server)
@@ -43,9 +41,6 @@ public class DefaultManagersPlugin {
 		factory.register(DefaultServerManager.MARKER, IServerManager.class, DefaultServerManager::new);
 		factory.register(DefaultServerChatManager.MARKER, IServerChatManager.class, DefaultServerChatManager::new);
 		factory.register(DefaultUserManager.MARKER, IUserManager.class, DefaultUserManager::new);
-		factory.setFallbackDefaultIfNone(IServerManager.class, DefaultServerManager.MARKER);
-		factory.setFallbackDefaultIfNone(IServerChatManager.class, DefaultServerChatManager.MARKER);
-		factory.setFallbackDefaultIfNone(IUserManager.class, DefaultUserManager.MARKER);
 	}
 
 }

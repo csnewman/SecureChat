@@ -40,7 +40,7 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 	@Override
 	public IConnectionProfile loadProfileFromMemory(IByteReader reader, IEncryption encryption) throws IOException {
 		if (encryption != null)
-			reader = IByteReader.get(factory, getMarker().getId(), encryption.decrypt(reader.getRawData()));
+			reader = IByteReader.get(factory, encryption.decrypt(reader.getRawData()));
 
 		return new BasicConnectionProfile(reader.readBoolean(), reader.readStringWithNull(),
 				reader.readStringWithNull(), reader.readStringWithNull(), reader.readInt(), reader.readInt(),
@@ -50,7 +50,7 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 	@Override
 	public void saveProfileToFIle(IConnectionProfile profile, IStorage storage, String path, IEncryption encryption)
 			throws IOException {
-		IByteWriter writer = IByteWriter.get(factory, getMarker().getId());
+		IByteWriter writer = IByteWriter.get(factory);
 		saveProfileToMemory(profile, writer, null);
 		storage.writeFile(path, encryption, writer);
 	}
@@ -60,7 +60,7 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 			throws IOException {
 		IByteWriter out;
 		if (encryption != null) {
-			out = IByteWriter.get(factory, getMarker().getId());
+			out = IByteWriter.get(factory);
 		} else {
 			out = writer;
 		}

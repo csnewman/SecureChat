@@ -28,13 +28,11 @@ public class SocketNetworkingPlugin {
 	@Hook(name = "init-client", hook = Hooks.Init, after = NAME + "/init", side = Sides.Client)
 	public void initClient(IContext context) {
 		factory.register(ClientNetworkManager.MARKER, IClientNetworkManager.class, ClientNetworkManager::new);
-		factory.setFallbackDefaultIfNone(IClientNetworkManager.class, ClientNetworkManager.MARKER);
 	}
 
 	@Hook(name = "init-server", hook = Hooks.Init, after = NAME + "/init", side = Sides.Server)
 	public void initServer(IContext context) {
 		factory.register(ServerNetworkManager.MARKER, IServerNetworkManager.class, ServerNetworkManager::new);
-		factory.setFallbackDefaultIfNone(IServerNetworkManager.class, ServerNetworkManager.MARKER);
 	}
 
 }

@@ -66,13 +66,11 @@ public class ClientNetworkManager implements IClientNetworkManager {
 		try {
 			// Generates a new pair
 			statusConsumer.accept(EnumConnectionSetupStatus.GeneratingKeyPair, null);
-			IAsymmetricKeyEncryption pair = factory.provide(IAsymmetricKeyEncryption.class, null, true, true,
-					"network");
+			IAsymmetricKeyEncryption pair = factory.provide(IAsymmetricKeyEncryption.class);
 			pair.generate();
 
 			// Loads the keypair
-			IAsymmetricKeyEncryption networkPair = factory.provide(IAsymmetricKeyEncryption.class, null, true, true,
-					"network");
+			IAsymmetricKeyEncryption networkPair = factory.provide(IAsymmetricKeyEncryption.class);
 			networkPair.load(profile.getPublicKey(), pair.getPrivatekey());
 
 			statusConsumer.accept(EnumConnectionSetupStatus.Connecting, null);
@@ -121,8 +119,7 @@ public class ClientNetworkManager implements IClientNetworkManager {
 
 	@Override
 	public void connect(IConnectionProfile profile, BiConsumer<Boolean, String> status) {
-		IAsymmetricKeyEncryption networkPair = factory.provide(IAsymmetricKeyEncryption.class, null, true, true,
-				"network");
+		IAsymmetricKeyEncryption networkPair = factory.provide(IAsymmetricKeyEncryption.class);
 		try {
 			networkPair.load(profile.getPublicKey(), profile.getPrivateKey());
 		} catch (IOException e) {

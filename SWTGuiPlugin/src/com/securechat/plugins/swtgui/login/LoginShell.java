@@ -18,6 +18,9 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 
+import com.securechat.plugins.swtgui.plugins.ImplementationsShell;
+import com.securechat.plugins.swtgui.plugins.PluginsShell;
+
 /**
  * The actual SWT shell for the login gui.
  */
@@ -35,11 +38,11 @@ public class LoginShell extends Shell {
 		Menu menu = new Menu(this, SWT.BAR);
 		setMenuBar(menu);
 
-		MenuItem mntmFileSubmenu = new MenuItem(menu, SWT.CASCADE);
-		mntmFileSubmenu.setText("File");
+		MenuItem mntmConnectionsSubmenu = new MenuItem(menu, SWT.CASCADE);
+		mntmConnectionsSubmenu.setText("Connections");
 
-		Menu menu_1 = new Menu(mntmFileSubmenu);
-		mntmFileSubmenu.setMenu(menu_1);
+		Menu menu_1 = new Menu(mntmConnectionsSubmenu);
+		mntmConnectionsSubmenu.setMenu(menu_1);
 
 		MenuItem mntmImportConnection = new MenuItem(menu_1, SWT.NONE);
 		mntmImportConnection.addSelectionListener(new SelectionAdapter() {
@@ -52,7 +55,38 @@ public class LoginShell extends Shell {
 			}
 		});
 		mntmImportConnection.setText("Import Connection");
-
+		
+		MenuItem mntmPlugins = new MenuItem(menu, SWT.CASCADE);
+		mntmPlugins.setText("Plugins");
+		
+		Menu menu_2 = new Menu(mntmPlugins);
+		mntmPlugins.setMenu(menu_2);
+		
+		MenuItem mntmPlugins_1 = new MenuItem(menu_2, SWT.NONE);
+		mntmPlugins_1.setText("Plugins");
+		mntmPlugins_1.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				PluginsShell pluginsShell = new PluginsShell(LoginShell.this, gui);
+				gui.getContext().getImplementationFactory().inject(pluginsShell);
+				pluginsShell.open();
+				pluginsShell.layout();
+			}
+		});
+		
+		
+		MenuItem mntmImplementations = new MenuItem(menu_2, SWT.NONE);
+		mntmImplementations.setText("Implementations");
+		mntmImplementations.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				ImplementationsShell implementationsShell = new ImplementationsShell(LoginShell.this, gui);
+				gui.getContext().getImplementationFactory().inject(implementationsShell);
+				implementationsShell.open();
+				implementationsShell.layout();
+			}
+		});
+		
 		Label lblTitle = new Label(this, SWT.NONE);
 		lblTitle.setAlignment(SWT.CENTER);
 		lblTitle.setFont(gui.getPlugin().getFont(20, SWT.NORMAL));
@@ -139,5 +173,4 @@ public class LoginShell extends Shell {
 	public Button getBtnConnect() {
 		return btnConnect;
 	}
-
 }

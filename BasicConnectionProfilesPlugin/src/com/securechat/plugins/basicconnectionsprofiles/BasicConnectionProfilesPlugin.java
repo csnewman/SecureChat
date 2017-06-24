@@ -23,13 +23,11 @@ public class BasicConnectionProfilesPlugin {
 		factory = context.getImplementationFactory();
 		factory.register(BasicConnectionProfileProvider.MARKER, IConnectionProfileProvider.class,
 				BasicConnectionProfileProvider::new);
-		factory.setFallbackDefaultIfNone(IConnectionProfileProvider.class, BasicConnectionProfileProvider.MARKER);
 	}
 
 	@Hook(name = "init-client", hook = Hooks.Init, after = NAME + "/init", side = Sides.Client)
 	public void initClient(IContext context) {
 		factory.register(BasicConnectionStore.MARKER, IConnectionStore.class, BasicConnectionStore::new);
-		factory.setFallbackDefaultIfNone(IConnectionStore.class, BasicConnectionStore.MARKER);
 	}
 
 }

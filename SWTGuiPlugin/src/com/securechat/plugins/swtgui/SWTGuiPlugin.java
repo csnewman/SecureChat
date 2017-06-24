@@ -48,7 +48,6 @@ public class SWTGuiPlugin implements IGuiProvider {
 	public void init(IContext context) {
 		IImplementationFactory factory = context.getImplementationFactory();
 		factory.registerInstance(PROVIDER_MARKER, IGuiProvider.class, this);
-		factory.setFallbackDefaultIfNone(IGuiProvider.class, PROVIDER_MARKER);
 	}
 
 	@Override

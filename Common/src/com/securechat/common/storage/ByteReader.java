@@ -15,7 +15,7 @@ import com.securechat.api.common.storage.IByteReader;
  * A reference byte reader implementation.
  */
 public class ByteReader implements IByteReader {
-	@Inject(associate = true)
+	@Inject
 	private IHasher hasher;
 	private byte[] rawData;
 	private ByteArrayInputStream arrayStream;

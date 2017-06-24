@@ -103,7 +103,7 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 		try {
 			lock.lock();
 			int count = (int) Math.ceil((double) data.length / (double) BLOCK_SIZE);
-			IByteWriter out = IByteWriter.get(factory, MARKER.getId());
+			IByteWriter out = IByteWriter.get(factory);
 			out.writeInt(data.length);
 
 			// Breaks the data into chunks
@@ -132,7 +132,7 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	public byte[] decrypt(byte[] data) throws IOException {
 		try {
 			lock.lock();
-			IByteReader in = IByteReader.get(factory, MARKER.getId(), data);
+			IByteReader in = IByteReader.get(factory, data);
 			int length = in.readInt();
 			int count = (int) Math.ceil((double) length / (double) BLOCK_SIZE);
 

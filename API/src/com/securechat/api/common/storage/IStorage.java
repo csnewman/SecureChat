@@ -25,6 +25,8 @@ public interface IStorage extends IImplementation {
 	 */
 	List<String> loadPlugins();
 
+	void installPlugin(String path);
+	
 	/**
 	 * Checks whether a file exists at the given path.
 	 * 
@@ -76,5 +78,6 @@ public interface IStorage extends IImplementation {
 	 *            the JSON object to write
 	 */
 	void writeJsonFile(String path, JSONObject obj);
-
+	
+	void copyFile(String src, String dst);
 }

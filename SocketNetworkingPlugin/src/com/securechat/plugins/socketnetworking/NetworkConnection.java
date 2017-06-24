@@ -26,7 +26,7 @@ import com.securechat.api.common.storage.IByteWriter;
  * A reference implementation of a network connection.
  */
 public class NetworkConnection implements INetworkConnection {
-	@Inject(associate = true)
+	@Inject
 	private IHasher hasher;
 	@InjectInstance
 	private IContext context;
@@ -48,9 +48,10 @@ public class NetworkConnection implements INetworkConnection {
 		this.disconnectHandler = disconnectHandler;
 		this.handler = handler;
 	}
-	
+
 	/**
 	 * Initialises the connection ready for sending and receiving packets.
+	 * 
 	 * @param socket
 	 * @param encryption
 	 */
@@ -62,8 +63,8 @@ public class NetworkConnection implements INetworkConnection {
 			this.encryption = encryption;
 
 			// Gets the input and output of the socket
-			writer = IByteWriter.get(factory, "network_connection", socket.getOutputStream());
-			reader = IByteReader.get(factory, "network_connection", socket.getInputStream());
+			writer = IByteWriter.get(factory, socket.getOutputStream());
+			reader = IByteReader.get(factory, socket.getInputStream());
 
 			// Starts reading packets
 			readThread = new Thread(this::readPackets, "ReadThread");
@@ -76,19 +77,19 @@ public class NetworkConnection implements INetworkConnection {
 	private void readPackets() {
 		try {
 			while (active) {
-				//Reads the raw data and decrypts it
+				// Reads the raw data and decrypts it
 				byte[] ddata = encryption.decrypt(reader.readArray());
-				
-				//Checks the checksum
-				IByteReader packetData = IByteReader.get(factory, "network_connection", ddata);
+
+				// Checks the checksum
+				IByteReader packetData = IByteReader.get(factory, ddata);
 				IByteReader data = packetData.readReaderWithChecksum();
-				
-				//Reads the packet
+
+				// Reads the packet
 				String id = data.readString();
 				IPacket packet = PacketManager.createPacket(id);
 				packet.read(data);
-				
-				//Handles the packet
+
+				// Handles the packet
 				handler.accept(packet);
 			}
 		} catch (EOFException | SocketException e) {
@@ -113,19 +114,19 @@ public class NetworkConnection implements INetworkConnection {
 	@Override
 	public void sendPacket(IPacket packet) {
 		try {
-			//Writes the content of the packet
-			IByteWriter packetData = IByteWriter.get(factory, "network_connection");
+			// Writes the content of the packet
+			IByteWriter packetData = IByteWriter.get(factory);
 			packetData.writeString(PacketManager.getPacketId(packet.getClass()));
 			packet.write(packetData);
-			
-			//Checksums the content
-			IByteWriter finalPacket = IByteWriter.get(factory, "network_connection");
+
+			// Checksums the content
+			IByteWriter finalPacket = IByteWriter.get(factory);
 			finalPacket.writeWriterWithChecksum(packetData);
-			
-			//Encrypts the packet
+
+			// Encrypts the packet
 			byte[] encryptedData = encryption.encrypt(finalPacket.toByteArray());
-			
-			//Sends the packet
+
+			// Sends the packet
 			sendLock.lock();
 			writer.writeArray(encryptedData);
 			sendLock.unlock();
@@ -164,7 +165,7 @@ public class NetworkConnection implements INetworkConnection {
 	@Override
 	public <T extends IPacket> void setSingleHandler(Class<T> type, Consumer<T> handler) {
 		setHandler(p -> {
-			//Checks packet is of correct type
+			// Checks packet is of correct type
 			if (type.isInstance(p)) {
 				handler.accept((T) p);
 			} else {

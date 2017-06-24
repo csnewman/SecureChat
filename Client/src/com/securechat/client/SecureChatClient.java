@@ -66,9 +66,6 @@ public class SecureChatClient implements IContext {
 		implementationFactory.register(ConsoleLogger.MARKER, ILogger.class, ConsoleLogger::new);
 		implementationFactory.register(ByteReader.MARKER, IByteReader.class, ByteReader::new);
 		implementationFactory.register(ByteWriter.MARKER, IByteWriter.class, ByteWriter::new);
-		implementationFactory.setFallbackDefault(ILogger.class, ConsoleLogger.MARKER);
-		implementationFactory.setFallbackDefault(IByteReader.class, ByteReader.MARKER);
-		implementationFactory.setFallbackDefault(IByteWriter.class, ByteWriter.MARKER);
 
 		// Injects into the storage
 		implementationFactory.inject(storage);
@@ -78,7 +75,7 @@ public class SecureChatClient implements IContext {
 
 		// Loads the plugins
 		pluginManager.loadPlugins();
-		pluginManager.regeneateCache();
+		pluginManager.regenerateCache();
 
 		// Runs the early init pass
 		pluginManager.invokeHook(Hooks.EarlyInit, this);

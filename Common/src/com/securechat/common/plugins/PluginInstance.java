@@ -1,12 +1,13 @@
 package com.securechat.common.plugins;
 
 import com.securechat.api.common.Sides;
+import com.securechat.api.common.plugins.IPluginInstance;
 import com.securechat.api.common.plugins.Plugin;
 
 /**
  * An instance of a plugin.
  */
-public class PluginInstance {
+public class PluginInstance implements IPluginInstance {
 	private Object instance;
 	private String name, version;
 	private Sides side;
@@ -29,6 +30,7 @@ public class PluginInstance {
 		return false;
 	}
 
+	@Override
 	public Object getInstance() {
 		return instance;
 	}
@@ -37,14 +39,17 @@ public class PluginInstance {
 		return clazz.getName() + "(name=" + name + ", version=" + version + ", side=" + side + ")";
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
 
+	@Override
 	public String getVersion() {
 		return version;
 	}
 
+	@Override
 	public Sides getSide() {
 		return side;
 	}

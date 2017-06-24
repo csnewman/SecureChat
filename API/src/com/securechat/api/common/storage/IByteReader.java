@@ -167,14 +167,12 @@ public interface IByteReader extends IImplementation {
 	 * 
 	 * @param factory
 	 *            the implementation factory to use
-	 * @param name
-	 *            the name to associate the used writer to
 	 * @param data
 	 *            the content to use
 	 * @return the created byte reader
 	 */
-	public static IByteReader get(IImplementationFactory factory, String name, byte[] data) {
-		IByteReader reader = factory.provide(IByteReader.class, new ImplementationMarker[0], true, true, name);
+	public static IByteReader get(IImplementationFactory factory, byte[] data) {
+		IByteReader reader = factory.provide(IByteReader.class);
 		reader.setMemoryInput(data);
 		return reader;
 	}
@@ -185,14 +183,12 @@ public interface IByteReader extends IImplementation {
 	 * 
 	 * @param factory
 	 *            the implementation factory to use
-	 * @param name
-	 *            the name to associate the used writer to
 	 * @param stream
 	 *            the content to use
 	 * @return the created reader
 	 */
-	public static IByteReader get(IImplementationFactory factory, String name, InputStream stream) {
-		IByteReader reader = factory.provide(IByteReader.class, new ImplementationMarker[0], true, true, name);
+	public static IByteReader get(IImplementationFactory factory, InputStream stream) {
+		IByteReader reader = factory.provide(IByteReader.class);
 		reader.setInput(stream);
 		return reader;
 	}

@@ -22,7 +22,7 @@ import com.securechat.api.common.storage.IStorage;
 public class BasicKeystore implements IKeystore {
 	@InjectInstance
 	private ILogger log;
-	@Inject(associate = true)
+	@Inject
 	private IPasswordEncryption passwordEncryption;
 	@InjectInstance
 	private IStorage storage;
@@ -52,7 +52,7 @@ public class BasicKeystore implements IKeystore {
 	private void save() {
 		log.debug("Saving keystore");
 		try {
-			IByteWriter body = IByteWriter.get(factory, MARKER.getId());
+			IByteWriter body = IByteWriter.get(factory);
 
 			// Writes all of the keys
 			body.writeInt(asymmetricPublicKeys.size());
@@ -77,7 +77,7 @@ public class BasicKeystore implements IKeystore {
 				}
 			}
 
-			IByteWriter finalData = IByteWriter.get(factory, MARKER.getId());
+			IByteWriter finalData = IByteWriter.get(factory);
 			finalData.writeWriterWithChecksum(body);
 			storage.writeFile(PATH, passwordEncryption, finalData);
 		} catch (IOException e) {

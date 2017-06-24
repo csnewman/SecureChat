@@ -1,5 +1,7 @@
 package com.securechat.api.common.plugins;
 
+import java.util.List;
+
 /**
  * Manages and stores all plugins and handles the invocation of hooks.
  */
@@ -9,11 +11,13 @@ public interface IPluginManager {
 	 * Searches all classes for the plugin annotation and attempts to load them.
 	 */
 	void loadPlugins();
+	
+	List<IPluginInstance> getPlugins();
 
 	/**
 	 * Regenerates the hook invocation order cache.
 	 */
-	void regeneateCache();
+	void regenerateCache();
 
 	/**
 	 * Calls the hook with the given arguments.

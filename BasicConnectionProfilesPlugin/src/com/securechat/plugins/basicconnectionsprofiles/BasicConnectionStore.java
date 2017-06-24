@@ -42,7 +42,7 @@ public class BasicConnectionStore implements IConnectionStore {
 	public void init() {
 		try {
 			// Fetches a key from the key store
-			key = factory.provide(IAsymmetricKeyEncryption.class, null, true, true, MARKER.getId());
+			key = factory.provide(IAsymmetricKeyEncryption.class);
 			keystore.loadAsymmetricKeyOrGenerate(MARKER.getId(), key);
 
 			if (storage.doesFileExist(PATH)) {
@@ -68,7 +68,7 @@ public class BasicConnectionStore implements IConnectionStore {
 
 	public void save() {
 		try {
-			IByteWriter body = IByteWriter.get(factory, MARKER.getId());
+			IByteWriter body = IByteWriter.get(factory);
 
 			// Writes each connection to the file
 			body.writeInt(profiles.size());
@@ -84,7 +84,7 @@ public class BasicConnectionStore implements IConnectionStore {
 			}
 
 			// Saves the file with the encryption key
-			IByteWriter finalData = IByteWriter.get(factory, MARKER.getId());
+			IByteWriter finalData = IByteWriter.get(factory);
 			finalData.writeWriterWithChecksum(body);
 			storage.writeFile(PATH, key, finalData);
 		} catch (IOException e) {

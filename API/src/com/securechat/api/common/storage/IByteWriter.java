@@ -163,12 +163,10 @@ public interface IByteWriter extends IImplementation {
 	 * 
 	 * @param factory
 	 *            the implementation factory to use
-	 * @param name
-	 *            the name to associate the used writer to
 	 * @return the created writer
 	 */
-	public static IByteWriter get(IImplementationFactory factory, String name) {
-		IByteWriter writer = factory.provide(IByteWriter.class, new ImplementationMarker[0], true, true, name);
+	public static IByteWriter get(IImplementationFactory factory) {
+		IByteWriter writer = factory.provide(IByteWriter.class);
 		writer.setMemoryOutput();
 		return writer;
 	}
@@ -179,14 +177,12 @@ public interface IByteWriter extends IImplementation {
 	 * 
 	 * @param factory
 	 *            the implementation factory to use
-	 * @param name
-	 *            the name to associate the used writer to
 	 * @param stream
 	 *            the output stream
 	 * @return the created writer
 	 */
-	public static IByteWriter get(IImplementationFactory factory, String name, OutputStream stream) {
-		IByteWriter writer = factory.provide(IByteWriter.class, new ImplementationMarker[0], true, true, name);
+	public static IByteWriter get(IImplementationFactory factory, OutputStream stream) {
+		IByteWriter writer = factory.provide(IByteWriter.class);
 		writer.setOutput(stream);
 		return writer;
 	}

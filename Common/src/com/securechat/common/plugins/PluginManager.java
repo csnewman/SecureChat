@@ -12,6 +12,7 @@ import com.securechat.api.common.IContext;
 import com.securechat.api.common.ILogger;
 import com.securechat.api.common.plugins.Hook;
 import com.securechat.api.common.plugins.Hooks;
+import com.securechat.api.common.plugins.IPluginInstance;
 import com.securechat.api.common.plugins.IPluginManager;
 import com.securechat.api.common.plugins.Plugin;
 
@@ -21,14 +22,14 @@ import com.securechat.api.common.plugins.Plugin;
 public class PluginManager implements IPluginManager {
 	private IContext context;
 	private ILogger logger;
-	private Map<String, PluginInstance> plugins;
+	private List<IPluginInstance> plugins;
 	private Map<String, HookInstance> hooks;
 	private Map<Hooks, List<HookInstance>> hookCache;
 
 	public PluginManager(IContext context) {
 		this.context = context;
 		logger = context.getLogger();
-		plugins = new HashMap<String, PluginInstance>();
+		plugins = new ArrayList<IPluginInstance>();
 		hooks = new HashMap<String, HookInstance>();
 		hookCache = new HashMap<Hooks, List<HookInstance>>();
 	}
@@ -45,7 +46,6 @@ public class PluginManager implements IPluginManager {
 	public void loadPlugins() {
 		// Fetches all classes
 		List<String> classes = context.getStorage().loadPlugins();
-		List<String> loadedClasses = new ArrayList<String>();
 
 		for (String clazzName : classes) {
 			// Attempts to load the class
@@ -60,14 +60,13 @@ public class PluginManager implements IPluginManager {
 			}
 
 			Plugin pluginAnnotation = clazz.getDeclaredAnnotation(Plugin.class);
-			loadedClasses.add(clazz.getName());
 
 			// Creates a new instance
 			PluginInstance instance = new PluginInstance(pluginAnnotation, clazz);
-			instance.createInstance();
-
-			plugins.put(instance.getName(), instance);
+			plugins.add(instance);
 			logger.info("Found plugin " + instance.getFullString());
+			
+			instance.createInstance();
 
 			// Checks each method
 			for (Method method : clazz.getDeclaredMethods()) {
@@ -99,7 +98,7 @@ public class PluginManager implements IPluginManager {
 	}
 
 	@Override
-	public void regeneateCache() {
+	public void regenerateCache() {
 		hookCache.clear();
 		for (Hooks hook : Hooks.values()) {
 			List<HookInstance> insts = generateHook(hook);
@@ -242,5 +241,12 @@ public class PluginManager implements IPluginManager {
 			return null;
 		}
 	}
+	
+	@Override
+	public List<IPluginInstance> getPlugins() {
+		return plugins;
+	}
+
+	
 
 }

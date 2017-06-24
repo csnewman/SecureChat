@@ -73,9 +73,6 @@ public class SecureChatServer implements IContext {
 		implementationFactory.register(ConsoleLogger.MARKER, ILogger.class, ConsoleLogger::new);
 		implementationFactory.register(ByteReader.MARKER, IByteReader.class, ByteReader::new);
 		implementationFactory.register(ByteWriter.MARKER, IByteWriter.class, ByteWriter::new);
-		implementationFactory.setFallbackDefault(ILogger.class, ConsoleLogger.MARKER);
-		implementationFactory.setFallbackDefault(IByteReader.class, ByteReader.MARKER);
-		implementationFactory.setFallbackDefault(IByteWriter.class, ByteWriter.MARKER);
 
 		// Injects into the storage
 		implementationFactory.inject(storage);
@@ -85,7 +82,7 @@ public class SecureChatServer implements IContext {
 
 		// Loads the plugins
 		pluginManager.loadPlugins();
-		pluginManager.regeneateCache();
+		pluginManager.regenerateCache();
 
 		// Runs the early init pass
 		pluginManager.invokeHook(Hooks.EarlyInit, this);
@@ -134,7 +131,7 @@ public class SecureChatServer implements IContext {
 
 		// Loads the network key
 		logger.info("Loading network key");
-		networkKey = implementationFactory.provide(IAsymmetricKeyEncryption.class, null, true, true, "network");
+		networkKey = implementationFactory.provide(IAsymmetricKeyEncryption.class);
 		keystore.loadAsymmetricKeyOrGenerate("network", networkKey);
 
 		// Configures the network manager
@@ -148,8 +145,7 @@ public class SecureChatServer implements IContext {
 			logger.info("Generating connection profile");
 			IConnectionProfileProvider provider = implementationFactory.get(IConnectionProfileProvider.class, true);
 			IConnectionProfile profile = networkManager.generateProfile(provider);
-			IPasswordEncryption passwordEncryption = implementationFactory.provide(IPasswordEncryption.class, null,
-					true, true, "connection_profile");
+			IPasswordEncryption passwordEncryption = implementationFactory.provide(IPasswordEncryption.class);
 			passwordEncryption.init(profileCollection.get(PASSWORD_PROPERY).toCharArray());
 			provider.saveProfileToFIle(profile, storage, "profile.sccp", passwordEncryption);
 		}
