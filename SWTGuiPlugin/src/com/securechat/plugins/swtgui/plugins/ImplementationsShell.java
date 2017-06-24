@@ -62,7 +62,9 @@ public class ImplementationsShell extends Shell {
 			combo.setText(defaultImp.getName() + " - " + defaultImp.getVersion() + " - " + defaultImp.getPluginName()
 					+ " - " + defaultImp.getPluginVersion());
 
-			for (IImplementationInstance inst : e.getValue().values()) {
+			IImplementationInstance[] impMapping = e.getValue().values().toArray(new IImplementationInstance[0]);
+
+			for (IImplementationInstance inst : impMapping) {
 				ImplementationMarker marker = inst.getMarker();
 				combo.add(marker.getName() + " - " + marker.getVersion() + " - " + marker.getPluginName() + " - "
 						+ marker.getPluginVersion());
@@ -72,20 +74,18 @@ public class ImplementationsShell extends Shell {
 
 				@Override
 				public void widgetSelected(SelectionEvent arg0) {
-					for (IImplementationInstance inst : e.getValue().values()) {
-						ImplementationMarker marker = inst.getMarker();
-						if (arg0.text.equals(marker.getName() + " - " + marker.getVersion() + " - "
-								+ marker.getPluginName() + " - " + marker.getPluginVersion())) {
-							factory.setDefault(e.getKey(), marker);
+					ImplementationMarker marker = impMapping[combo.getSelectionIndex()].getMarker();
+					if (marker.equals(defaultImp))
+						return;
 
-							MessageDialog dialog = new MessageDialog(ImplementationsShell.this,
-									"Secure Chat - Implementation Updated", null,
-									"The default implementation has been updated, however this change will not fully take effect until the next restart of the program..",
-									MessageDialog.INFORMATION, new String[] { "Exit Later", "Exit Now" }, 1);
-							if (dialog.open() == 1) {
-								context.exit();
-							}
-						}
+					factory.setDefault(e.getKey(), marker);
+
+					MessageDialog dialog = new MessageDialog(ImplementationsShell.this,
+							"Secure Chat - Implementation Updated", null,
+							"The default implementation has been updated, however this change will not fully take effect until the next restart of the program..",
+							MessageDialog.INFORMATION, new String[] { "Exit Later", "Exit Now" }, 1);
+					if (dialog.open() == 1) {
+						context.exit();
 					}
 				}
 
