@@ -45,6 +45,7 @@ public class BasicConnectionStore implements IConnectionStore {
 			key = factory.provide(IAsymmetricKeyEncryption.class);
 			keystore.loadAsymmetricKeyOrGenerate(MARKER.getId(), key);
 
+			// If the connection store exists on disk, load it
 			if (storage.doesFileExist(PATH)) {
 				IByteReader fileData = storage.readFile(PATH, key);
 				try {
@@ -53,26 +54,31 @@ public class BasicConnectionStore implements IConnectionStore {
 					// Loads each connection from the file
 					int size = content.readInt();
 					for (int i = 0; i < size; i++) {
+						// Reads the properties in order and creates a connection store
 						profiles.add(new BasicConnectionProfile(content.readBoolean(), content.readStringWithNull(),
 								content.readStringWithNull(), content.readStringWithNull(), content.readInt(),
 								content.readInt(), content.readArrayWithNull(), content.readArrayWithNull()));
 					}
 				} catch (IOException e) {
+					// Ignore corrupted files
 					e.printStackTrace();
 				}
 			}
 		} catch (IOException e) {
+			// if an error occurred, inform user
 			context.handleCrash(e);
 		}
 	}
 
 	public void save() {
 		try {
+			// Allocates a writer
 			IByteWriter body = IByteWriter.get(factory);
 
 			// Writes each connection to the file
 			body.writeInt(profiles.size());
 			for (IConnectionProfile profile : profiles) {
+				// Write each property in order
 				body.writeBoolean(profile.isTemplate());
 				body.writeStringWithNull(profile.getName());
 				body.writeStringWithNull(profile.getUsername());
@@ -85,7 +91,9 @@ public class BasicConnectionStore implements IConnectionStore {
 
 			// Saves the file with the encryption key
 			IByteWriter finalData = IByteWriter.get(factory);
+			// Writes the data with a checksum to ensure its valid when read
 			finalData.writeWriterWithChecksum(body);
+			// Flushes writer to disk
 			storage.writeFile(PATH, key, finalData);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -104,8 +112,11 @@ public class BasicConnectionStore implements IConnectionStore {
 
 	@Override
 	public void addProfile(IConnectionProfile profile) {
+		// Add the profile
 		profiles.add(profile);
+		// Save profiles
 		save();
+		// Inform all listeners of changes
 		for (IConnectionStoreUpdateListener listener : listeners) {
 			listener.onConnectionStoreUpdated();
 		}

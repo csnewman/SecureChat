@@ -21,12 +21,15 @@ public class BasicConnectionProfilesPlugin {
 	@Hook(name = "init", hook = Hooks.Init)
 	public void init(IContext context) {
 		factory = context.getImplementationFactory();
+
+		// Registers the profile provider implementation
 		factory.register(BasicConnectionProfileProvider.MARKER, IConnectionProfileProvider.class,
 				BasicConnectionProfileProvider::new);
 	}
 
 	@Hook(name = "init-client", hook = Hooks.Init, after = NAME + "/init", side = Sides.Client)
 	public void initClient(IContext context) {
+		// Registers the connection store implementation
 		factory.register(BasicConnectionStore.MARKER, IConnectionStore.class, BasicConnectionStore::new);
 	}
 

@@ -21,12 +21,15 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 
 	@Override
 	public IConnectionProfile generateProfileTemplate(String name, String ip, int port, byte[] publicKey) {
+		// Creates a new profile with only the generic server details filled in
 		return new BasicConnectionProfile(true, name, null, ip, port, -1, publicKey, null);
 	}
 
 	@Override
 	public IConnectionProfile createProfile(IConnectionProfile template, String username, int authcode,
 			byte[] privateKey) {
+		// Creates a new full profile based on an incomplete template profile with the
+		// extra provided details
 		return new BasicConnectionProfile(false, template.getName(), username, template.getIP(), template.getPort(),
 				authcode, template.getPublicKey(), privateKey);
 	}
@@ -39,10 +42,11 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 
 	@Override
 	public IConnectionProfile loadProfileFromMemory(IByteReader reader, IEncryption encryption) throws IOException {
-		//Decrypts the data if needed
+		// Decrypts the data if needed
 		if (encryption != null)
 			reader = IByteReader.get(factory, encryption.decrypt(reader.getRawData()));
 
+		// Reads each property and creates a new profile
 		return new BasicConnectionProfile(reader.readBoolean(), reader.readStringWithNull(),
 				reader.readStringWithNull(), reader.readStringWithNull(), reader.readInt(), reader.readInt(),
 				reader.readArrayWithNull(), reader.readArrayWithNull());
@@ -51,14 +55,18 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 	@Override
 	public void saveProfileToFIle(IConnectionProfile profile, IStorage storage, String path, IEncryption encryption)
 			throws IOException {
+		// Allocates a writer
 		IByteWriter writer = IByteWriter.get(factory);
+		// Writes the profile into the writer
 		saveProfileToMemory(profile, writer, null);
+		// Flushes the contents of the inmemory writer to disk
 		storage.writeFile(path, encryption, writer);
 	}
 
 	@Override
 	public void saveProfileToMemory(IConnectionProfile profile, IByteWriter writer, IEncryption encryption)
 			throws IOException {
+		// Allocate a new writer if encryption is enabled
 		IByteWriter out;
 		if (encryption != null) {
 			out = IByteWriter.get(factory);
@@ -66,6 +74,7 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 			out = writer;
 		}
 
+		// Writes each property to the writer
 		out.writeBoolean(profile.isTemplate());
 		out.writeStringWithNull(profile.getName());
 		out.writeStringWithNull(profile.getUsername());
@@ -75,6 +84,8 @@ public class BasicConnectionProfileProvider implements IConnectionProfileProvide
 		out.writeArrayWithNull(profile.getPublicKey());
 		out.writeArrayWithNull(profile.getPrivateKey());
 
+		// If encryption is enabled, encrypt the writer and transfer its data to the
+		// intended writer
 		if (encryption != null) {
 			try {
 				writer.writeArray(encryption.encrypt(out.toByteArray()));
