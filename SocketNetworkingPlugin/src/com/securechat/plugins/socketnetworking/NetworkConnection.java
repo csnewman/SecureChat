@@ -84,9 +84,11 @@ public class NetworkConnection implements INetworkConnection {
 				IByteReader packetData = IByteReader.get(factory, ddata);
 				IByteReader data = packetData.readReaderWithChecksum();
 
-				// Reads the packet
+				// Reads the packet id
 				String id = data.readString();
+				// Create new packet instance
 				IPacket packet = PacketManager.createPacket(id);
+				// Reads the packet contents
 				packet.read(data);
 
 				// Handles the packet
@@ -114,9 +116,11 @@ public class NetworkConnection implements INetworkConnection {
 	@Override
 	public void sendPacket(IPacket packet) {
 		try {
-			// Writes the content of the packet
+			// Allocates new writer
 			IByteWriter packetData = IByteWriter.get(factory);
+			// Writes packet id
 			packetData.writeString(PacketManager.getPacketId(packet.getClass()));
+			// Writes the content of the packet
 			packet.write(packetData);
 
 			// Checksums the content

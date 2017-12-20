@@ -55,7 +55,9 @@ public class ServerNetworkManager implements IServerNetworkManager {
 	public void start() {
 		try {
 			active = true;
+			// Opens the socket
 			serverSocket = new ServerSocket(bindPort);
+			// Starts the listening thread
 			listenThread = new Thread(this::handleConnections, "Listen Thread");
 			listenThread.setDaemon(false);
 			listenThread.start();

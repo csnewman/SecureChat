@@ -48,8 +48,11 @@ public class ClientNetworkManager implements IClientNetworkManager {
 	public INetworkConnection openConnection(IConnectionProfile profile, IAsymmetricKeyEncryption encryption,
 			Consumer<String> disconnectHandler, Consumer<IPacket> packetHandler) {
 		try {
+			// Creates a new connection instance
 			NetworkConnection connection = new NetworkConnection(disconnectHandler, packetHandler);
+			// Injects into instance
 			factory.inject(connection);
+			// Initialises the connection
 			connection.init(new Socket(profile.getIP(), profile.getPort()), encryption);
 			return connection;
 		} catch (IOException e) {
@@ -92,6 +95,7 @@ public class ClientNetworkManager implements IClientNetworkManager {
 					statusConsumer.accept(EnumConnectionSetupStatus.Saving, null);
 					connection.closeConnection();
 
+					// Stores the profile
 					connectionStore.addProfile(
 							profileProvider.createProfile(profile, username, r.getCode(), pair.getPrivatekey()));
 					statusConsumer.accept(EnumConnectionSetupStatus.Success, null);
@@ -119,6 +123,7 @@ public class ClientNetworkManager implements IClientNetworkManager {
 
 	@Override
 	public void connect(IConnectionProfile profile, BiConsumer<Boolean, String> status) {
+		// Loads the encryption key pair
 		IAsymmetricKeyEncryption networkPair = factory.provide(IAsymmetricKeyEncryption.class);
 		try {
 			networkPair.load(profile.getPublicKey(), profile.getPrivateKey());
@@ -130,6 +135,7 @@ public class ClientNetworkManager implements IClientNetworkManager {
 			status.accept(false, r);
 		};
 
+		// Opens the connection
 		INetworkConnection connection = openConnection(profile, networkPair, disconnectHandler, null);
 
 		// An error has occured
