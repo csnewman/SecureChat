@@ -47,6 +47,7 @@ public class JsonTable implements ITable {
 		rows = new ObjectDataInstance[array.length()];
 		for (int i = 0; i < array.length(); i++) {
 			rows[i] = new ObjectDataInstance(format, array.getJSONObject(i));
+			// Stores the primary value into cache
 			primaryCache.put(rows[i].getPrimary(), i);
 		}
 
@@ -64,6 +65,7 @@ public class JsonTable implements ITable {
 		}
 		obj.put("rows", array);
 
+		// Stores table into a file with the name of the table
 		storage.writeJsonFile("database/" + name + ".json", obj);
 	}
 
@@ -104,6 +106,7 @@ public class JsonTable implements ITable {
 	public void updateRow(Object primaryKey, ObjectDataInstance data) {
 		ObjectDataInstance row = getRow(primaryKey);
 		for (Entry<String, Object> entry : data.getValues().entrySet()) {
+			// Updates the affected fields
 			row.setField(entry.getKey(), entry.getValue());
 		}
 		save();
@@ -113,6 +116,7 @@ public class JsonTable implements ITable {
 	public ObjectDataInstance[] getRows(ObjectDataInstance data) {
 		List<ObjectDataInstance> found = new ArrayList<ObjectDataInstance>();
 		for (ObjectDataInstance row : rows) {
+			// Checks if row matches the provided data
 			if (row.matches(data)) {
 				found.add(row);
 			}
@@ -122,12 +126,14 @@ public class JsonTable implements ITable {
 
 	@Override
 	public void deleteRow(Object primaryValue) {
+		// Find position using key
 		Integer id = primaryCache.get(primaryValue);
 
 		if (id == null) {
 			return;
 		}
 
+		// Removes entry at position
 		ObjectDataInstance[] temp = new ObjectDataInstance[rows.length - 1];
 		if (id > 0)
 			System.arraycopy(rows, 0, temp, 0, id);
@@ -135,6 +141,7 @@ public class JsonTable implements ITable {
 			System.arraycopy(rows, id + 1, temp, id, rows.length - id - 1);
 		rows = temp;
 
+		// Updates the primary cache
 		primaryCache.clear();
 		String primarykey = format.getPrimary();
 		for (int i = 0; i < rows.length; i++) {

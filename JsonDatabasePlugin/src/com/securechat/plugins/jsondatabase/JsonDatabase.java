@@ -28,6 +28,7 @@ public class JsonDatabase implements IDatabase {
 	public void init() {
 		tables = new HashMap<String, JsonTable>();
 
+		// Checks if any tables exist
 		if (!storage.doesFileExist("database/tables.json"))
 			return;
 
@@ -37,9 +38,13 @@ public class JsonDatabase implements IDatabase {
 		// Loads the tables
 		for (int i = 0; i < array.length(); i++) {
 			String name = array.getString(i);
+			// Creates an instance
 			JsonTable table = new JsonTable(name);
+			// Injects into the instance
 			factory.inject(table);
+			// Loads the contents
 			table.load();
+			// Stores the table
 			tables.put(name, table);
 		}
 
@@ -49,7 +54,7 @@ public class JsonDatabase implements IDatabase {
 	private void save() {
 		JSONObject tablesFile = new JSONObject();
 		JSONArray tablesArray = new JSONArray();
-		//Saves the names of the tables
+		// Saves the names of the tables
 		for (String name : tables.keySet()) {
 			tablesArray.put(name);
 		}
