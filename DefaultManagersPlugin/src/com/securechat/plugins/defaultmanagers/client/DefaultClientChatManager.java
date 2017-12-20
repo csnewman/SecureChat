@@ -75,6 +75,7 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 			return;
 		}
 		try {
+			// Encrypts the test data with the chat password
 			IPasswordEncryption encryption = factory.provide(IPasswordEncryption.class);
 			encryption.init(password.toCharArray());
 			byte[] test = encryption.encrypt(TEST);
@@ -83,6 +84,7 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 			// confirm
 			tempChatCache.put(username, password);
 
+			// Sends a packet to the server to create the chat
 			clientManager.sendPacket(new CreateChatPacket(username, test, protect));
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -105,11 +107,13 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 				if (!chats.containsKey(user)) {
 					Chat chat = new Chat(this, chatIds[i], user, chatProtected[i], testData[i]);
 					factory.inject(chat);
+					// Loads the chat
 					try {
 						chat.load();
 					} catch (IOException e) {
 						context.handleCrash(e);
 					}
+					// Stores the chat
 					chats.put(user, chat);
 					chatIdMap.put(chatIds[i], chat);
 				}
@@ -121,9 +125,12 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 					if (!chat.unlock(tempChatCache.get(user))) {
 						throw new RuntimeException("Unlock failed!");
 					}
+					// Remove chat from cache
 					tempChatCache.remove(user);
+					// Inform GUI of chat loading finishing
 					mainGui.openChat(user);
 				}
+				// Checks that the chat is up to update
 				chat.checkLast(lastIds[i]);
 			}
 
@@ -144,10 +151,12 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 			// Imports the messages
 			Message[] messages = new Message[mhp.getSenders().length];
 			for (int i = 0; i < messages.length; i++) {
+				// Loads the content of the message
 				messages[i] = new Message(mhp.getContents()[i], chat.isProtected(), mhp.getSenders()[i],
 						mhp.getTimes()[i]);
 			}
 
+			// Imports the messages into the chat
 			chat.importMessages(messages, mhp.getLastId());
 		} else if (packet instanceof NewMessagePacket) {
 			NewMessagePacket nmp = (NewMessagePacket) packet;

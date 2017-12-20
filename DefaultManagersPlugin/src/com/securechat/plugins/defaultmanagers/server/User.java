@@ -31,6 +31,7 @@ public class User implements IUser {
 	private List<IPacketHandler> packetHandlers;
 
 	public User(ObjectDataInstance row) {
+		// Fetches the data from the row
 		username = row.getField("username", String.class);
 		publicKey = row.getField("pubkey", byte[].class);
 		clientCode = row.getField("code", Integer.class);
@@ -42,10 +43,15 @@ public class User implements IUser {
 		if (connection != null) {
 			disconnect("Logged in from somewhere else");
 		}
+		// Configures the connection
 		connection = newConnection;
 		connection.setHandler(this::handlePacket);
 		connection.setDisconnectHandler(this::handleError);
+
+		// Inform the client of being connected
 		connection.sendPacket(new ConnectedPacket());
+
+		// Informs the server manager of the user completing login
 		serverManager.handleUserLogin(this);
 	}
 

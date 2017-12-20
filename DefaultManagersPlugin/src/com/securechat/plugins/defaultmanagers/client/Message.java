@@ -25,6 +25,7 @@ public class Message implements IMessage {
 		if (!isProtected)
 			return;
 		try {
+			//Attempt to decrypt message
 			text = new String(encryption.decrypt(content));
 		} catch (Exception e) {
 			e.printStackTrace();

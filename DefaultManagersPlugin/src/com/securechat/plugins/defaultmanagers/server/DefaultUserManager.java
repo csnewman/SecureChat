@@ -49,6 +49,7 @@ public class DefaultUserManager implements IUserManager {
 
 	@Override
 	public boolean doesUserExist(String username) {
+		// Trys to find the user with the username
 		return getUser(username) != null;
 	}
 
@@ -69,20 +70,28 @@ public class DefaultUserManager implements IUserManager {
 		data.setField("code", clientCode);
 		usersTable.insertRow(data);
 
+		// Creates a new user instance
 		User user = new User(data);
+		// Injects into it
 		factory.inject(user);
+		// Stores the user
 		users.put(username, user);
 	}
 
 	@Override
 	public IUser getUser(String username) {
+		// Checks if the user is already loaded in memory
 		if (users.containsKey(username))
 			return users.get(username);
+		// Finds the user
 		ObjectDataInstance row = usersTable.getRow(username);
 		if (row == null)
 			return null;
+		// Creates a new instance
 		User user = new User(row);
+		// Injects into the instance
 		factory.inject(user);
+		// Stores the user
 		users.put(username, user);
 		return user;
 	}

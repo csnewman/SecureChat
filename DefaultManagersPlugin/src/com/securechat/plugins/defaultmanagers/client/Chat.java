@@ -93,6 +93,7 @@ public class Chat implements IChat {
 	private void save() {
 		log.debug("Writing chat cache to " + path);
 		try {
+			// Allocates a writer
 			IByteWriter body = IByteWriter.get(factory);
 			// Writes last packet ids
 			body.writeInt(latestPacketId);
@@ -101,13 +102,17 @@ public class Chat implements IChat {
 			// Writes each message
 			body.writeInt(messages.size());
 			for (IMessage message : messages) {
+				// Writes the contents, sender and time of the message
 				body.writeArray(message.getContent());
 				body.writeString(message.getSender());
 				body.writeLong(message.getTime());
 			}
 
+			// Adds a checksum to the data
 			IByteWriter finalData = IByteWriter.get(factory);
 			finalData.writeWriterWithChecksum(body);
+
+			// Flushes the data to disk
 			storage.writeFile(path, key, finalData);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -118,7 +123,9 @@ public class Chat implements IChat {
 	public boolean unlock(String password) {
 		log.debug("Unlocking chat " + id);
 		try {
+			// Loads the encryption
 			encryption = factory.provide(IPasswordEncryption.class);
+			// Initialises encryption with the password
 			encryption.init(password.toCharArray());
 
 			// Checks whether the encryption password is correct
@@ -175,15 +182,18 @@ public class Chat implements IChat {
 	 *            the id to ensure exists
 	 */
 	public void checkLast(int lastId) {
+		// Checks if we have the latest chat
 		if (latestPacketId >= lastId) {
 			log.debug("Chat is up to date with the server");
 			if (!loaded) {
 				loaded = true;
+				// Updates the main gui with the new messages
 				mainGui.updateMessages(otherUser);
 			}
 			return;
 		}
 		log.debug("Chat history is outdated, requesting");
+		// Sends a packet to the server requesting missing messages
 		clientManager.sendPacket(new RequestMessageHistoryPacket(id, latestPacketId));
 	}
 

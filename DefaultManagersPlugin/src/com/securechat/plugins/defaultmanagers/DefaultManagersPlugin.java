@@ -32,12 +32,14 @@ public class DefaultManagersPlugin {
 
 	@Hook(name = "init-client", hook = Hooks.Init, after = NAME + "/init", side = Sides.Client)
 	public void initClient(IContext context) {
+		// Registers the client side manager and chat manager
 		factory.register(DefaultClientManager.MARKER, IClientManager.class, DefaultClientManager::new);
 		factory.register(DefaultClientChatManager.MARKER, IClientChatManager.class, DefaultClientChatManager::new);
 	}
 
 	@Hook(name = "init-server", hook = Hooks.Init, after = NAME + "/init", side = Sides.Server)
 	public void initServer(IContext context) {
+		// Registers the server side manager, chat manager and user manager
 		factory.register(DefaultServerManager.MARKER, IServerManager.class, DefaultServerManager::new);
 		factory.register(DefaultServerChatManager.MARKER, IServerChatManager.class, DefaultServerChatManager::new);
 		factory.register(DefaultUserManager.MARKER, IUserManager.class, DefaultUserManager::new);

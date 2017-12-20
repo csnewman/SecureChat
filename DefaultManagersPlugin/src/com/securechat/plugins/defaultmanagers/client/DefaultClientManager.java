@@ -74,12 +74,14 @@ public class DefaultClientManager implements IClientManager {
 		log.debug("Received Packet " + packet);
 		if (packet instanceof DisconnectPacket) {
 			log.info("Disconnected: " + ((DisconnectPacket) packet).getReason());
+			// Inform GUI of being disconnected
 			mainGui.disconnected(((DisconnectPacket) packet).getReason());
 		} else if (packet instanceof UserListPacket) {
 			UserListPacket usp = (UserListPacket) packet;
 			String[] names = usp.getUsernames();
 			boolean[] online = usp.getOnline();
 
+			// Informs the GUI of the lisr of users
 			mainGui.updateUserList(names, online);
 
 			// Counts the number of online users
@@ -88,6 +90,7 @@ public class DefaultClientManager implements IClientManager {
 				if (b)
 					count++;
 			}
+			// Informs the GUI of the number of online users
 			mainGui.updateOnlineCount(count, names.length);
 		} else {
 			// Try each packet handler in turn
@@ -106,6 +109,7 @@ public class DefaultClientManager implements IClientManager {
 	}
 
 	private void handleError(String msg) {
+		// Handle errors by displaying reason
 		log.info("Internal Error: " + msg);
 		mainGui.disconnected(msg);
 	}
