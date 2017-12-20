@@ -28,6 +28,7 @@ public class SWTLoader {
 				log.warning("SWTGui should not be installed on a server!");
 			}
 			log.info("Attempting to load SWT");
+			// Selects file based on system
 			String file = "swt-" + context.getOsType() + context.getPlatformArch() + "-" + SWT_VERSION + ".jar";
 			log.info("SWT jar: " + file);
 

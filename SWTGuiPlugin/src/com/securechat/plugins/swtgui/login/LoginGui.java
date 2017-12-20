@@ -37,12 +37,14 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 
 	@Override
 	protected void onOpen() {
+		// Register a connection store listener
 		connectionStore.addUpdateListener(this);
 		updateOptions();
 	}
 
 	@Override
 	public void onConnectionStoreUpdated() {
+		// Updates server list
 		plugin.sync(this::updateOptions);
 	}
 
@@ -50,10 +52,12 @@ public class LoginGui extends GuiBase implements IConnectionStoreUpdateListener 
 	 * Updates the dropdown list of connections
 	 */
 	private void updateOptions() {
+		// Adds each server to the list
 		profiles = connectionStore.getProfiles().toArray(new IConnectionProfile[0]);
 		String[] names = new String[profiles.length];
 		for (int i = 0; i < profiles.length; i++) {
 			IConnectionProfile profile = profiles[i];
+			// Combine server name and account username to give profile name
 			names[i] = profile.getName() + "(" + profile.getUsername() + ")";
 		}
 		Combo combo = shell.getConnectionsCombo();

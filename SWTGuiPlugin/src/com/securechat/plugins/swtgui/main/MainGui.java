@@ -83,6 +83,7 @@ public class MainGui extends GuiBase implements IMainGui {
 			Table table = shell.getUsersTable();
 			table.removeAll();
 
+			// Updates the list of online users
 			for (int i = 0; i < usernames.length; i++) {
 				TableItem item = new TableItem(table, 0);
 				item.setText(new String[] { usernames[i], onlines[i] ? "Online" : "Offline" });
@@ -100,6 +101,7 @@ public class MainGui extends GuiBase implements IMainGui {
 			table.removeAll();
 			chatTableMap.clear();
 
+			// Updates the last of chats
 			for (IChat chat : chats) {
 				chatTableMap.put(chat, new TableItem(table, 0));
 				updateChatUnread(chat);
@@ -115,6 +117,7 @@ public class MainGui extends GuiBase implements IMainGui {
 		if (item == null)
 			return;
 
+		// Updates the number of read messages
 		plugin.sync(() -> {
 			item.setText(new String[] { chat.isUnlocked() ? Integer.toString(chat.getUnread()) : "LOCKED",
 					chat.getOtherUser() });
@@ -132,6 +135,7 @@ public class MainGui extends GuiBase implements IMainGui {
 			return;
 		}
 
+		//Switches to the open chat tab
 		if (instances.containsKey(with)) {
 			ChatInstance instance = instances.get(with);
 			plugin.sync(() -> {
@@ -144,7 +148,8 @@ public class MainGui extends GuiBase implements IMainGui {
 		if (chat == null) {
 			return;
 		}
-
+		
+		//Unlocks the chat
 		while (!chat.isUnlocked()) {
 			InputDialog dialog = new InputDialog(shell, "Secure Chat - Unlock chat",
 					"Your chat with " + with
@@ -219,11 +224,11 @@ public class MainGui extends GuiBase implements IMainGui {
 			return;
 		}
 
-		InputDialog dialog = new InputDialog(shell, "Secure Chat - New chat",
-				"You can protect your new chat with " + with
-						+ " with a password. The other user will also have to type in this password to view the messages you have sent them.\n"
-						+ "If no password is entered, the chat will be left unprotected.",
-				"", text -> "Your chat " + (text.length() > 0 ? "WILL" : "will NOT") + " be protected") {
+		InputDialog dialog = new InputDialog(shell, "Secure Chat - New chat", "You can protect your new chat with "
+				+ with
+				+ " with a password. The other user will also have to type in this password to view the messages you have sent them.\n"
+				+ "If no password is entered, the chat will be left unprotected.", "",
+				text -> "Your chat " + (text.length() > 0 ? "WILL" : "will NOT") + " be protected") {
 			@Override
 			public void setErrorMessage(String errorMessage) {
 				super.setErrorMessage(errorMessage);

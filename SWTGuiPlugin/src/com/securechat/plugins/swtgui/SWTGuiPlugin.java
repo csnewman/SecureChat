@@ -47,6 +47,7 @@ public class SWTGuiPlugin implements IGuiProvider {
 	@Hook(name = "init", hook = Hooks.Init)
 	public void init(IContext context) {
 		IImplementationFactory factory = context.getImplementationFactory();
+		// Registers gui provider
 		factory.registerInstance(PROVIDER_MARKER, IGuiProvider.class, this);
 	}
 
@@ -55,6 +56,8 @@ public class SWTGuiPlugin implements IGuiProvider {
 		display = Display.getDefault();
 
 		new Thread(ready).start();
+
+		// Handles GUI events
 		while (!display.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
