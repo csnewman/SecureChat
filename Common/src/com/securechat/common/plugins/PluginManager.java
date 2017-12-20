@@ -65,7 +65,7 @@ public class PluginManager implements IPluginManager {
 			PluginInstance instance = new PluginInstance(pluginAnnotation, clazz);
 			plugins.add(instance);
 			logger.info("Found plugin " + instance.getFullString());
-			
+
 			instance.createInstance();
 
 			// Checks each method
@@ -84,6 +84,7 @@ public class PluginManager implements IPluginManager {
 				// Bypasses private member protection
 				method.setAccessible(true);
 
+				// Create a new hook instance
 				HookInstance hook = new HookInstance(instance, hookAnnotation, method);
 
 				// Ensures the hooks name is unique
@@ -91,6 +92,7 @@ public class PluginManager implements IPluginManager {
 					throw new RuntimeException("Hook already exists!");
 				}
 
+				// Store the hook
 				hooks.put(hook.getName(), hook);
 				logger.debug("Found hook " + hook.getName());
 			}
@@ -100,8 +102,10 @@ public class PluginManager implements IPluginManager {
 	@Override
 	public void regenerateCache() {
 		hookCache.clear();
+		// Generate each hook
 		for (Hooks hook : Hooks.values()) {
 			List<HookInstance> insts = generateHook(hook);
+			// Store the generated order
 			hookCache.put(hook, insts);
 
 			logger.debug("Plugin hook cache rebuilt for " + hook + "!");
@@ -241,7 +245,7 @@ public class PluginManager implements IPluginManager {
 			return null;
 		}
 	}
-	
+
 	@Override
 	public List<IPluginInstance> getPlugins() {
 		return plugins;

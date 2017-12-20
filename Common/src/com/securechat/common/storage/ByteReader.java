@@ -24,12 +24,15 @@ public class ByteReader implements IByteReader {
 	@Override
 	public void setMemoryInput(byte[] data) {
 		rawData = data;
+		// Wraps access to the byte array in an input stream
 		arrayStream = new ByteArrayInputStream(data);
+		// Wraps stream with a data input stream
 		input = new DataInputStream(arrayStream);
 	}
 
 	@Override
 	public void setInput(InputStream stream) {
+		// Wraps stream with a data input stream
 		input = new DataInputStream(stream);
 	}
 
@@ -108,14 +111,19 @@ public class ByteReader implements IByteReader {
 
 	@Override
 	public IByteReader readReaderWithChecksum() throws IOException {
+		// Reads the checksum and data
 		byte[] foundChecksum = readArray();
 		byte[] content = readArray();
+
+		// calculates checksum of read data
 		byte[] checksum = hasher.hashData(content);
 
+		// Ensures the checksums are equal
 		if (!Arrays.equals(checksum, foundChecksum)) {
 			throw new IOException("Invalid checksum!");
 		}
 
+		// Wraps content in reader
 		ByteReader reader = new ByteReader();
 		reader.setMemoryInput(content);
 		return reader;

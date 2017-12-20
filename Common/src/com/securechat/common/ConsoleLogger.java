@@ -20,6 +20,7 @@ public class ConsoleLogger implements ILogger {
 
 	@Override
 	public void debug(String message) {
+		// Only print debug messages if debug is enabled
 		if (showDebug)
 			System.out.println("[" + side + "] [DEBUG] " + message);
 	}

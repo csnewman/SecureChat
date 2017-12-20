@@ -21,12 +21,15 @@ public class ByteWriter implements IByteWriter {
 
 	@Override
 	public void setMemoryOutput() {
+		// Allocates an in memory byte bound output stream
 		arrayStream = new ByteArrayOutputStream();
+		// Wraps stream with a data output stream
 		output = new DataOutputStream(arrayStream);
 	}
 
 	@Override
 	public void setOutput(OutputStream stream) {
+		// Wraps stream with a data output stream
 		output = new DataOutputStream(stream);
 	}
 

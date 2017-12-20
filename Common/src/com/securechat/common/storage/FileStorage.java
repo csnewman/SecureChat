@@ -43,6 +43,7 @@ public class FileStorage implements IStorage {
 
 	@Override
 	public void init() {
+		// Ensure storage directories exist
 		BASE_FOLDER.mkdirs();
 		PLUGINS_FOLDER.mkdirs();
 	}
@@ -77,6 +78,7 @@ public class FileStorage implements IStorage {
 
 		for (String path : paths) {
 			try {
+				// If the file is a jar file, load it as a plguin
 				if (path.endsWith(".jar") || path.endsWith(".scplugin")) {
 					JarInputStream jis = new JarInputStream(new FileInputStream(path));
 
@@ -114,7 +116,7 @@ public class FileStorage implements IStorage {
 					List<String> found = Files.walk(Paths.get(sDir.toURI())).filter(Files::isRegularFile)
 							// Filter only classes
 							.filter(p -> p.toString().endsWith(".class")).map(p -> p.toFile().getAbsolutePath())
-							// CLeans the file name
+							// Cleans the file name
 							.map(s -> s.substring(basePath.length() + 1))
 							.map(s -> s.replaceAll("/", ".").replaceAll("\\\\", ".").replace(".class", ""))
 							.collect(Collectors.toList());
@@ -130,6 +132,7 @@ public class FileStorage implements IStorage {
 	@Override
 	public void installPlugin(String path) {
 		try {
+			// Copies plugin from path to the plugins folder, updating the plugin if needed
 			File file = getPath(path);
 			Files.copy(file.toPath(), new File(PLUGINS_FOLDER, file.getName()).toPath(),
 					StandardCopyOption.REPLACE_EXISTING);
@@ -154,6 +157,7 @@ public class FileStorage implements IStorage {
 			// Loads the class
 			Class clazz = Class.forName(name);
 			Object inst = clazz.newInstance();
+			// Inject into loader class
 			factory.inject(inst);
 			// Calls the load function
 			clazz.getDeclaredMethod("load").invoke(inst);
@@ -166,6 +170,7 @@ public class FileStorage implements IStorage {
 	@Override
 	public JSONObject readJsonFile(String path) {
 		try {
+			// Reads file and converts it into a json object
 			return new JSONObject(new String(Files.readAllBytes(getPath(path).toPath())));
 		} catch (JSONException | IOException e) {
 			e.printStackTrace();
@@ -176,10 +181,14 @@ public class FileStorage implements IStorage {
 	@Override
 	public IByteReader readFile(String path, IEncryption encryption) {
 		try {
+			// Loads the file
 			byte[] data = Files.readAllBytes(getPath(path).toPath());
+
+			// Decrpys the data if needed
 			if (encryption != null)
 				data = encryption.decrypt(data);
 
+			// Wrap the raw content with a reader
 			if (factory == null) {
 				ByteReader reader = new ByteReader();
 				reader.setMemoryInput(data);
@@ -196,10 +205,13 @@ public class FileStorage implements IStorage {
 	@Override
 	public void writeJsonFile(String path, JSONObject obj) {
 		try {
+			// Makes the needed folders
 			File loc = getPath(path);
 			loc.getParentFile().mkdirs();
 
+			// Writes the json object to the file
 			FileWriter writer = new FileWriter(loc);
+			// Use 4 space tabs
 			writer.write(obj.toString(4));
 			writer.close();
 		} catch (IOException e) {
@@ -210,12 +222,18 @@ public class FileStorage implements IStorage {
 	@Override
 	public void writeFile(String path, IEncryption encryption, IByteWriter writer) {
 		try {
+			// Makes the needed folders
 			File loc = getPath(path);
 			loc.getParentFile().mkdirs();
 
+			// Converts the writer to raw bytes
 			byte[] data = writer.toByteArray();
+
+			// Encrypts the data if needed
 			if (encryption != null)
 				data = encryption.encrypt(data);
+
+			// Flushes the data to disk
 			Files.write(loc.toPath(), data);
 		} catch (Exception e) {
 			e.printStackTrace();

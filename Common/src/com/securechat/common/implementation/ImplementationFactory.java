@@ -64,6 +64,7 @@ public class ImplementationFactory implements IImplementationFactory {
 						field.set(obj, value);
 					}
 				} catch (Exception e) {
+					// Ignore errors when injecting into field
 					e.printStackTrace();
 				}
 
@@ -113,6 +114,7 @@ public class ImplementationFactory implements IImplementationFactory {
 	public <T> T get(Class<T> type, boolean provide) {
 		// Checks if an instance should be generated
 		if (!instances.containsKey(type) && provide) {
+			// Generates a new instance and stores it
 			instances.put(type, provide((Class) type));
 		}
 		return (T) instances.get(type);
@@ -120,13 +122,16 @@ public class ImplementationFactory implements IImplementationFactory {
 
 	@Override
 	public <T> void set(Class<T> type, T instance) {
+		// Stores the instance for that type
 		instances.put(type, instance);
 	}
 
 	@Override
 	public <T extends IImplementation> ImplementationInstance<T> registerInstance(ImplementationMarker marker,
 			Class<T> type, T inst) {
+		// Injects into the instance
 		inject(inst);
+		// Registers the instance
 		return register(marker, type, () -> inst, false);
 
 	}
@@ -134,25 +139,31 @@ public class ImplementationFactory implements IImplementationFactory {
 	@Override
 	public <T extends IImplementation> ImplementationInstance<T> register(ImplementationMarker marker, Class<T> type,
 			Supplier<? extends T> supplier) {
+		// Registers the instance, marked for injection
 		return register(marker, type, supplier, true);
 	}
 
 	@Override
 	public <T extends IImplementation> ImplementationInstance<T> register(ImplementationMarker marker, Class<T> type,
 			Supplier<? extends T> supplier, boolean inject) {
+		// Get the map of implementations for that type
 		Map<ImplementationMarker, IImplementationInstance<? extends T>> map = getImplementations(type);
+		// Creates a new implementation instance
 		ImplementationInstance<T> implementation = new ImplementationInstance<T>(marker, type, supplier, inject);
+		// Adds the implementation to the map
 		map.put(marker, implementation);
 		return implementation;
 	}
 
 	@Override
 	public <T extends IImplementation> T provide(Class<T> type) {
+		// Creates an instance of the provided type
 		return provide(type, new ImplementationMarker[0], true);
 	}
 
 	@Override
 	public <T extends IImplementation> T provide(Class<T> type, ImplementationMarker marker) {
+		// Creates an instance of the provided type, using the specific implementation
 		return provide(type, new ImplementationMarker[] { marker }, false);
 	}
 
@@ -163,6 +174,8 @@ public class ImplementationFactory implements IImplementationFactory {
 
 		// Gets the implementation
 		Map<ImplementationMarker, IImplementationInstance<? extends T>> implementations = getImplementations(type);
+
+		// Gets the provider of the type
 		ImplementationMarker provider = getProvider(type, providers, allowDefault);
 
 		log.debug("Implementations: " + implementations);
@@ -174,9 +187,13 @@ public class ImplementationFactory implements IImplementationFactory {
 			return null;
 		}
 
-		// Configures the implementation
+		// Gets the implementation
 		IImplementationInstance<? extends T> implementation = implementations.get(provider);
+
+		// Creates a new instance
 		T value = implementation.provide();
+
+		// Injects if needed
 		if (implementation.shouldInject()) {
 			inject(value);
 		}
@@ -221,7 +238,9 @@ public class ImplementationFactory implements IImplementationFactory {
 	@Override
 	public <T extends IImplementation> Map<ImplementationMarker, IImplementationInstance<? extends T>> getImplementations(
 			Class<T> type) {
+		// Checks if a map exists
 		if (!implementations.containsKey(type)) {
+			// Create a new map
 			implementations.put(type, (Map) new HashMap<String, ImplementationInstance<T>>());
 		}
 		return (Map) implementations.get(type);
@@ -239,27 +258,33 @@ public class ImplementationFactory implements IImplementationFactory {
 
 	@Override
 	public <T extends IImplementation> void setDefault(Class<T> type, ImplementationMarker marker) {
+		// Sets the default marker
 		defaults.put(type.getName(), marker);
+		// Creates a config property to store default
 		CollectionProperty property = new CollectionProperty(type.getName());
 		log.debug("Setting default for " + type.getName() + " to " + defaults.get(type.getName()));
+		// Stores the property
 		baseCollection.set(property, defaults.get(type.getName()).toJSON());
 	}
 
 	@Override
 	public <T extends IImplementation> ImplementationMarker getDefault(Class<T> type) {
 		CollectionProperty property = new CollectionProperty(type.getName());
+		// Check if no property exists
 		if (!baseCollection.exists(property)) {
-
 			Map map = getImplementations(type);
 			if (map.size() > 0) {
+				// Selects the first implementation
 				ImplementationMarker marker = ((ImplementationInstance<? extends T>) map.values().iterator().next())
 						.getMarker();
+				// Sets it as the default
 				setDefault(type, marker);
 				return marker;
 			}
 
 			return null;
 		}
+		// Loads the property
 		return ImplementationMarker.loadMarker(baseCollection.get(property));
 	}
 
