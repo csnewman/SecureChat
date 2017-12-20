@@ -64,6 +64,8 @@ public class SecureChatServer implements IContext {
 		// Configures the implementation factory
 		implementationFactory = new ImplementationFactory(logger,
 				settingsCollection.getPermissive(IMPLEMENTATIONS_PROPERTY));
+
+		// Sets the default instances
 		implementationFactory.set(IContext.class, this);
 		implementationFactory.set(IStorage.class, storage);
 		implementationFactory.set(ILogger.class, logger);
@@ -82,6 +84,7 @@ public class SecureChatServer implements IContext {
 
 		// Loads the plugins
 		pluginManager.loadPlugins();
+		// Regenerate the hook cache
 		pluginManager.regenerateCache();
 
 		// Runs the early init pass
@@ -91,8 +94,11 @@ public class SecureChatServer implements IContext {
 
 		// Reconfigures the logger with a new implementation
 		logger = implementationFactory.provide(ILogger.class);
+		// Store the instance
 		implementationFactory.set(ILogger.class, logger);
+		// Initialise the instance
 		logger.init(this, showDebug);
+		// Test the instance
 		logger.debug("Logger provider: " + logger);
 
 		// Runs the init
@@ -143,10 +149,14 @@ public class SecureChatServer implements IContext {
 		PropertyCollection profileCollection = serverCollection.getPermissive(PROFILE_PROPERTY);
 		if (profileCollection.get(GENERATE_PROPERY)) {
 			logger.info("Generating connection profile");
+			// Finds the provider
 			IConnectionProfileProvider provider = implementationFactory.get(IConnectionProfileProvider.class, true);
+			// Generates profile
 			IConnectionProfile profile = networkManager.generateProfile(provider);
+			// Encrypts profile
 			IPasswordEncryption passwordEncryption = implementationFactory.provide(IPasswordEncryption.class);
 			passwordEncryption.init(profileCollection.get(PASSWORD_PROPERY).toCharArray());
+			// Saves profile to disk
 			provider.saveProfileToFIle(profile, storage, "profile.sccp", passwordEncryption);
 		}
 
@@ -183,10 +193,12 @@ public class SecureChatServer implements IContext {
 
 	@Override
 	public void handleCrash(Throwable reason) {
+		// Outputs the crash log to the console
 		logger.error("A crash has occured!");
 		logger.error("Type: " + reason.getClass());
 		logger.error("Message: " + reason.getMessage());
 
+		// Prints a trace of all method calls upto this point
 		logger.error("Crash handle trace");
 		StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
 		for (StackTraceElement e : stacktrace) {
@@ -194,6 +206,7 @@ public class SecureChatServer implements IContext {
 					+ e.getLineNumber() + ")");
 		}
 
+		// Print the stacktrace of the error
 		logger.error("Error Trace: ");
 		stacktrace = reason.getStackTrace();
 		for (StackTraceElement e : stacktrace) {
@@ -204,6 +217,8 @@ public class SecureChatServer implements IContext {
 			logger.error("Internal message:");
 			reason.printStackTrace(System.out);
 		}
+
+		// Quits
 		exit();
 	}
 
@@ -271,12 +286,15 @@ public class SecureChatServer implements IContext {
 	}
 
 	public static void main(String[] args) {
+		// Checks if a console exists
 		Console console = System.console();
 		char[] password;
 		if (console == null) {
+			// Running inside IDE, so use a default test password
 			System.out.println("No console found! Using default 'test' password for master keystore");
 			password = new char[] { 't', 'e', 's', 't' };
 		} else {
+			// Gets the user defined password
 			password = console.readPassword("Master Keystore Password: ");
 		}
 
