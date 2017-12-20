@@ -149,7 +149,7 @@ public class SqlDatabase implements IDatabase {
 	private static final CollectionProperty SQL_PROPERTY;
 	static {
 		MARKER = new ImplementationMarker(SqlDatabasePlugin.NAME, SqlDatabasePlugin.VERSION, "sql_database", "1.0.0");
-		CONNECTION_URL_PROPERY = new PrimitiveProperty<String>("connection-url", "^[a-zA-Z]\\w*$");
+		CONNECTION_URL_PROPERY = new PrimitiveProperty<String>("connection-url", "{connection url}");
 		SQL_PROPERTY = new CollectionProperty("sql-database", CONNECTION_URL_PROPERY);
 	}
 
