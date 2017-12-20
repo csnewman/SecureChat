@@ -137,6 +137,10 @@ public class ObjectDataInstance {
 		return format.validate(this);
 	}
 
+	/**
+	 * Returns a map of all keys and values
+	 * @return
+	 */
 	public Map<String, Object> getValues() {
 		return values;
 	}
