@@ -21,6 +21,7 @@ public class JavaSecurityPlugin {
 	@Hook(name = "init", hook = Hooks.Init)
 	public void init(IContext context) {
 		IImplementationFactory factory = context.getImplementationFactory();
+		// Registers the different forms of encryption
 		factory.register(PasswordEncryption.MARKER, IPasswordEncryption.class, PasswordEncryption::new);
 		factory.register(RSAEncryption.MARKER, IAsymmetricKeyEncryption.class, RSAEncryption::new);
 		factory.register(BasicKeystore.MARKER, IKeystore.class, BasicKeystore::new);

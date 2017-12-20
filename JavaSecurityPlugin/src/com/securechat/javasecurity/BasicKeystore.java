@@ -38,6 +38,7 @@ public class BasicKeystore implements IKeystore {
 			throw new RuntimeException("Keystore already loaded!");
 		}
 		log.debug("Creating keystore");
+		// Initialise encryption with the password
 		passwordEncryption.init(password);
 
 		asymmetricPrivateKeys = new HashMap<String, byte[]>();
@@ -60,8 +61,10 @@ public class BasicKeystore implements IKeystore {
 				byte[] pub = asymmetricPublicKeys.get(name);
 				byte[] pri = asymmetricPrivateKeys.get(name);
 
+				// Writes the keyname
 				body.writeString(name);
 
+				// Writes the public key
 				if (pub != null) {
 					body.writeBoolean(true);
 					body.writeArray(pub);
@@ -69,6 +72,7 @@ public class BasicKeystore implements IKeystore {
 					body.writeBoolean(false);
 				}
 
+				// Writes the private key
 				if (pri != null) {
 					body.writeBoolean(true);
 					body.writeArray(pri);
@@ -77,8 +81,10 @@ public class BasicKeystore implements IKeystore {
 				}
 			}
 
+			// Wraps the data with a checksum
 			IByteWriter finalData = IByteWriter.get(factory);
 			finalData.writeWriterWithChecksum(body);
+			// Flushes the data to disk
 			storage.writeFile(PATH, passwordEncryption, finalData);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -92,11 +98,13 @@ public class BasicKeystore implements IKeystore {
 		}
 		log.debug("Loading keystore");
 		try {
+			// Initialise encryption with the password
 			passwordEncryption.init(password);
 
 			asymmetricPrivateKeys = new HashMap<String, byte[]>();
 			asymmetricPublicKeys = new HashMap<String, byte[]>();
 
+			// Load data from disk
 			IByteReader fileData = storage.readFile(PATH, passwordEncryption);
 			if (fileData == null) {
 				return false;
@@ -110,10 +118,12 @@ public class BasicKeystore implements IKeystore {
 				String name = content.readString();
 				byte[] pub = null, pri = null;
 
+				// Read public key
 				if (content.readBoolean()) {
 					pub = content.readArray();
 				}
 
+				// Read private key
 				if (content.readBoolean()) {
 					pri = content.readArray();
 				}

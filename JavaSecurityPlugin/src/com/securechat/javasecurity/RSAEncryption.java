@@ -49,6 +49,7 @@ public class RSAEncryption implements IAsymmetricKeyEncryption {
 	public void generate() {
 		try {
 			lock.lock();
+			//Generates a new RSA pair
 			KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
 			generator.initialize(KEY_SIZE);
 			KeyPair pair = generator.generateKeyPair();
