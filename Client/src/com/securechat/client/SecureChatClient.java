@@ -57,6 +57,8 @@ public class SecureChatClient implements IContext {
 
 		// Configures the implementation factory
 		implementationFactory = new ImplementationFactory(logger, settings.getPermissive(IMPLEMENTATIONS_PROPERTY));
+
+		// Sets the default instances
 		implementationFactory.set(IContext.class, this);
 		implementationFactory.set(IStorage.class, storage);
 		implementationFactory.set(ILogger.class, logger);
@@ -75,6 +77,7 @@ public class SecureChatClient implements IContext {
 
 		// Loads the plugins
 		pluginManager.loadPlugins();
+		// Regenerate the hook cache
 		pluginManager.regenerateCache();
 
 		// Runs the early init pass
@@ -84,8 +87,11 @@ public class SecureChatClient implements IContext {
 
 		// Reconfigures the logger with a new implementation
 		logger = implementationFactory.provide(ILogger.class);
+		// Store the instance
 		implementationFactory.set(ILogger.class, logger);
+		// Initialise the instance
 		logger.init(this, showDebug);
+		// Test the instance
 		logger.debug("Logger provider: " + logger);
 
 		// Runs the init and late init passes
@@ -116,7 +122,9 @@ public class SecureChatClient implements IContext {
 			// Unlocks the keystore using the GUI prompt
 			IKeystoreGui kgui = gui.getKeystoreGui();
 			kgui.init(keystore);
+			// Opens the keystore gui
 			kgui.open();
+			// Waits until the gui has completed
 			kgui.awaitClose();
 
 			// Configures the connection store
@@ -162,6 +170,7 @@ public class SecureChatClient implements IContext {
 		logger.error("Type: " + reason.getClass());
 		logger.error("Message: " + reason.getMessage());
 
+		// Prints a trace of all method calls upto this point
 		logger.error("Crash handle trace");
 		StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
 		for (StackTraceElement e : stacktrace) {
@@ -169,6 +178,7 @@ public class SecureChatClient implements IContext {
 					+ e.getLineNumber() + ")");
 		}
 
+		// Print the stacktrace of the error
 		logger.error("Error Trace: ");
 		stacktrace = reason.getStackTrace();
 		for (StackTraceElement e : stacktrace) {
