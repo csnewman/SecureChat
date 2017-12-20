@@ -73,8 +73,10 @@ public class SqlTable implements ITable {
 	public ObjectDataInstance[] getAllRows() {
 		DatabaseConnection connection = database.createConnection();
 		try {
+			// Fetches all rows
 			PreparedStatement statement = connection.getStatement("SELECT * FROM " + name);
 			ResultSet set = statement.executeQuery();
+			// Adds all results
 			ArrayList<ObjectDataInstance> results = new ArrayList<ObjectDataInstance>();
 			while (set.next())
 				results.add(convert(set));
@@ -106,8 +108,10 @@ public class SqlTable implements ITable {
 
 	private ObjectDataInstance convert(ResultSet set) {
 		try {
+			// Creates new data instance
 			ObjectDataInstance instance = new ObjectDataInstance(dataFormat);
 			for (String field : dataFormat.getNames()) {
+				// Deserialises each field
 				instance.setField(field, database.sqlDeserialise(dataFormat.getFormat(field), set.getObject(field)));
 			}
 			return instance;

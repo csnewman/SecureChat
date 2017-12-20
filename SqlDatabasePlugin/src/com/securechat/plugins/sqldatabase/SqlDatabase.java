@@ -54,14 +54,19 @@ public class SqlDatabase implements IDatabase {
 
 	@Override
 	public void createTable(String name, ObjectDataFormat format) {
+		// Stores the format
 		PropertyCollection collection = context.getSettings().getPermissive(SQL_PROPERTY);
 		collection.set(new PrimitiveProperty<String>(name), format.toJSON().toString());
 		context.saveSettings();
 
+		// Creates the SQL operation
 		String operation = "CREATE TABLE " + name + " (";
+
+		// Add primary key
 		String primary = format.getPrimary();
 		operation += primary + " " + getSqlType(format.getFormat(primary)) + " NOT NULL PRIMARY KEY UNIQUE";
 
+		// Add other fields
 		for (String field : format.getNames()) {
 			if (field.equals(primary))
 				continue;
@@ -71,6 +76,7 @@ public class SqlDatabase implements IDatabase {
 
 		DatabaseConnection c = createConnection();
 		try {
+			// Executes statement
 			c.getStatement(operation).execute();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
@@ -113,9 +119,11 @@ public class SqlDatabase implements IDatabase {
 
 	@Override
 	public ITable getTable(String name) {
+		// Loads the format
 		PropertyCollection collection = context.getSettings().getPermissive(SQL_PROPERTY);
 		ObjectDataFormat format = new ObjectDataFormat(
 				new JSONObject(collection.get(new PrimitiveProperty<String>(name))));
+		// Creates a table instance
 		return new SqlTable(this, name, format);
 	}
 

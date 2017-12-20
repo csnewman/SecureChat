@@ -24,6 +24,7 @@ public class SqlDatabasePlugin {
 
 	@Hook(name = "init-server", hook = Hooks.Init, after = NAME + "/init", side = Sides.Server)
 	public void initServer(IContext context) {
+		// Registers the sql database implementation
 		factory.register(SqlDatabase.MARKER, IDatabase.class, SqlDatabase::new);
 	}
 }

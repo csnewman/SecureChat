@@ -30,6 +30,7 @@ public class DatabaseConnection {
 
 		if (closed) {
 			try {
+				// Opens the connection
 				connection = DriverManager.getConnection(connectionUrl);
 			} catch (SQLException e) {
 				throw new RuntimeException("Failed to connect to database", e);
@@ -60,6 +61,7 @@ public class DatabaseConnection {
 	}
 
 	public void close() {
+		// Close all open statements
 		for (Statement statement : directStatements) {
 			try {
 				statement.close();
@@ -68,6 +70,7 @@ public class DatabaseConnection {
 		}
 		directStatements.clear();
 
+		// Close the connection
 		try {
 			connection.close();
 		} catch (SQLException e) {
