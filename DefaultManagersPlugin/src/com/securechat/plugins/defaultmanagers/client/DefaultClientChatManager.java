@@ -158,6 +158,7 @@ public class DefaultClientChatManager implements IClientChatManager, IPacketHand
 
 			// Imports the messages into the chat
 			chat.importMessages(messages, mhp.getLastId());
+			return true;
 		} else if (packet instanceof NewMessagePacket) {
 			NewMessagePacket nmp = (NewMessagePacket) packet;
 
